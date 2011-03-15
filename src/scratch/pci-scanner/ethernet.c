@@ -2,7 +2,7 @@
 #include "pci.h"
 #include "c_io.h"
 
-struct ethernet_t _eth0;
+struct pci_device_t _eth0;
 
 int init_ethernet(unsigned int vendor, unsigned int device){
 	_eth0.config.vendorId = vendor;
