@@ -1,1 +1,1 @@
-Testing again again
+all: Testing again again
