@@ -1,0 +1,14 @@
+1) 64bit OS
+  - Secondary Bootstrap
+2) Terminal Debugger
+3) Speed Limiter
+4) Virtual Memory (Paging)
+5) Heap Manager
+6) Messaging
+7) Process Migration
+8) Tools/Utilites
+  - ps
+  - top
+9) Disk Driver
+  - Filesystem
+10) VGA drivers
