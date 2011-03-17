@@ -60,6 +60,9 @@ struct _FAT64_Config {
 	
 	/** location of the cluster table */
 	uint64_t cluster_table;
+	
+	/** initial sector location of volume */
+	uint8_t volume_location;
 };
 
 #endif
