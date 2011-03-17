@@ -1,8 +1,7 @@
 #ifndef FAT64_H
 #define FAT64_H
 
-typedef unsigned long uint64_t;
-typedef unsigned char uint8_t;
+#include "../../include/types.h"
 
 typedef struct _FAT64_Directory_Entry FAT64_Directory_Entry;
 typedef struct _FAT64_Config FAT64_Config;
