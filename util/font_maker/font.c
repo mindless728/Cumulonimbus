@@ -17,15 +17,13 @@ int main( int argc, char** argv ) {
     int width;
     int height;
     fscanf( font, "%d %d", &width, &height );
-    printf( "#include <gs_font.h>\n\n" ); 
-    printf( "pixel_t font[256][%d][%d];\n", width, height );
     int num;
     printf( "void _init_font() {\n" );
     while( fscanf( font, "%d", &num ) != EOF ) {
         int i = 0;
         int j = 0;
         char c = 0;
-        int output;
+        short output;
         for( i = 0; i < height; ++i ) {
             for( j = 0; j < width; ++j ) {
                 do {
@@ -36,7 +34,7 @@ int main( int argc, char** argv ) {
                 } else {
                    output = 0;
                 }   
-                printf( "  font[%d][%d][%d] = 0x%x\n", num, i, j, output );
+                printf( "  font[%d][%d][%d] = 0x%x;\n", num, j, i, output&0xFFFF );
             }
         }
         printf( "\n" );
