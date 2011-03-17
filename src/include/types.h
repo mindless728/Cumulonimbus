@@ -52,6 +52,8 @@ typedef uint64_t	qword_t;
 
 typedef uint8_t		boolean_t;
 
+typedef int32_t		status_t;
+
 #endif
 
 #endif
