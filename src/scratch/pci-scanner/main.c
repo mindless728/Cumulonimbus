@@ -28,10 +28,12 @@ void timer_handler(int vector, int code);
 
 
 int clockTicks=0;
-
+int animOverride=0;
 
 
 extern struct MandelbrotInfo mbInfo;
+
+pci_device_list_t* pciDevices = NULL;
 
 int main( void ) {
 	c_puts( "Clearing screen\n");
@@ -39,7 +41,7 @@ int main( void ) {
 	c_clearscreen();
 
 
-	if(init_ethernet(0x8086, 0x1229) == 0){
+	/*if(init_ethernet(0x8086, 0x1229) == 0){
 		c_printf("Ethenet 0x1229 detected, w00t!\n");
 		c_getchar();
 	}
@@ -50,17 +52,43 @@ int main( void ) {
 	else{
 		c_printf("Ethernet Initialization failed to find device!\n");
 		c_getchar();
+	}*/
+
+
+	_pci_alloc_device_list(&pciDevices);
+
+	//c_printf("pciDevices 0x%x\n", pciDevices);
+
+	status_t status = _pci_scan(pciDevices);
+
+	if(status != E_SUCCESS){
+		c_printf("PCI bus scan failed with error 0x%x\n", status);
+		while(1);
 	}
 
-	asm("sti");
+	c_printf("Detected %d PCI devices\n", pciDevices->size);
 
-	pciScan();
+	c_getchar();
+
+	pci_device_t* dev = pciDevices->first;
+
+	while(dev!=NULL){
+		_pci_print_config(dev);
+		c_getchar();
+
+		dev = dev->next;
+	}
+
+
 
 	c_puts( "Installing interrupt handlers...\n" );
 	__install_isr(INT_VEC_TIMER, timer_handler);
 	__install_isr(INT_VEC_KEYBOARD, keyboard_handler);
 
+
 	drawMandelbrot();
+
+	asm("sti");
 
 
 	while(1){
@@ -77,6 +105,11 @@ int main( void ) {
 void timer_handler(int vector, int code){
 	//c_printf("timer_handler vector=%d code=%d\n", vector, code);
 	clockTicks++;
+
+	if(animOverride==0){
+		animateMandelbrot();
+	}
+
 	c_printf_at(0, 0, "%d ms", TIMER_MS_PER_TICK*clockTicks);
 	clear_interrupt(vector);
 }

@@ -1,95 +1,133 @@
+#include "types.h"
+#include "kalloc.h"
+#include "utils.h"
 #include "pci.h"
 #include "startup.h"
 #include "c_io.h"
 
-void pciScan(){
 
+
+status_t _pci_alloc_device(pci_device_t** dev){
+	*dev = (pci_device_t*) kalloc(sizeof(pci_device_t));
+	memset(*dev, 0x00, sizeof(pci_device_t));
+
+	c_printf("_pci_alloc_device 0x%x\n", *dev);
+
+	return E_SUCCESS;
+}
+
+
+status_t _pci_alloc_device_list(pci_device_list_t** list){
+	*list = (pci_device_list_t*) kalloc(sizeof(pci_device_list_t));
+
+	c_printf("_pci_alloc_device_list 0x%x\n", *list);
+
+	memset(*list, 0x00, sizeof(pci_device_list_t));
+
+	return E_SUCCESS;
+}
+
+status_t _pci_scan(pci_device_list_t* list){
+	status_t status = E_SUCCESS;
 	int slot = 0;
 	int bus = 0;
-	struct PCIAddr addr;
-	struct PCIConfig config;
+	pci_addr_t addr;
+	pci_config_t config;
 
 	addr.offset=0;
 	addr.func=0;
 
+	list->first=NULL;
+	list->last=NULL;
+
 	for(bus=0; bus<4; bus++){
 
-		c_printf("Scanning PCI Bus %d\n", bus);
+		//c_printf("Scanning PCI Bus %d\n", bus);
 
 		addr.bus=bus;
 		for(slot=0; slot<0x1f; slot++){
 			addr.slot = slot;
 			addr.func = 0;
 
-			pciReadConfig(addr, &config);
+			//pciReadConfig(addr, &config);
+			status = _pci_read_config(addr, &config);
 
-			if(config.deviceId!=0xffff){
-				c_printf("------------------------------\n");
-				c_printf("Bus=%d Slot=%d Func=%d\n", addr.bus, addr.slot, addr.func);
-				printPciConfig(&config, &addr);
+			if(status != E_SUCCESS){
+				break;
+			}
+			else if(config.deviceId!=0xffff){
+				//Found valid device
+				//c_printf("Device found in slot %d\n", addr.slot);
+
+				pci_device_t* device=NULL;
+				_pci_alloc_device(&device);
+
+				device->address = addr;
+				device->config = config;
+				if(device->config.headerType == 0x00){
+					_pci_read_bar_size(device, &device->memory_space);
+				}
+
+				status = _pci_append_device(list, device);
+				if(status != E_SUCCESS){
+					return status;
+				}
 
 				if(config.headerType & 0x80){
-					c_printf("Has secondary functions\n");
-					c_getchar();
-
+					//Device may support secondary functions
 					int func=1;
+
+					//Scan for secondary functions
 					for(func=1; func<3; func++){
 						addr.func = func;
-						pciReadConfig(addr, &config);
-						if(config.deviceId != 0xffff){
-							c_printf("Bus=%d Slot=%d Func=%d\n", addr.bus, addr.slot, addr.func);
-							printPciConfig(&config, &addr);
-							c_getchar();
+						status = _pci_read_config(addr, &config);
+
+						if(status != E_SUCCESS){
+							return status;
+						}
+						else if(config.deviceId != 0xffff){
+							//Found valid device
+							_pci_alloc_device(&device);
+
+							device->address = addr;
+							device->config = config;
+							if(device->config.headerType == 0x00){
+								_pci_read_bar_size(device, &device->memory_space);
+							}
+
+							status = _pci_append_device(list, device);
+							if(status != E_SUCCESS){
+								return status;
+							}
 						}
 					}
 				}
-				else{
-					c_getchar();
-				}
 			}
-
-			/*unsigned long temp=0;
-			temp = pciConfigReadWord(bus, slot, 0, 0x00);
-
-			if(temp != 0xffffffff){
-				c_printf("------------------------------\n");
-				c_printf("Found device on bus=%d slot=%d\n", bus, slot);
-				c_printf("    DeviceId:  0x%x\n", temp>>16);
-				c_printf("    VendorId:  0x%x\n", temp&0xffff);
-
-				temp = pciConfigReadWord(bus, slot, 0, 0x08);
-				c_printf("    ClassCode: 0x%x\n", temp>>24);
-				c_printf("    SubClass:  0x%x\n", (temp>>16)&0xff);
-				c_printf("    Revision:  0x%x\n", temp&0xff);
-
-				temp = pciConfigReadWord(bus, slot, 0, 0x0c);
-				c_printf("    Header:    0x%x\n", (temp>>16)&0xff);
-
-				c_getchar();
-			}*/
 		}
 	}
+
+	return status;
 }
 
 
-int pciFindDevice(struct PCIConfig* config, struct PCIAddr* addr){
+/*int pciFindDevice(pci_device_t* device){
 	int slot = 0;
 	int bus = 0;
-	struct PCIAddr tempAddr;
+	pci_device_t tempDev;
 
-	tempAddr.offset=0;
-	tempAddr.func=0;
+	tempDev.address.offset=0;
+	tempDev.address.func=0;
 
 	for(bus=0; bus<4; bus++){
 
-		tempAddr.bus=bus;
+		tempDev.address.bus=bus;
 		for(slot=0; slot<0x1f; slot++){
-			tempAddr.slot = slot;
-			tempAddr.func = 0;
+			tempDev.address.slot = slot;
+			tempDev.address.func = 0;
 
-			tempAddr.offset = 0x00;
-			unsigned int vendor_dev_id = pciReadLong(1, tempAddr);
-			if(vendor_dev_id == *((unsigned int*)config)){
+			tempDev.address.offset = 0x00;
+			unsigned int vendor_dev_id = pciReadLong(1, tempDev.address);
+			if(vendor_dev_id == *((unsigned int*)device->config)){
 				pciReadConfig(tempAddr, config);
 				*addr = tempAddr;
 				return 0;
@@ -97,25 +135,25 @@ int pciFindDevice(struct PCIConfig* config, struct PCIAddr* addr){
 		}
 	}
 	return -1;
-}
+}*/
 
-void printPciConfig(struct PCIConfig* config, struct PCIAddr* addr){
-	c_printf("    DeviceId:  0x%x\n", config->deviceId);
-	c_printf("    VendorId:  0x%x\n", config->vendorId);
-	c_printf("    Status:    0x%x\n", config->status);
-	c_printf("    Command:   0x%x\n", config->command);
-	c_printf("    Class:     0x%x\n", config->classCode);
-	c_printf("    SubClass:  0x%x\n", config->subClass);
-	c_printf("    ProgIF:    0x%x\n", config->progIF);
-	c_printf("    Revision:  0x%x\n", config->revisionId);
-	c_printf("    BIST:      0x%x\n", config->bist);
-	c_printf("    Header:    0x%x\n", config->headerType);
-	c_printf("    Latency:   0x%x\n", config->latencyTimer);
-	c_printf("    CacheSize: 0x%x\n", config->cacheLineSize);
-	if(config->headerType == 0x00){
-		c_printf("    BAR0:      0x%x\n", config->headers.type0.bar0);
-		unsigned int bar0Size = pciGetBARSize(*addr, config);
-		c_printf("    BAR0_Size: %d\n", bar0Size);
+void _pci_print_config(pci_device_t* device){
+	c_printf("Bus=%d Slot=%d Func=%d\n", device->address.bus, device->address.slot, device->address.func);
+	c_printf("    DeviceId:  0x%x\n", device->config.deviceId);
+	c_printf("    VendorId:  0x%x\n", device->config.vendorId);
+	c_printf("    Status:    0x%x\n", device->config.status);
+	c_printf("    Command:   0x%x\n", device->config.command);
+	c_printf("    Class:     0x%x\n", device->config.classCode);
+	c_printf("    SubClass:  0x%x\n", device->config.subClass);
+	c_printf("    ProgIF:    0x%x\n", device->config.progIF);
+	c_printf("    Revision:  0x%x\n", device->config.revisionId);
+	c_printf("    BIST:      0x%x\n", device->config.bist);
+	c_printf("    Header:    0x%x\n", device->config.headerType);
+	c_printf("    Latency:   0x%x\n", device->config.latencyTimer);
+	c_printf("    CacheSize: 0x%x\n", device->config.cacheLineSize);
+	if(device->config.headerType == 0x00){
+		c_printf("    BAR0:      0x%x\n", device->config.headers.type0.bar0);
+		c_printf("    BAR0_Size: %d\n", device->memory_space);
 	}
 }
 
@@ -143,7 +181,13 @@ unsigned short pciReadShort(unsigned char configAddr, struct PCIAddr addr){
 	return (__inw(CONFIG_DATA) >> (addr.offset & 2)*8);
 }*/
 
-unsigned int pciReadLong(unsigned char configAddr, struct PCIAddr addr){
+
+status_t _pci_read_long(unsigned char configAddr, pci_addr_t addr, uint32_t* value){
+
+	if(value == NULL){
+		return E_BAD_PARAM;
+	}
+
 	unsigned int bus = ((unsigned int)addr.bus) << 16;
 	unsigned int slot = ((unsigned int)addr.slot & 0x3f) << 11;
 	unsigned int func = ((unsigned int)addr.func & 0x03) << 8;
@@ -152,10 +196,12 @@ unsigned int pciReadLong(unsigned char configAddr, struct PCIAddr addr){
 
 	__outl(PCI_CONFIG_ADDRESS, address);
 
-	return ((unsigned int)__inl(PCI_CONFIG_DATA));
+	*value = ((unsigned int)__inl(PCI_CONFIG_DATA));
+
+	return E_SUCCESS;
 }
 
-void pciWriteLong(unsigned char configAddr, struct PCIAddr addr, unsigned int value){
+status_t _pci_write_long(unsigned char configAddr, pci_addr_t addr, uint32_t value){
 	unsigned int bus = ((unsigned int)addr.bus) << 16;
 	unsigned int slot = ((unsigned int)addr.slot & 0x3f) << 11;
 	unsigned int func = ((unsigned int)addr.func & 0x03) << 8;
@@ -164,70 +210,110 @@ void pciWriteLong(unsigned char configAddr, struct PCIAddr addr, unsigned int va
 
 	__outl(PCI_CONFIG_ADDRESS, address);
 	__outl(PCI_CONFIG_DATA, value);
+	return E_SUCCESS;
 }
 
-void pciReadConfig(struct PCIAddr addr, struct PCIConfig* config){
+
+status_t _pci_read_config(pci_addr_t addr, pci_config_t* config){
 	addr.offset=0;
 
-	unsigned int* lptr = (unsigned int*)config;
+	status_t status = E_SUCCESS;
+	uint32_t* lptr = (uint32_t*)config;
 
-	*lptr = pciReadLong(1, addr);
-	lptr++;
-	addr.offset = 0x04;
+	while(addr.offset < 0x10){
+		status = _pci_read_long(1, addr, lptr);
+		if(status != E_SUCCESS){
+			return status;
+		}
 
-	*lptr = pciReadLong(1, addr);
-	lptr++;
-	addr.offset = 0x08;
-
-	*lptr = pciReadLong(1, addr);
-	lptr++;
-	addr.offset = 0x0c;
-
-	*lptr = pciReadLong(1, addr);
-	lptr++;
-	addr.offset = 0x10;
+		lptr++;
+		addr.offset += 0x04;
+	}
 
 	if(config->headerType == 0x00){
 		while(addr.offset < PCI_TYPE0_MAX_OFFSET){
-			*lptr = pciReadLong(1, addr);
+			status = _pci_read_long(1, addr, lptr);
+			if(status != E_SUCCESS){
+				return status;
+			}
+
 			lptr++;
 			addr.offset += 0x04;
 		}
 	}
 	else if(config->headerType == 0x01){
 		while(addr.offset < PCI_TYPE1_MAX_OFFSET){
-			*lptr = pciReadLong(1, addr);
+			status = _pci_read_long(1, addr, lptr);
+			if(status != E_SUCCESS){
+				return status;
+			}
+
 			lptr++;
 			addr.offset += 0x04;
 		}
 	}
 	else if(config->headerType == 0x02){
 		while(addr.offset < PCI_TYPE2_MAX_OFFSET){
-			*lptr = pciReadLong(1, addr);
+			status = _pci_read_long(1, addr, lptr);
+			if(status != E_SUCCESS){
+				return status;
+			}
+
 			lptr++;
 			addr.offset += 0x04;
 		}
 	}
+
+	return status;
 }
 
-unsigned int pciGetBARSize(struct PCIAddr addr, struct PCIConfig* config){
-	struct PCIAddr barAddr = addr;
-	unsigned int size = 0;
-	unsigned int original_bar = 0;
+//unsigned int pciGetBARSize(struct PCIAddr addr, struct PCIConfig* config){
+status_t _pci_read_bar_size(pci_device_t* device, uint32_t* size){
+	pci_addr_t barAddr = device->address;
+	uint32_t original_bar = 0;
 
-	if(config->headerType == 0x00){
+	if(size == NULL || device == NULL){
+		return E_BAD_PARAM;
+	}
+
+	if(device->config.headerType == 0x00){
 		barAddr.offset = 0x10;
-		original_bar = config->headers.type0.bar0;
+		original_bar = device->config.headers.type0.bar0;
 	}
 	else{
 		//TODO: Support reading intial bar for all header types
+		return E_NOT_IMPLEMENTED;
 	}
 
-	size = 0xffffffff;
-	pciWriteLong(1, barAddr, size);
+	_pci_write_long(1, barAddr, 0xffffffff);
 
-	size = (~(pciReadLong(1, barAddr) & PCI_BAR_ADDR_MASK)) + 1;
-	pciWriteLong(1, barAddr, original_bar);
-	return size;
+	_pci_read_long(1, barAddr, size);
+	*size = (~((*size) & PCI_BAR_ADDR_MASK)) + 1;
+	return _pci_write_long(1, barAddr, original_bar);
+}
+
+
+status_t _pci_append_device(pci_device_list_t* list, pci_device_t* device){
+
+	if(list == NULL || device == NULL){
+		c_printf("Passed list=0x%x device=0x%x\n", list, device);
+		return E_BAD_PARAM;
+	}
+
+	if(list->last == NULL){
+		list->last = device;
+		list->first = device;
+
+		list->last->next = NULL;
+		list->first->prev = NULL;
+	}
+	else{
+		list->last->next = device;
+		device->prev = list->last;
+		list->last = device;
+	}
+
+	list->size++;
+	return E_SUCCESS;
 }
 
