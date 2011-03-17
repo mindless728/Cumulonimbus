@@ -1,3 +1,9 @@
+/**
+ * @author Benjamin Mayes
+ * @desciption Turns a text file into a source file specifying a font that can
+ * used by the VESA drivers.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
