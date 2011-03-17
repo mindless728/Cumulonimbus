@@ -1,6 +1,7 @@
 #ifndef PCI_H
 #define PCI_H
 
+#include "types.h"
 
 #define PCI_CONFIG_ADDRESS	0xCF8
 #define PCI_CONFIG_DATA		0xCFC
@@ -46,74 +47,88 @@
 #define PCI_COMMAND_REG	0x04
 #define PCI_STATUS_REG	0x06
 
-struct PCIAddr{
-	unsigned char bus;		//8 bits
-	unsigned char slot;		//6 bits
-	unsigned char func;		//2 bits
-	unsigned char offset;	//6 bits
-};
+typedef struct pci_addr{
+	uint8_t bus;		//8 bits
+	uint8_t slot;		//6 bits
+	uint8_t func;		//2 bits
+	uint8_t offset;	//6 bits
+} pci_addr_t;
 
-struct PCIConfig{
+typedef struct pci_config{
 
-	unsigned short vendorId;
-	unsigned short deviceId;
+	uint16_t vendorId;
+	uint16_t deviceId;
 
-	unsigned short command;
-	unsigned short status;
+	uint16_t command;
+	uint16_t status;
 
 
-	unsigned char revisionId;
-	unsigned char progIF;
-	unsigned char subClass;
-	unsigned char classCode;
+	uint8_t revisionId;
+	uint8_t progIF;
+	uint8_t subClass;
+	uint8_t classCode;
 
-	unsigned char cacheLineSize;
-	unsigned char latencyTimer;
-	unsigned char headerType;
-	unsigned char bist;
+	uint8_t cacheLineSize;
+	uint8_t latencyTimer;
+	uint8_t headerType;
+	uint8_t bist;
 
 	union{
-		unsigned int header[14];
+		uint32_t header[14];
 		struct {	//48 bytes
-			unsigned int bar0;
-			unsigned int bar1;
-			unsigned int bar2;
-			unsigned int bar3;
-			unsigned int bar4;
-			unsigned int bar5;
-			unsigned int cardbus_cis;
+			uint32_t bar0;
+			uint32_t bar1;
+			uint32_t bar2;
+			uint32_t bar3;
+			uint32_t bar4;
+			uint32_t bar5;
+			uint32_t cardbus_cis;
 
-			unsigned short systemVendorId;
-			unsigned short systemId;
+			uint16_t systemVendorId;
+			uint16_t systemId;
 
-			unsigned int romExpansionBar;
+			uint32_t romExpansionBar;
 
-			unsigned char capabilitiesPtr;
-			unsigned char reserved[7];
+			uint8_t capabilitiesPtr;
+			uint8_t reserved[7];
 
-			unsigned char irqLine;
-			unsigned char irqPin;
-			unsigned char minGrant;
-			unsigned char maxLatency;
+			uint8_t irqLine;
+			uint8_t irqPin;
+			uint8_t minGrant;
+			uint8_t maxLatency;
 		}type0;
 
 		/*struct {
-			unsigned int bar0;
-			unsigned int bar1;
+			uint32_t bar0;
+			uint32_t bar1;
 		} type1;*/
 	} headers;
 
 
-};
+} pci_config_t;
 
-struct pci_device_t{
-	struct PCIAddr pciAddr;
-	struct PCIConfig config;
-	unsigned int memory_space;
-};
+typedef struct pci_device{
+	pci_addr_t address;
+	pci_config_t config;
+	uint32_t memory_space;
+	struct pci_device* next;
+	struct pci_device* prev;
+} pci_device_t;
 
+typedef struct pci_device_list{
+	uint32_t size;
+	struct pci_device* first;
+	struct pci_device* last;
+} pci_device_list_t;
 
-void pciScan(void);
+status_t _pci_alloc_device(pci_device_t** dev);
+status_t _pci_alloc_device_list(pci_device_list_t** list);
+
+status_t _pci_append_device(pci_device_list_t* list, pci_device_t* device);
+
+status_t _pci_scan(pci_device_list_t* device_list);
+
+void _pci_print_config(pci_device_t* device);
 
 /**
   *	Searches the PCI bus looking for a device which has the same vendorId and
@@ -128,19 +143,20 @@ void pciScan(void);
   *			and address structures will be filled in. If the device could not
   *			be found using the vendor and device IDs then -1 is returned.
   */
-int pciFindDevice(struct PCIConfig* config, struct PCIAddr* addr);
+//status_t _pci_find_device(pci_device_t* device);
 
-void printPciConfig(struct PCIConfig* config, struct PCIAddr* addr);
-unsigned char pciReadByte(unsigned char configAddr, struct PCIAddr addr);
-unsigned short pciReadShort(unsigned char configAddr, struct PCIAddr addr);
-unsigned int pciReadLong(unsigned char configAddr, struct PCIAddr addr);
+//status_t _pci_read_byte(uint8_t configAddr, pci_addr_t addr, uint8_t* value);
 
-void pciWriteLong(unsigned char configAddr, struct PCIAddr addr, unsigned int value);
+//status_t _pci_read_short(uint8_t configAddr, pci_addr_t addr, uint16_t* value);
 
-void pciReadConfig(struct PCIAddr addr, struct PCIConfig* config);
+status_t _pci_read_long(boolean_t configAddr, pci_addr_t addr, uint32_t* value);
 
-unsigned int pciGetBARSize(struct PCIAddr addr, struct PCIConfig* config);
+status_t _pci_write_long(boolean_t configAddr, pci_addr_t addr, uint32_t value);
 
-void pciUpdateStatus(struct pci_device_t* device);
+status_t _pci_read_config(pci_addr_t addr, pci_config_t* config);
+
+status_t _pci_read_bar_size(pci_device_t* device, uint32_t* size);
+
+//status_t pciUpdateStatus(struct pci_device_t* device);
 
 #endif	//PCI_H

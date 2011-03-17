@@ -2,13 +2,13 @@
 #include "pci.h"
 #include "c_io.h"
 
-struct pci_device_t _eth0;
+pci_device_t _eth0;
 
-int init_ethernet(unsigned int vendor, unsigned int device){
+/*int init_ethernet(unsigned int vendor, unsigned int device){
 	_eth0.config.vendorId = vendor;
 	_eth0.config.deviceId = device;
 
-	if(pciFindDevice(&_eth0.config, &_eth0.pciAddr) == 0){
+	if(_pci_find_device(&_eth0.config, &_eth0.addr) == 0){
 		//SUCCESS
 
 		_eth0.memory_space = pciGetBARSize(_eth0.pciAddr, &_eth0.config);
@@ -21,3 +21,4 @@ int init_ethernet(unsigned int vendor, unsigned int device){
 	}
 	return -1;
 }
+*/

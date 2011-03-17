@@ -3,4 +3,6 @@
 
 void* kalloc(int bytes);
 
+//void* _kalloc_base;
+
 #endif	//KALLOC_H
