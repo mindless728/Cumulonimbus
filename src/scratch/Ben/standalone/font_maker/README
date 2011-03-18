@@ -1,0 +1,17 @@
+This program takes a text file as its command line argument.
+
+The text file should first contain two whitespace separated integers. These 
+specify the size of the font. After this up to 256 characters can be 
+specified in the following format:
+
+n
+xxxxxx
+xxxxxx
+xxxxxx
+xxxxxx
+xxxxxx
+xxxxxx
+xxxxxx
+
+(n can be specified in any desired order)
+(where each of the width*height xs contain a 0 or 1 meaning no-color or white)
