@@ -5,6 +5,7 @@
 #include "random.h"
 
 void _print_vesa_controller_info() {
+#ifdef NO_VESA
         vbe_controller_info_t* c = (vbe_controller_info_t*)VBE_INFO_LOCATION;
         int i = 0;
         c_printf( "vci_t size:%d\n", sizeof(vbe_controller_info_t));
@@ -21,9 +22,13 @@ void _print_vesa_controller_info() {
                 ++modes;
         }
         c_printf( "\n64k blocks of memory: %d\n", c->total_memory );
+#else
+#endif
+
 }
 
 void _print_vesa_mode_info() {
+#ifdef NO_VESA
     vbe_mode_info_t* c = (vbe_mode_info_t*)VBE_MODE_INFO_LOCATION;
     c_printf("%dx%d, %dbpp\nPBP: 0x%x\n", c->x_res, c->y_res, c->bits_per_pixel, c->physical_base_ptr );
     c_printf("RED MASK: 0x%x/0x%x\n", c->red_mask_size, c->red_field_position ); 
@@ -31,5 +36,8 @@ void _print_vesa_mode_info() {
     c_printf("BLUE MASK: 0x%x/0x%x\n", c->blue_mask_size, c->blue_field_position ); 
 
     c_printf("RSVD MASK: 0x%x/0x%x\n", c->reserved_mask_size, c->reserved_field_position ); 
+#else
+
+#endif
 }
 
