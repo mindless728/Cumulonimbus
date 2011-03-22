@@ -24,9 +24,9 @@ void print_char(int c) {
             if( x == '0' ) {
                 c=0;
             } else {
-                c=0xFFFF;
+                c=0xFF;
             }
-            printf("0x%04x",c);
+            printf("0x%02x",c);
             if(k < width - 1) printf(", ");
         }
         printf ("}");
@@ -48,7 +48,7 @@ void print_blank_char(int c) {
     for( j = 0; j < height; ++j ) {
         printf( "{" );
         for( k = 0; k < width; ++k ) {
-            printf("0x0000");
+            printf("0x00");
             if(k < width - 1) printf(", ");
         }
         printf ("}");
@@ -79,7 +79,7 @@ int main( int argc, char** argv ) {
     printf( "#include \"gs_font.h\"\n\n" );
     fscanf( font, "%d %d", &height, &width );
     int num;
-    printf( "uint16_t font[128][%d][%d] = {\n", height, width );
+    printf( "uint8_t font[128][%d][%d] = {\n", height, width );
     int last_num = 0;
     while( fscanf( font, "%d", &num ) != EOF ) {
         if( last_num < num - 1 ) {

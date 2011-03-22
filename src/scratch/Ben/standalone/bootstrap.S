@@ -401,9 +401,11 @@ switch:
 	movb	$0x80, %al	/* disable NMIs */
 	outb	%al, $0x70
 
-    #define DUMP_VESA_INFO
-    #define GET_VESA_MODE 0x11A
-    #define SET_VESA_MODE 0x11A
+    #ifndef NO_VESA
+        #define DUMP_VESA_INFO
+        #define GET_VESA_MODE 0x11A
+        #define SET_VESA_MODE 0x11A
+    #endif
 
 	call	floppy_off
     /* should we dump vesa information to 0x7C00 */
@@ -499,12 +501,14 @@ find_best_vesa_mode:
     push %cx
     push %dx
     push %ds
+    push %es
     push %di
     #move the segment into %ds
-    movw $0x7C0D, %bx 
-    movw (%bx), %ds
+    movw $0x7C00, %bx 
+    movw 16(%bx), %ds
+    movw 16(%bx), %es
     #move the offset into %bx
-    movw $0x7C0F, %bx 
+    movw 14(%bx), %bx 
 
     #add some stack space for temporaries
     push $0
@@ -522,20 +526,21 @@ find_best_vesa_mode:
         #zero out the data segment
         movw $0, %cx
         movw %cx, %ds 
-        push %bx
+        movw %cx, %es 
+        push %bx #save bx to the stack
 
         # calculate the disirabilty of the video mode
-        movw $0x7A0, %bx
+        movw $0x7A00, %bx
         movw 18(%bx), %dx
         shrw $8, %dx
         movw 20(%bx), %ax
         shrw $8, %ax
         mul %dx
-        pop %bx
+        pop %bx #restore bx
         
-        pop %dx
-        cmp %ax, %dx
-        jle fbvm_end_loop
+        pop %dx #obtain the desriability value
+        cmp %ax, %dx # compare desirability values
+        jle fbvm_end_loop # if the new one less then we want to jump
             pop %dx #We don't want the "best" video mode on the stack anymore
             push (%bx) #put the new "best" mode on the stack
             movw %ax, %dx #put the best value into %dx
@@ -548,9 +553,10 @@ find_best_vesa_mode:
     pop %bx
     pop %bx
     movw %bx, %cx
-    #call get_vesa_mode
+    call get_vesa_mode
     #call set_vesa_mode
     pop %di
+    pop %es
     pop %ds
     pop %dx
     pop %cx

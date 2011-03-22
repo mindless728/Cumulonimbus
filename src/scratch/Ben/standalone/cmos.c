@@ -1,5 +1,6 @@
 #include "int_types.h"
 #include "cmos.h"
+#include "startup.h"
 
 //NOTE: QEMU seems to be operating in BCD mode.
 // Is this typical? Does the underlying machine have the same behavior?

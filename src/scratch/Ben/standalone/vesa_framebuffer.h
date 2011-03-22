@@ -22,7 +22,8 @@
 #define SET_SECOND_PIXEL(dp,p) *(dp) = ((0xFFFF0000&*(dp)) | (p))
 #define GET_PIXEL(x,y) ((vesa_video_memory)+((y)*vesa_x_resolution) + (x))
 //#define GET_PIXEL(x,y) (vesa_video_memory->buffer[(x)][(y)])
-#define GET_PIXEL_BUF(x,y,buf) ((buf)+((y)*vesa_x_resolution) + (x))
+#define GET_PIXEL_BUF(x,y,buf) ((pixel_t*)(buf)+((y)*vesa_x_resolution) + (x))
+//#define GET_PIXEL_BUF(x,y,buf) &((buf)->buffer[(x)][(y)])
 #define GET_DOUBLE_PIXEL(x,y) (((double_pixel_t*)vesa_video_memory)+((y)*(vesa_x_resolution >> 1) + (x >> 1)))
 //#define GET_DOUBLE_PIXEL(x,y) (vesa_video_memory->dpbuffer[(x)>>2][(y)])
 
@@ -37,4 +38,9 @@ extern uint32_t vesa_x_resolution;
 extern uint32_t vesa_y_resolution;
 
 pixel_t* vesa_video_memory;
+
+extern void _vesa_init(void);
+extern void _vesa_text_demo(void);
+extern void _print_vesa_demo(void);
+
 #endif
