@@ -65,7 +65,7 @@ status_t _pci_scan(pci_device_list_t* list){
 				device->address = addr;
 				device->config = config;
 				if(device->config.headerType == 0x00){
-					_pci_read_bar_size(device, &device->memory_space);
+					_pci_read_bar_size(device, 0, &device->memory_space);
 				}
 
 				status = _pci_append_device(list, device);
@@ -92,7 +92,7 @@ status_t _pci_scan(pci_device_list_t* list){
 							device->address = addr;
 							device->config = config;
 							if(device->config.headerType == 0x00){
-								_pci_read_bar_size(device, &device->memory_space);
+								_pci_read_bar_size(device, 0, &device->memory_space);
 							}
 
 							status = _pci_append_device(list, device);
@@ -137,6 +137,26 @@ status_t _pci_scan(pci_device_list_t* list){
 	return -1;
 }*/
 
+
+status_t _pci_get_device(pci_device_list_t list, pci_device_t** device, uint16_t vendor_id, uint16_t device_id){
+	if(device == NULL){
+		return E_BAD_PARAM;
+	}
+
+	pci_device_t* tempPtr = list.first;
+
+	while(tempPtr != NULL){
+		if(tempPtr->config.vendorId == vendor_id && tempPtr->config.deviceId == device_id){
+			*device = tempPtr;
+			return E_SUCCESS;
+		}
+		tempPtr = tempPtr->next;
+	}
+
+	return E_NOT_FOUND;
+}
+
+
 void _pci_print_config(pci_device_t* device){
 	c_printf("Bus=%d Slot=%d Func=%d\n", device->address.bus, device->address.slot, device->address.func);
 	c_printf("    DeviceId:  0x%x\n", device->config.deviceId);
@@ -152,34 +172,12 @@ void _pci_print_config(pci_device_t* device){
 	c_printf("    Latency:   0x%x\n", device->config.latencyTimer);
 	c_printf("    CacheSize: 0x%x\n", device->config.cacheLineSize);
 	if(device->config.headerType == 0x00){
-		c_printf("    BAR0:      0x%x\n", device->config.headers.type0.bar0);
+		c_printf("    BAR0:      0x%x\n", device->config.headers.type0.bar[0]);
 		c_printf("    BAR0_Size: %d\n", device->memory_space);
 	}
 }
 
-/*unsigned char pciReadByte(unsigned char configAddr, struct PCIAddr addr){
-	unsigned long bus = ((unsigned long)addr.bus) << 16;
-	unsigned long slot = ((unsigned long)addr.slot & 0x3f) << 11;
-	unsigned long func = ((unsigned long)addr.func & 0x03) << 8;
-	unsigned long offset = ((unsigned long)addr.offset & 0x3c);
-	unsigned long address = bus | slot | func | (((unsigned long)configAddr)<<31) | offset;
 
-	__outl(CONFIG_ADDRESS, address);
-
-	return (unsigned char)(__inw(CONFIG_DATA) >> ((3-(addr.offset & 0x03))*8) );
-}
-
-unsigned short pciReadShort(unsigned char configAddr, struct PCIAddr addr){
-	unsigned long bus = ((unsigned long)addr.bus) << 16;
-	unsigned long slot = ((unsigned long)addr.slot & 0x3f) << 11;
-	unsigned long func = ((unsigned long)addr.func & 0x03) << 8;
-	unsigned long offset = ((unsigned long)addr.offset & 0x3e);	//word aligned
-	unsigned long address = bus | slot | func | (((unsigned long)configAddr)<<31) | offset;
-
-	__outl(CONFIG_ADDRESS, address);
-
-	return (__inw(CONFIG_DATA) >> (addr.offset & 2)*8);
-}*/
 
 
 status_t _pci_read_long(unsigned char configAddr, pci_addr_t addr, uint32_t* value){
@@ -188,10 +186,10 @@ status_t _pci_read_long(unsigned char configAddr, pci_addr_t addr, uint32_t* val
 		return E_BAD_PARAM;
 	}
 
-	unsigned int bus = ((unsigned int)addr.bus) << 16;
-	unsigned int slot = ((unsigned int)addr.slot & 0x3f) << 11;
-	unsigned int func = ((unsigned int)addr.func & 0x03) << 8;
-	unsigned int offset = ((unsigned int)addr.offset & 0x3c);	//long aligned
+	unsigned int bus = ((unsigned int)addr.bus & 0xff) << 16;
+	unsigned int slot = ((unsigned int)addr.slot & 0x1f) << 11;
+	unsigned int func = ((unsigned int)addr.func & 0x07) << 8;
+	unsigned int offset = ((unsigned int)(addr.offset & 0x3f)) << 2;	//int aligned
 	unsigned int address = bus | slot | func | (((unsigned int)configAddr)<<31) | offset;
 
 	__outl(PCI_CONFIG_ADDRESS, address);
@@ -201,16 +199,93 @@ status_t _pci_read_long(unsigned char configAddr, pci_addr_t addr, uint32_t* val
 	return E_SUCCESS;
 }
 
+
+status_t _pci_read_short(boolean_t configAddr, pci_addr_t addr, uint8_t byte_offset, uint16_t* value){
+	uint32_t buffer = 0;
+	status_t read_status = E_SUCCESS;
+
+	if(byte_offset > 2){
+		return E_BAD_PARAM;
+	}
+
+	read_status = _pci_read_long(configAddr, addr, &buffer);
+
+	if(read_status == E_SUCCESS){
+		*value = (uint16_t)((buffer>>(byte_offset*8)) & 0xffff);
+		return read_status;
+	}
+	return read_status;
+}
+
+status_t _pci_read_byte(boolean_t configAddr, pci_addr_t addr, uint8_t byte_offset, uint8_t* value){
+	uint32_t buffer = 0;
+	status_t read_status = E_SUCCESS;
+
+	if(byte_offset > 3){
+		return E_BAD_PARAM;
+	}
+
+	read_status = _pci_read_long(configAddr, addr, &buffer);
+
+	if(read_status == E_SUCCESS){
+		*value = (uint8_t)((buffer>>(byte_offset*8)) & 0xff);
+		return read_status;
+	}
+	return read_status;
+}
+
+
+
+
 status_t _pci_write_long(unsigned char configAddr, pci_addr_t addr, uint32_t value){
-	unsigned int bus = ((unsigned int)addr.bus) << 16;
-	unsigned int slot = ((unsigned int)addr.slot & 0x3f) << 11;
-	unsigned int func = ((unsigned int)addr.func & 0x03) << 8;
-	unsigned int offset = ((unsigned int)addr.offset & 0x3c);	//int aligned
+	unsigned int bus = ((unsigned int)addr.bus & 0xff) << 16;
+	unsigned int slot = ((unsigned int)addr.slot & 0x1f) << 11;
+	unsigned int func = ((unsigned int)addr.func & 0x07) << 8;
+	unsigned int offset = ((unsigned int)(addr.offset & 0x3f)) << 2;	//int aligned
 	unsigned int address = bus | slot | func | (((unsigned int)configAddr)<<31) | offset;
 
 	__outl(PCI_CONFIG_ADDRESS, address);
 	__outl(PCI_CONFIG_DATA, value);
 	return E_SUCCESS;
+}
+
+
+status_t _pci_write_short(boolean_t configAddr, pci_addr_t addr, uint8_t byte_offset, uint16_t value){
+	uint32_t buffer = 0;
+	status_t read_status;
+
+	if(byte_offset > 2){
+		return E_BAD_PARAM;
+	}
+
+	read_status = _pci_read_long(configAddr, addr, &buffer);
+	if(read_status != E_SUCCESS){
+		return read_status;
+	}
+
+	//Shift the value to the correct offset
+	buffer = buffer | ((value & 0xffff) << (byte_offset*8));
+
+	return _pci_write_long(configAddr, addr, buffer);
+}
+
+status_t _pci_write_byte(boolean_t configAddr, pci_addr_t addr, uint8_t byte_offset, uint8_t value){
+	uint32_t buffer = 0;
+	status_t read_status;
+
+	if(byte_offset > 3){
+		return E_BAD_PARAM;
+	}
+
+	read_status = _pci_read_long(configAddr, addr, &buffer);
+	if(read_status != E_SUCCESS){
+		return read_status;
+	}
+
+	//Shift the value to the correct offset
+	buffer = buffer | ((value & 0xff) << (byte_offset*8));
+
+	return _pci_write_long(configAddr, addr, buffer);
 }
 
 
@@ -220,55 +295,55 @@ status_t _pci_read_config(pci_addr_t addr, pci_config_t* config){
 	status_t status = E_SUCCESS;
 	uint32_t* lptr = (uint32_t*)config;
 
-	while(addr.offset < 0x10){
+	while(addr.offset*4 < 0x10){
 		status = _pci_read_long(1, addr, lptr);
 		if(status != E_SUCCESS){
 			return status;
 		}
 
 		lptr++;
-		addr.offset += 0x04;
+		addr.offset += 0x01;
 	}
 
 	if(config->headerType == 0x00){
-		while(addr.offset < PCI_TYPE0_MAX_OFFSET){
+		while(addr.offset*4 < PCI_TYPE0_MAX_OFFSET){
 			status = _pci_read_long(1, addr, lptr);
 			if(status != E_SUCCESS){
 				return status;
 			}
 
 			lptr++;
-			addr.offset += 0x04;
+			addr.offset += 0x01;
 		}
 	}
 	else if(config->headerType == 0x01){
-		while(addr.offset < PCI_TYPE1_MAX_OFFSET){
+		while(addr.offset*4 < PCI_TYPE1_MAX_OFFSET){
 			status = _pci_read_long(1, addr, lptr);
 			if(status != E_SUCCESS){
 				return status;
 			}
 
 			lptr++;
-			addr.offset += 0x04;
+			addr.offset += 0x01;
 		}
 	}
 	else if(config->headerType == 0x02){
-		while(addr.offset < PCI_TYPE2_MAX_OFFSET){
+		while(addr.offset*4 < PCI_TYPE2_MAX_OFFSET){
 			status = _pci_read_long(1, addr, lptr);
 			if(status != E_SUCCESS){
 				return status;
 			}
 
 			lptr++;
-			addr.offset += 0x04;
+			addr.offset += 0x01;
 		}
 	}
 
 	return status;
 }
 
-//unsigned int pciGetBARSize(struct PCIAddr addr, struct PCIConfig* config){
-status_t _pci_read_bar_size(pci_device_t* device, uint32_t* size){
+
+status_t _pci_read_bar_size(pci_device_t* device, uint8_t bar_index, uint32_t* size){
 	pci_addr_t barAddr = device->address;
 	uint32_t original_bar = 0;
 
@@ -277,8 +352,12 @@ status_t _pci_read_bar_size(pci_device_t* device, uint32_t* size){
 	}
 
 	if(device->config.headerType == 0x00){
-		barAddr.offset = 0x10;
-		original_bar = device->config.headers.type0.bar0;
+		if(bar_index > PCI_HEADER_1_BAR_COUNT-1){
+			//BAR index out of allowed range
+			return E_BAD_PARAM;
+		}
+		barAddr.offset = PCI_HEADER_1_BAR_START + bar_index;
+		original_bar = device->config.headers.type0.bar[0];
 	}
 	else{
 		//TODO: Support reading intial bar for all header types
