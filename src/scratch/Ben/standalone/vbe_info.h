@@ -7,8 +7,8 @@ extern void _print_vesa_mode_info(void);
 extern void _print_vesa_demo(void);
 
 // locations of VBE information in memory
-#define VBE_INFO_LOCATION 0x7C00
-#define VBE_MODE_INFO_LOCATION 0x7A00
+#define VBE_INFO_LOCATION 0x3000
+#define VBE_MODE_INFO_LOCATION 0x4000
 
 // Converts a short[2] containing offset:segment to a 20 bit physical memory
 // address

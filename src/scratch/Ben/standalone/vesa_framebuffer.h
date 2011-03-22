@@ -42,5 +42,6 @@ pixel_t* vesa_video_memory;
 extern void _vesa_init(void);
 extern void _vesa_text_demo(void);
 extern void _print_vesa_demo(void);
+extern void _print_mandelbrot(double p);
 
 #endif

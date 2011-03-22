@@ -9,8 +9,8 @@
 #
 # User supplied files
 #
-U_C_SRC = main.c timer_isr.c pci_utils.c random.c cmos.c math.c vbe_info.c vesa_framebuffer.c gs_io.c gs_font.c util.c
-U_C_OBJ = main.o gs_font.o vesa_framebuffer.o gs_io.o timer_isr.o util.o math.o cmos.o random.o vbe_info.o pci_utils.o
+U_C_SRC = main.c timer_isr.c pci_utils.c random.c cmos.c math.c vbe_info.c vesa_framebuffer.c gs_io.c gs_font.c util.c fpu.c
+U_C_OBJ = main.o timer_isr.o util.o fpu.o vesa_framebuffer.o vbe_info.o#gs_io.o gs_font.o
 U_S_SRC =
 U_S_OBJ =
 U_LIBS	=

@@ -34,7 +34,6 @@ BOOT_SEGMENT	= 0x07C0	/* default BIOS addr to load boot sector */
 BOOT_ADDRESS 	= 0x00007C00
 START_SEGMENT	= 0x0000	/* where we'll put the startup code */
 START_OFFSET	= 0x00007E00
-VESA_OFFSET     = 0x00008000
 SECTOR_SIZE	= 0x200		/* typical sector size for floppy & HD */
 OFFSET_LIMIT	= 65536 - SECTOR_SIZE
 
@@ -408,7 +407,9 @@ switch:
     #endif
 
 	call	floppy_off
-    /* should we dump vesa information to 0x7C00 */
+    push %cx
+    push %bx
+    push %ax
     #ifdef DUMP_VESA_INFO 
     call    vesa_information
     #endif
@@ -420,6 +421,9 @@ switch:
     movw $SET_VESA_MODE, %bx
     call set_vesa_mode
     #endif
+    pop %ax
+    pop %bx
+    pop %cx
 
     #call    find_best_vesa_mode
 	call	enable_A20
@@ -462,7 +466,7 @@ switch:
 
 /**
  * @author Benjamin Mayes
- * @description: Puts VESA controller information at memory address 0x7C00
+ * @description: Puts VESA controller information at memory address 0x3000
  **/ 
 vesa_information:
     push %es
@@ -470,7 +474,7 @@ vesa_information:
     movw $0x4f00, %ax 
     movw $0x0000, %di
     movw %di, %es
-    movw $0x7C00, %di
+    movw $0x3000, %di
     int $0x10
     pop %di
     pop %es
@@ -482,17 +486,15 @@ vesa_information:
  *               0x7A00
  */
 get_vesa_mode:
-    push %cx
     push %es
     push %di
     movw $0x4f01, %ax
     movw $0x0000, %di
     movw %di, %es
-    movw $0x7A00, %di
+    movw $0x4000, %di
     int $0x10
     pop %di
     pop %es
-    pop %cx
     ret
 
 find_best_vesa_mode:
