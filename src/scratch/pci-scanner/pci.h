@@ -6,9 +6,13 @@
 #define PCI_CONFIG_ADDRESS	0xCF8
 #define PCI_CONFIG_DATA		0xCFC
 
-#define PCI_TYPE0_MAX_OFFSET 0x3c
-#define PCI_TYPE1_MAX_OFFSET 0x3c
-#define PCI_TYPE2_MAX_OFFSET 0x44
+#define PCI_TYPE0_MAX_OFFSET 16
+#define PCI_TYPE1_MAX_OFFSET 16
+#define PCI_TYPE2_MAX_OFFSET 24
+
+#define PCI_HEADER_1_BAR_START 4
+
+#define PCI_HEADER_1_BAR_COUNT 6
 
 #define PCI_BAR_INFO_MASK 0x0000000f
 #define PCI_BAR_ADDR_MASK 0xfffffff0
@@ -51,7 +55,8 @@ typedef struct pci_addr{
 	uint8_t bus;		//8 bits
 	uint8_t slot;		//6 bits
 	uint8_t func;		//2 bits
-	uint8_t offset;	//6 bits
+	//! Offset in 4byte chunks
+	uint8_t offset;		//6 bits
 } pci_addr_t;
 
 typedef struct pci_config{
@@ -76,12 +81,7 @@ typedef struct pci_config{
 	union{
 		uint32_t header[14];
 		struct {	//48 bytes
-			uint32_t bar0;
-			uint32_t bar1;
-			uint32_t bar2;
-			uint32_t bar3;
-			uint32_t bar4;
-			uint32_t bar5;
+			uint32_t bar[6];
 			uint32_t cardbus_cis;
 
 			uint16_t systemVendorId;
@@ -145,17 +145,124 @@ void _pci_print_config(pci_device_t* device);
   */
 //status_t _pci_find_device(pci_device_t* device);
 
-//status_t _pci_read_byte(uint8_t configAddr, pci_addr_t addr, uint8_t* value);
 
-//status_t _pci_read_short(uint8_t configAddr, pci_addr_t addr, uint16_t* value);
 
+/**
+  *	Searches the provided pci device list for a device with a matching vendor
+  *	and device ID number.
+  *
+  *	@param	list		List of detected pci devices
+  *	@param	device		Pointer to a device structure pointer to store the found device
+  *	@param	vendor_id	Vendor ID of the desired device
+  *	@param	device_id	Device ID of the desired device
+  *	@return	Returns E_SUCCESS if the device was found and the device pointer
+  *			could be correctly updated. If the provided device pointer is not
+  *			valid then E_BAD_PARAM is returned. If the device was not found then
+  *			E_NOT_FOUND will be return.
+  */
+status_t _pci_get_device(pci_device_list_t list, pci_device_t** device, uint16_t vendor_id, uint16_t device_id);
+
+/**
+  *	Reads a 32 bit register located at the specified PCI address.
+  *
+  *	@param	configAddr	Wether the read should be completed using the
+  *						configuration address space.
+  *	@param	addr		Bus address of the pci device to read from
+  *	@param	value		Buffer to read the register value into.
+  *
+  *	@return	Returns E_SUCCESS if the value was read. Returns E_BAD_PARAM if
+  *			value points to NULL.
+  */
 status_t _pci_read_long(boolean_t configAddr, pci_addr_t addr, uint32_t* value);
 
+
+/**
+  *	Reads an 8 bit register at the given PCI bus address with the specified byte
+  *	offset.
+  *
+  *	@param	configAddr	Wether the read should be completed using the
+  *						configuration address space.
+  *	@param	addr		Bus address of the pci device to read from
+  *	@param	offset		Number of bytes to offset into the register specified by
+  *						addr, must be less than or equal to 2.
+  *	@param	value		Buffer to read the register value into.
+  *
+  *	@return	Returns E_BAD_PARAM if the byte_offset is not in the specified range
+  *			or if the value pointer is not valid.
+  */
+status_t _pci_read_short(boolean_t configAddr, pci_addr_t addr, uint8_t byte_offset, uint16_t* value);
+
+
+/**
+  *	Reads an 8 bit register at the given PCI bus address with the specified byte
+  *	offset.
+  *
+  *	@param	configAddr	Wether the read should be completed using the
+  *						configuration address space.
+  *	@param	addr		Bus address of the pci device to read from
+  *	@param	offset		Number of bytes to offset into the register specified by
+  *						addr, must be less than or equal to 3.
+  *	@param	value		Buffer to read the register value into.
+  *
+  *	@return	Returns E_BAD_PARAM if the byte_offset is not in the specified range
+  *			or if the value pointer is not valid.
+  */
+status_t _pci_read_byte(boolean_t configAddr, pci_addr_t addr, uint8_t byte_offset, uint8_t* value);
+
+
+/**
+  *	Writea a 32 bit register located at the specified PCI address.
+  *
+  *	@param	configAddr	Wether the read should be completed using the
+  *						configuration address space.
+  *	@param	addr		Bus address of the pci device to write to
+  *	@param	value		Value to write into register
+  *
+  *	@return	Returns E_SUCCESS
+  */
 status_t _pci_write_long(boolean_t configAddr, pci_addr_t addr, uint32_t value);
+
+
+/**
+  *	Writes a 16 bit register at the given PCI bus address with the specified
+  *	byte offset.
+  *
+  *	@param	configAddr	Wether the read should be completed using the
+  *						configuration address space.
+  *	@param	addr		Bus address of the pci device to read from
+  *	@param	offset		Number of bytes to offset into the register specified by
+  *						addr, must be less than or equal to 3.
+  *	@param	value		Value to write into register
+  *
+  *	@return	Returns E_BAD_PARAM if the byte_offset is not in the specified range.
+  *			NOTE: This function causes a _pci_read_long and a _pci_write_long
+  *			 as PCI does not directly support writing shorts. If either of these
+  *			functions encounter an error the return value will be set to match.
+  */
+status_t _pci_write_short(boolean_t configAddr, pci_addr_t addr, uint8_t byte_offset, uint16_t value);
+
+
+/**
+  *	Writes an 8 bit register at the given PCI bus address with the specified
+  *	byte offset.
+  *
+  *	@param	configAddr	Wether the read should be completed using the
+  *						configuration address space.
+  *	@param	addr		Bus address of the pci device to read from
+  *	@param	offset		Number of bytes to offset into the register specified by
+  *						addr, must be less than or equal to 3.
+  *	@param	value		Value to write into register
+  *
+  *	@return	Returns E_BAD_PARAM if the byte_offset is not in the specified range.
+  *			NOTE: This function causes a _pci_read_long and a _pci_write_long
+  *			 as PCI does not directly support writing bytes. If either of these
+  *			functions encounter an error the return value will be set to match.
+  */
+status_t _pci_write_byte(boolean_t configAddr, pci_addr_t addr, uint8_t byte_offset, uint8_t value);
 
 status_t _pci_read_config(pci_addr_t addr, pci_config_t* config);
 
-status_t _pci_read_bar_size(pci_device_t* device, uint32_t* size);
+status_t _pci_read_bar_size(pci_device_t* device, uint8_t bar_index, uint32_t* size);
 
 //status_t pciUpdateStatus(struct pci_device_t* device);
 
