@@ -2,9 +2,34 @@
 #define FAT64_H
 
 #include "../../include/types.h"
+#include "../VFS/VFS.h"
 
-typedef struct _FAT64_Directory_Entry FAT64_Directory_Entry;
-typedef struct _FAT64_Config FAT64_Config;
+#define FAT64_ID 0x7F
+#define FAT64_UNIQUE "FT64"
+
+typedef struct _FAT64_directory_entry FAT64_directory_entry;
+typedef struct _FAT64_table_entry FAT64_table_entry;
+typedef struct _FAT64_config FAT64_config;
+
+//VFS related functions
+status_t FAT64_read_fs(VFS_node_t * node, uint64_t offset, uint64_t size, uint8_t * buffer);
+status_t FAT64_write_fs(VFS_node_t * node, uint64_t offset, uint64_t size, uint8_t * buffer);
+status_t FAT64_open_fs(VFS_node_t * node);
+status_t FAT64_close_fs(VFS_node_t * node);
+status_t FAT64_readdir_fs(VFS_node_t * node, uint64_t index, VFS_node_t ** ret);
+status_t FAT64_finddir_fs(VFS_node_t * node, char * file_path, VFS_node_t ** ret);
+
+//FAT64 specific functions
+
+/**
+ *
+ */
+struct _FAT64_partition {
+	//@TODO disk number here
+	
+	/** start of the partition */
+	uint64_t partition_start;
+};
 
 /**
  * Structures contains the information for an entry into
@@ -12,7 +37,7 @@ typedef struct _FAT64_Config FAT64_Config;
  *
  * @author Colin Alexander Barr
  */
-struct _FAT64_Directory_Entry {
+struct _FAT64_directory_entry {
 	/** the name of the file */
 	char file_name[256];
 	
@@ -42,12 +67,28 @@ struct _FAT64_Directory_Entry {
 };
 
 /**
+ * structure defines an entry into the cluster entry table
+ *
+ * @author Colin Alexander Barr
+ */
+struct _FAT64_table_entry {
+	/** the previous cluster in the file */
+	uint64_t prev;
+	
+	/** the next cluster in the file */
+	uint64_t next;
+};
+
+/**
  * Structure contains the information for the configuration
  *   of a FAT64 file system
  *
  * @author Colin Alexander Barr
  */
-struct _FAT64_Config {
+struct _FAT64_config {
+	/** unique id for the file system type */
+	char unique[4];
+	
 	/** size of the volume in bytes */
 	uint64_t size;
 	
