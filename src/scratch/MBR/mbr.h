@@ -31,6 +31,6 @@ struct _MBR_t {
 	uint16_t unused;
 	MBR_partition_t partition[4];
 	uint16_t MBR_signature;
-};
+} __attribute__((__packed__));
 
 #endif
