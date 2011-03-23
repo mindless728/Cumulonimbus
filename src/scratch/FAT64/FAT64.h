@@ -22,16 +22,6 @@ status_t FAT64_finddir_fs(VFS_node_t * node, char * file_path, VFS_node_t ** ret
 //FAT64 specific functions
 
 /**
- *
- */
-struct _FAT64_partition {
-	//@TODO disk number here
-	
-	/** start of the partition */
-	uint64_t partition_start;
-};
-
-/**
  * Structures contains the information for an entry into
  *   a directory
  *
