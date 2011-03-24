@@ -18,12 +18,11 @@
 #include "ethernet.h"
 #include "mandelbrot.h"
 #include "pci.h"
-
+#include "broadcom_ethernet.h"
 
 void timer_handler(int vector, int code);
 
 #define BACKSPACE 0x08
-#define NULL 0x00
 
 
 
@@ -66,7 +65,10 @@ int main( void ) {
 		while(1);
 	}*/
 
+
 	c_printf("Detected %d PCI devices\n", pciDevices->size);
+
+	bcm_driver_init(pciDevices);
 
 	c_getchar();
 
