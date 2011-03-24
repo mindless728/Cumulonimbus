@@ -40,12 +40,12 @@ status_t _pci_scan(pci_device_list_t* list){
 	list->first=NULL;
 	list->last=NULL;
 
-	for(bus=0; bus<4; bus++){
+	for(bus=0; bus < PCI_MAX_BUS_COUNT; bus++){
 
 		//c_printf("Scanning PCI Bus %d\n", bus);
 
 		addr.bus=bus;
-		for(slot=0; slot<0x1f; slot++){
+		for(slot=0; slot < PCI_MAX_SLOT_COUNT; slot++){
 			addr.slot = slot;
 			addr.func = 0;
 
@@ -78,7 +78,7 @@ status_t _pci_scan(pci_device_list_t* list){
 					int func=1;
 
 					//Scan for secondary functions
-					for(func=1; func<3; func++){
+					for(func=1; func < PCI_MAX_FUNC_COUNT; func++){
 						addr.func = func;
 						status = _pci_read_config(addr, &config);
 

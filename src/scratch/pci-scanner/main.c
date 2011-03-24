@@ -18,16 +18,14 @@
 #include "ethernet.h"
 #include "mandelbrot.h"
 #include "pci.h"
+#include "broadcom_ethernet.h"
 
-
-void timer_handler(int vector, int code);
 
 #define BACKSPACE 0x08
-#define NULL 0x00
 
 
+void dummy_isr(int vector, int code);
 
-int clockTicks=0;
 int animOverride=0;
 
 
@@ -39,6 +37,8 @@ int main( void ) {
 	c_puts( "Clearing screen\n");
 
 	c_clearscreen();
+
+	__install_isr(0x2a, dummy_isr);
 
 
 	/*if(init_ethernet(0x8086, 0x1229) == 0){
@@ -66,33 +66,42 @@ int main( void ) {
 		while(1);
 	}*/
 
+
 	c_printf("Detected %d PCI devices\n", pciDevices->size);
 
-	c_getchar();
 
+
+	int index = 0;
 	pci_device_t* dev = pciDevices->first;
 
 	while(dev!=NULL){
 		_pci_print_config(dev);
-		c_getchar();
+		char scan = c_getchar();
+		c_clearscreen();
+		c_moveto(0,0);
 
-		dev = dev->next;
-	}
-
-
-
-	c_puts( "Installing interrupt handlers...\n" );
-	__install_isr(INT_VEC_TIMER, timer_handler);
-	__install_isr(INT_VEC_KEYBOARD, keyboard_handler);
-
-
-	drawMandelbrot();
-
-	asm("sti");
-
-
-	while(1){
-		__delay(5);
+		switch(scan){
+			case 0x34:		//Left arrow
+				if(dev->prev == NULL){
+					dev=pciDevices->last;
+				}
+				else{
+					dev = dev->prev;
+				}
+				break;
+			case 0x36:		//Right arrow
+				if(dev->next == NULL){
+					dev = pciDevices->first;
+				}
+				else{
+					dev = dev->next;
+				}
+				break;
+			default:
+				c_printf("Got key=0x%x\n", scan);
+				__delay(20);
+		}
+		__delay(2);
 	}
 
 
@@ -101,18 +110,7 @@ int main( void ) {
 }
 
 
-
-void timer_handler(int vector, int code){
-	//c_printf("timer_handler vector=%d code=%d\n", vector, code);
-	clockTicks++;
-
-	if(animOverride==0){
-		animateMandelbrot();
-	}
-
-	c_printf_at(0, 0, "%d ms", TIMER_MS_PER_TICK*clockTicks);
+void dummy_isr(int vector, int code){
 	clear_interrupt(vector);
 }
-
-
 
