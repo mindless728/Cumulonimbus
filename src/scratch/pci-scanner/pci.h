@@ -3,6 +3,10 @@
 
 #include "types.h"
 
+#define PCI_MAX_BUS_COUNT	0x100
+#define PCI_MAX_SLOT_COUNT	0x20
+#define PCI_MAX_FUNC_COUNT	0x08
+
 #define PCI_REG_ADDR(x) (x >> 2)
 #define PCI_REG_OFFSET(x) (x & 0x02)
 
