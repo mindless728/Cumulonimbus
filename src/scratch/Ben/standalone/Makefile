@@ -10,7 +10,7 @@
 # User supplied files
 #
 U_C_SRC = main.c timer_isr.c pci_utils.c random.c cmos.c math.c vbe_info.c vesa_framebuffer.c gs_io.c gs_font.c util.c fpu.c
-U_C_OBJ = main.o timer_isr.o util.o fpu.o vesa_framebuffer.o vbe_info.o#gs_io.o gs_font.o
+U_C_OBJ = main.o timer_isr.o util.o fpu.o vesa_framebuffer.o vbe_info.o gs_io.o gs_font.o math.o
 U_S_SRC =
 U_S_OBJ =
 U_LIBS	=
@@ -23,7 +23,7 @@ U_LIBS	=
 #	SP2_CONFIG		enable SP2-specific startup variations
 #	REPORT_MYSTERY_INTS	print a message on interrupt 0x27
 #
-USER_OPTIONS = -DCLEAR_BSS_SEGMENT 
+USER_OPTIONS = -DCLEAR_BSS_SEGMENT
 
 #
 # YOU SHOULD NOT NEED TO CHANGE ANYTHING BELOW THIS POINT!!!
@@ -110,19 +110,19 @@ SOURCES = $(BOOT_SRC) $(S_SRC) $(C_SRC)
 #
 
 usb.image: bootstrap.b prog.b prog.nl BuildImage #prog.dis 
-	./BuildImage -d usb -o usb.image -b bootstrap.b prog.b 0x10000
+	./BuildImage -d usb -o usb.image -b bootstrap.b prog.b 0x20000
 
 floppy.image: bootstrap.b prog.b prog.nl BuildImage #prog.dis 
-	./BuildImage -d floppy -o floppy.image -b bootstrap.b prog.b 0x10000
+	./BuildImage -d floppy -o floppy.image -b bootstrap.b prog.b 0x20000
 
 prog.out: $(OBJECTS)
 	$(LD) -o prog.out $(OBJECTS)
 
 prog.o:	$(OBJECTS)
-	$(LD) -o prog.o -Ttext 0x10000 $(OBJECTS) $(U_LIBS)
+	$(LD) -o prog.o -Ttext 0x20000 $(OBJECTS) $(U_LIBS)
 
 prog.b:	prog.o
-	$(LD) -o prog.b -s --oformat binary -Ttext 0x10000 prog.o
+	$(LD) -o prog.b -s --oformat binary -Ttext 0x20000 prog.o
 
 #
 # Targets for copying bootable image onto boot devices

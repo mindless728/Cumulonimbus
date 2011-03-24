@@ -16,9 +16,9 @@
 /*
 ** The target program itself
 */
-#define TARGET_SEGMENT	0x00001000	/* 0001:0000 */
-#define TARGET_ADDRESS	0x00010000	/* and upward */
-#define	TARGET_STACK	0x00010000	/* and downward */
+#define TARGET_SEGMENT	0x00002000	/* 0001:0000 */
+#define TARGET_ADDRESS	0x00020000	/* and upward */
+#define	TARGET_STACK	0x00020000	/* and downward */
 
 /*
 ** The Global Descriptor Table (0000:0500 - 0000:2500)

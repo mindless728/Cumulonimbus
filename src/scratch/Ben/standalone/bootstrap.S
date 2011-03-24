@@ -482,8 +482,7 @@ vesa_information:
 
 /**
  * @author Benjamin Mayes
- * @description: Puts information about the VESA mode in %cx at memory address 
- *               0x7A00
+ * @description: Puts information about the VESA mode in %cx at memory address 0x4000
  */
 get_vesa_mode:
     push %es
@@ -506,7 +505,7 @@ find_best_vesa_mode:
     push %es
     push %di
     #move the segment into %ds
-    movw $0x7C00, %bx 
+    movw $0x3000, %bx 
     movw 16(%bx), %ds
     movw 16(%bx), %es
     #move the offset into %bx
@@ -532,7 +531,7 @@ find_best_vesa_mode:
         push %bx #save bx to the stack
 
         # calculate the disirabilty of the video mode
-        movw $0x7A00, %bx
+        movw $0x4000, %bx
         movw 18(%bx), %dx
         shrw $8, %dx
         movw 20(%bx), %ax

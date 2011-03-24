@@ -37,8 +37,8 @@ int main( void ) {
         //c_puts( "\nHello, world!\n" );
         //c_printf( "Seconds since midnight: %d\n", seconds_since_midnight() );
         _init_timer(); // Y U NO WORK QEMU?
-        _print_vesa_controller_info();
-        _print_vesa_mode_info();
+        //_print_vesa_controller_info();
+        //_print_vesa_mode_info();
         //_scan_all_pci_devices();
         //srandom(seconds_since_midnight());
     #ifndef NO_VESA
@@ -63,8 +63,13 @@ int main( void ) {
         
         //_vesa_text_demo();
         //_print_vesa_demo();
-        _print_mandelbrot(0.5);
+        _print_hue_test();
+        _print_mandelbrot(1.0);
     #else 
+        int i = 0;
+        for( i = 0; i < 1000000; ++i ) {
+            c_printf( "%d\n", (int)(1000000*exp(0.5*logn(i,2.718182))));//logn( 2.0, 2.718182 ))));
+        }
         //_print_vesa_controller_info();
         //c_printf("%d\n", (int)sqrt(2500.0) );
         //c_printf("0x%x\n", get_fpu_status() );

@@ -5,6 +5,7 @@
 #include "util.h"
 #include "timer_isr.h"
 #include "fpu.h"
+#include "math.h"
 
 pixel_t* vesa_video_memory; 
 uint32_t vesa_x_resolution;
@@ -33,7 +34,7 @@ void _vesa_init(void) {
     vesa_video_memory = (pixel_t*)vmi->physical_base_ptr;
 }
 
-/*void _vesa_text_demo(void) {
+void _vesa_text_demo(void) {
     //gs_set_draw_mode( GS_DRAW_MODE_XOR  ); 
     char ch = 0;
     int index = 3*1280;
@@ -43,48 +44,96 @@ void _vesa_init(void) {
         gs_putc_at(index%1280,FONT_CHAR_HEIGHT*(index/1280), ch = c_getchar() );
         index += FONT_CHAR_WIDTH;
     }
-}*/
+}
 
-#define NUM_ITERS 500
+void _print_hue_test() {
+    int x = 0;
+    int y = 0;
+    for( y = 0; y < 1024; ++y ) {
+        double hue = (double)y/1024;
+        double z = 6*hue;
+        int h = z;
+        while( z > 2.0 ) z -= 2.0;
+        z -= 1.0;
+        if( z < 0.0 ) z = -z;
+        z = 1 - z;
+        pixel_t color = 0;
+        switch(h) {
+            case 0: 
+            color = CREATE_PIXEL(31,(int)(63*z),0); 
+            break;
+            case 1: 
+            color = CREATE_PIXEL((int)(31*z),63,0); 
+            break;
+            case 2: 
+            color = CREATE_PIXEL(0,63,(int)(31*z)); 
+            break;
+            case 3: 
+            color = CREATE_PIXEL(0,(int)(63*z),31); 
+            break;
+            case 4: 
+            color = CREATE_PIXEL((int)(31*z),0,31); 
+            break;
+            case 5: 
+            color = CREATE_PIXEL(31,0,(int)(31*z)); 
+            break;
+            default: 
+            color = 0x0000;
+            gs_puts_at(0,0, itoa(h));
+            c_getchar();
+            break;
+        }
+        for( x = 0; x < 1280; ++x ) {
+            *GET_PIXEL(x,y) = color;
+        }
+    }
+    c_getchar();
+}
+
+#define NUM_ITERS 1000
 void _print_mandelbrot( double parameter ) {
-    double zoom = 128.0;
-    int xoffset = 0;
-    int yoffset = 128;
-    pixel_t hues[NUM_ITERS+1];
+    static double zoom = 128.0;
+    static int xoffset = 0;
+    static int yoffset = 128;
+    static int cycle = 0;
+    static pixel_t hues[NUM_ITERS+1];
     hues[NUM_ITERS] = 0.0;
     int i = 0;
     for(; i < NUM_ITERS; ++i ) {
-        double num = 1.0 - (double)i / NUM_ITERS;
-        double h = pow(num, parameter);
-        double location = 360*h / 60;
-        while( location > 2.0 ) location -= 2.0;
-        double x = location - 1;
-        if( x < 0 ) x = -x;
+        double num = (double)i / NUM_ITERS;
+        double x = exp(parameter*logn(num,2.71828182));
+        x *= 6;
+        int s = (int)x;
+        while( x > 2.0 ) x -= 2.0;
+        x -= 1.0;
+        if( x < 0.0 ) x = -x;
         x = 1 - x;
-        int l = (int)location;
-        switch((int)(360*h/60)) {
+        if( x > 1.0 ) s = 6;//x = 1.0; 
+        if( x < 0.0 ) s = 6;//x = 0.0; 
+        switch(s) {
             case 0: 
-            hues[i] = CREATE_PIXEL(255,(int)(511*x),0); 
+            hues[i] = CREATE_PIXEL(31,(int)(63*x),0); 
             break;
             case 1: 
-            hues[i] = CREATE_PIXEL((int)(255*x),511,0); 
+            hues[i] = CREATE_PIXEL((int)(31*x),63,0); 
             break;
             case 2: 
-            hues[i] = CREATE_PIXEL(0,511,(int)(255*x)); 
+            hues[i] = CREATE_PIXEL(0,63,(int)(31*x)); 
             break;
             case 3: 
-            hues[i] = CREATE_PIXEL(0,(int)(511*x),255); 
+            hues[i] = CREATE_PIXEL(0,(int)(63*x),31); 
             break;
             case 4: 
-            hues[i] = CREATE_PIXEL(255,0,(int)(255*x)); 
+            hues[i] = CREATE_PIXEL((int)(31*x),0,31); 
             break;
             case 5: 
-            hues[i] = CREATE_PIXEL((int)(255*x),0,255); 
+            hues[i] = CREATE_PIXEL(31,0,(int)(31*x)); 
             break;
             default: 
-            hues[i] = 0;
+            hues[i] = 0xFFFF;
             break;
         }
+        *GET_PIXEL(i,0) = hues[i]; 
     }
     while( 1 ) {
         int r,c;
@@ -137,11 +186,18 @@ void _print_mandelbrot( double parameter ) {
                 xoffset = 0;
                 yoffset = 0;
                 zoom = 128.0; 
+                break;
+            case '[':
+                _print_mandelbrot( parameter / 1.1 );
+                break;
+            case ']':
+                _print_mandelbrot( parameter * 1.1 );
+                break;
         }
     }
 }
 
-/*void _print_vesa_demo() {
+void _print_vesa_demo() {
     vbe_mode_info_t* c = (vbe_mode_info_t*)VBE_MODE_INFO_LOCATION;
     uint32_t iter = 0;
     uint32_t x_res = c->x_res;
@@ -192,4 +248,4 @@ void _print_mandelbrot( double parameter ) {
         }
         iter += 10;
     }
-}*/
+}

@@ -3,18 +3,20 @@
 
 // Seems to work just fine.
 double exp(double x) {
-    double prev = -1.0;
+    double prev = 0.0;
     double ret = 1.0;
-    double factorial = 1.0;
+    //double factorial = 1.0;
+    double term = 1.0;
     uint32_t exponent = 1;
     
     // lets do a taylor series expansion
     do {
-        prev = ret;
-        factorial *= exponent;
-        ret += powl( x, exponent ) / factorial;
+        //prev = ret;
+        term *= x;
+        term /= exponent;
+        ret += term;
         ++exponent;
-    } while( ret != prev );
+    } while( term > 0.0001 );
 
     return ret;
 }
