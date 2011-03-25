@@ -127,7 +127,7 @@
 
 typedef struct pci_addr{
 	uint8_t bus;		//8 bits
-	uint8_t slot;		//6 bits
+	uint8_t slot;		//5 bits
 	uint8_t func;		//2 bits
 	//! Offset in 4byte chunks
 	uint8_t offset;		//6 bits
@@ -332,6 +332,20 @@ status_t _pci_write_short(boolean_t configAddr, pci_addr_t addr, uint8_t byte_of
   *			functions encounter an error the return value will be set to match.
   */
 status_t _pci_write_byte(boolean_t configAddr, pci_addr_t addr, uint8_t byte_offset, uint8_t value);
+
+
+/**
+  *	Sets the selected mask bits of the addressed register to the desired state.
+  *
+  *	@param	configAddr	Wether the read should be completed using the
+  *						configuration address space.
+  *	@param	addr		Bus address of the pci register to modify
+  *	@param	mask		Mask of bits to modify
+  *	@param	state		State to set the masked bits to
+  *
+  *	@return	Returns the status of the underlying read/write calls.
+  */
+status_t _pci_set_bits(boolean_t configAddr, pci_addr_t addr, uint32_t mask, boolean_t state);
 
 status_t _pci_read_config(pci_addr_t addr, pci_config_t* config);
 

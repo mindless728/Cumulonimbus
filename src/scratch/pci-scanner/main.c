@@ -71,7 +71,7 @@ int main( void ) {
 
 
 
-	int index = 0;
+	//int index = 0;
 	pci_device_t* dev = pciDevices->first;
 
 	while(dev!=NULL){

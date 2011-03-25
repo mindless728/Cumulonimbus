@@ -343,6 +343,24 @@ status_t _pci_read_config(pci_addr_t addr, pci_config_t* config){
 }
 
 
+status_t _pci_set_bits(boolean_t configAddr, pci_addr_t addr, uint32_t mask, boolean_t state){
+	uint32_t value;
+	status_t status = _pci_read_long(configAddr, addr, &value);
+
+	if(status != E_SUCCESS){
+		return status;
+	}
+
+	if(state == 0){
+		value &= ~mask;
+	}
+	else{
+		value |= mask;
+	}
+
+	return _pci_write_long(configAddr, addr, value);
+}
+
 status_t _pci_read_bar_size(pci_device_t* device, uint8_t bar_index, uint32_t* size){
 	pci_addr_t barAddr = device->address;
 	uint32_t original_bar = 0;
