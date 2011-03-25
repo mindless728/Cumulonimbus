@@ -9,8 +9,8 @@
 #
 # User supplied files
 #
-U_C_SRC = main.c
-U_C_OBJ = main.o
+U_C_SRC = main.c ide.c
+U_C_OBJ = main.o ide.o
 U_S_SRC =
 U_S_OBJ =
 U_LIBS	=
