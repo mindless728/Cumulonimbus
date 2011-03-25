@@ -228,12 +228,29 @@ void _pci_print_config(pci_device_t* device);
   *	@param	device		Pointer to a device structure pointer to store the found device
   *	@param	vendor_id	Vendor ID of the desired device
   *	@param	device_id	Device ID of the desired device
+  *
   *	@return	Returns E_SUCCESS if the device was found and the device pointer
   *			could be correctly updated. If the provided device pointer is not
   *			valid then E_BAD_PARAM is returned. If the device was not found then
   *			E_NOT_FOUND will be return.
   */
-status_t _pci_get_device(pci_device_list_t list, pci_device_t** device, uint16_t vendor_id, uint16_t device_id);
+status_t _pci_get_device(pci_device_list_t* list, pci_device_t** device, uint16_t vendor_id, uint16_t device_id);
+
+
+/**
+  *	Searches the provided pci device list for a device at the specified
+  *	PCI bus address.
+  *
+  *	@param	list		List of detected pci devices
+  *	@param	device		Pointer to a device structure pointer to store the found device
+  *	@param	addr		Physical PCI address of desired.
+  *
+  *	@return	Returns E_SUCCESS if the device was found and the device pointer
+  *			could be correctly updated. If the provided device pointer is not
+  *			valid then E_BAD_PARAM is returned. If the device was not found then
+  *			E_NOT_FOUND will be return.
+  */
+status_t _pci_get_device_by_address(pci_device_list_t* list, pci_device_t** device, pci_addr_t addr);
 
 /**
   *	Reads a 32 bit register located at the specified PCI address.
