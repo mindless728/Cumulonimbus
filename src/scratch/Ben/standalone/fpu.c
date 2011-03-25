@@ -4,7 +4,28 @@
  * common mathematical tasks.
  */
 
+#include "fpu.h"
 #include "int_types.h"
+
+#define SINGLE_ARGUMENT_FPU_ROUTINE( NAME ) inline double NAME( double x ) {  \
+    asm volatile( "finit\n\t"                           \
+                  "fldl %1\n\t"                         \
+                  "f" #NAME "\n\t"                      \
+                  "fstpl %0\n\t" : "=m"(x) : "m"(x));   \
+        return x;                                      \
+    } 
+
+                  
+#define DOUBLE_ARGUMENT_FPU_ROUTINE( NAME ) inline double NAME( double x, double y ) {  \
+    asm volatile( "finit\n\t"                           \
+                  "fldl %2\n\t"                         \
+                  "fldl %1\n\t"                         \
+                  "f" #NAME "\n\t"                      \
+                  "fstpl %0\n\t" : "=m"(x) : "m"(x), "m"(y));   \
+        return x;                                        \
+    } 
+
+
 
 /**
  * Obtains the fpu status register. Can be used for error checking purposes.
@@ -28,54 +49,50 @@ uint16_t get_fpu_control(void) {
     : "=m"(ret) );
     return ret;
 }
-
 /**
- * Obtains the square root of x.
+ * Obtains the absolute value of x.
  *
- * @param x The number to obtain the square root of.
- * @return The square root of x.
+ * @param x The number to obtain the absolute value of.
+ * @return The sine of x.
  */
-double sqrt( double x ) {
-    asm volatile(    "finit\n\t"
-            "fldl %1\n\t" 
-            "fsqrt\n\t"
-            "fstpl %0\n\t"
-            : "=m"(x)
-            : "m"(x) );
-    return x;
-}
 
+SINGLE_ARGUMENT_FPU_ROUTINE(abs)
+/**
+ * Obtains the cosine of x.
+ *
+ * @param x The number to obtain the cosine of.
+ * @return The sine of x.
+ */
+
+SINGLE_ARGUMENT_FPU_ROUTINE(cos)
 /**
  * Obtains the sine of x.
  *
  * @param x The number to obtain the sine of.
  * @return The sine of x.
  */
-double sin( double x ) {
-    asm volatile(    "finit\n\t"
-            "fldl %1\n\t" 
-            "fsin\n\t"
-            "fstpl %0\n\t"
-            : "=m"(x)
-            : "m"(x) );
-    return x;
-}
 
+SINGLE_ARGUMENT_FPU_ROUTINE(sin)
 /**
- * Obtains the cosine of x.
+ * Obtains the square root of x.
  *
- * @param x The number to obtain the cosine of.
- * @return The cosine of x.
+ * @param x The number to obtain the square root of.
+ * @return The square root of x.
  */
-double cos( double x ) {
-    asm volatile(    "finit\n\t"
-            "fldl %1\n\t" 
-            "fcos\n\t"
-            "fstpl %0\n\t"
-            : "=m"(x)
-            : "m"(x) );
-    return x;
-}
+SINGLE_ARGUMENT_FPU_ROUTINE(sqrt)
+/**
+ * Rounds x to the nearest integer double.
+ *
+ * @param x The number to round to the nearest integer.
+ */
+SINGLE_ARGUMENT_FPU_ROUTINE(rndint)
+/**
+ * Obtains the angle from (0,0) to (x,y).
+ *
+ * @param x The x coordinate.
+ * @param y The y coordinate.
+ */
+DOUBLE_ARGUMENT_FPU_ROUTINE(patan)
 
 /**
  * Obtains log base 2 of x.
@@ -125,22 +142,23 @@ double logn( double x, double n ) {
  * @returns x raised to the yth power.
  */
 double pow( double x, double y ) {
-    asm volatile( 
-            "finit\n\t"
-            "fldl %2\n\t"
-            "fldl %1\n\t"
-            "fyl2x\n\t"                         // calculates y*log2(x)
-            "fld %%st(0)\n\t"                   // copy to the top of the stack 
-            "frndint\n\t"                       // round the copy to the nearest integer 
-            "fsub %%st(1), %%st(0)\n\t"         // ST(0) = ST(1) - ST(0)
-            "fxch %%st(1)\n\t"                  // ST(0) = Frac[y*log2(x) ST(1) = y*log2(x)
-            "f2xm1\n\t"                          
-            "fld1\n\t"
-            "faddp\n\t"                         // ST(0) = 2^(frac*log2(x)) ST(1) = y*log2(x)
-            "fscale\n\t"
-            "fstpl %0\n\t" 
-            : "=m"(x)
-            : "m"(x), "m"(y) );
-    //c_printf( "%d: 0x%x\n", (int)x, get_fpu_status()  );
+    asm volatile(
+        "finit\n\t"         //initialize FPU - probably not needed but good practice
+        "fldl %2\n\t"       
+        "fldl %1\n\t"       // STACK: st(0) = x, st(1) = y
+        "fyl2x\n\t"         // st(0) = y*l2(x)
+        "fld %%st(0)\n\t"
+        "frndint\n\t"       // st(0) = (int)(y*l2(x)), st(1) = y*l2(x)
+        "fxch %%st(1)\n\t"
+        "fsub %%st(1), %%st(0)\n\t" //st(0) = (frac)(y*l2(x)), st(1) = (int)(y*l2x)
+        "f2xm1\n\t"  // st(0) = (frac pow of 2) - 1, st(1) = (int)(y*l2x)
+        "fld1\n\t"
+        "faddp\n\t"
+        "fscale\n\t" //st(0) = x^y, st(1) = (int)(y*l2x)
+        "fstp %%st(1)\n\t" // clean off the stack
+        "fstpl %0\n\t"
+        : "=m"(x)
+        : "m"(x), "m"(y) );
+
     return x;
 }

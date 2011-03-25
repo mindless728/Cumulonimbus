@@ -4,6 +4,8 @@
 #include "c_io.h"
 #include "util.h"
 #include "timer_isr.h"
+#include "fpu.h"
+#include "math.h"
 
 pixel_t* vesa_video_memory; 
 uint32_t vesa_x_resolution;
@@ -41,6 +43,157 @@ void _vesa_text_demo(void) {
     while( ch != '\033' ) {
         gs_putc_at(index%1280,FONT_CHAR_HEIGHT*(index/1280), ch = c_getchar() );
         index += FONT_CHAR_WIDTH;
+    }
+}
+
+void _print_hue_test() {
+    int x = 0;
+    int y = 0;
+    for( y = 0; y < 1024; ++y ) {
+        double hue = (double)y/1024;
+        double z = 6*hue;
+        int h = z;
+        while( z > 2.0 ) z -= 2.0;
+        z -= 1.0;
+        if( z < 0.0 ) z = -z;
+        z = 1 - z;
+        pixel_t color = 0;
+        switch(h) {
+            case 0: 
+            color = CREATE_PIXEL(31,(int)(63*z),0); 
+            break;
+            case 1: 
+            color = CREATE_PIXEL((int)(31*z),63,0); 
+            break;
+            case 2: 
+            color = CREATE_PIXEL(0,63,(int)(31*z)); 
+            break;
+            case 3: 
+            color = CREATE_PIXEL(0,(int)(63*z),31); 
+            break;
+            case 4: 
+            color = CREATE_PIXEL((int)(31*z),0,31); 
+            break;
+            case 5: 
+            color = CREATE_PIXEL(31,0,(int)(31*z)); 
+            break;
+            default: 
+            color = 0x0000;
+            gs_puts_at(0,0, itoa(h));
+            c_getchar();
+            break;
+        }
+        for( x = 0; x < 1280; ++x ) {
+            *GET_PIXEL(x,y) = color;
+        }
+    }
+    c_getchar();
+}
+
+#define NUM_ITERS 1000
+void _print_mandelbrot( double parameter ) {
+    static double zoom = 128.0;
+    static int xoffset = 0;
+    static int yoffset = 128;
+    static int cycle = 0;
+    static pixel_t hues[NUM_ITERS+1];
+    hues[NUM_ITERS] = 0.0;
+    int i = 0;
+    for(; i < NUM_ITERS; ++i ) {
+        double num = (double)i / NUM_ITERS;
+        double x = exp(parameter*logn(num,2.71828182));
+        x *= 6;
+        int s = (int)x;
+        while( x > 2.0 ) x -= 2.0;
+        x -= 1.0;
+        if( x < 0.0 ) x = -x;
+        x = 1 - x;
+        if( x > 1.0 ) s = 6;//x = 1.0; 
+        if( x < 0.0 ) s = 6;//x = 0.0; 
+        switch(s) {
+            case 0: 
+            hues[i] = CREATE_PIXEL(31,(int)(63*x),0); 
+            break;
+            case 1: 
+            hues[i] = CREATE_PIXEL((int)(31*x),63,0); 
+            break;
+            case 2: 
+            hues[i] = CREATE_PIXEL(0,63,(int)(31*x)); 
+            break;
+            case 3: 
+            hues[i] = CREATE_PIXEL(0,(int)(63*x),31); 
+            break;
+            case 4: 
+            hues[i] = CREATE_PIXEL((int)(31*x),0,31); 
+            break;
+            case 5: 
+            hues[i] = CREATE_PIXEL(31,0,(int)(31*x)); 
+            break;
+            default: 
+            hues[i] = 0xFFFF;
+            break;
+        }
+        *GET_PIXEL(i,0) = hues[i]; 
+    }
+    while( 1 ) {
+        int r,c;
+        for( r = 0; r < 1024; ++r ) {
+            if( c_input_queue() ) break;
+            for( c = 0; c < 1280; ++c ) {
+                int iter = 0;
+                double a = 0.0;
+                double b = 0.0;
+                double aold = 0.0;
+                double bold = 0.0;
+                double x = (c - 640 + xoffset)/zoom;
+                double y = (r - 512 + yoffset)/zoom;
+                while( iter < NUM_ITERS && (a*a+b*b) <= 4.0 ) {
+                    a = aold*aold - bold*bold + x; 
+                    b = 2*aold*bold + y;
+                    ++iter;
+                    aold = a;
+                    bold = b;
+                }
+                *GET_PIXEL(c,r) = hues[iter];
+            }
+        }
+        char key = c_getchar();
+        switch(key) {
+            case '+':
+                zoom *= 2.0;
+                xoffset *= 2.0;
+                yoffset *= 2.0;
+            break;
+            case '-':
+                zoom *= 0.5;
+                xoffset *= 0.5;  
+                yoffset *= 0.5;  
+            break;
+
+            case 'w':
+                yoffset -= 100.0;
+                break;
+            case 's':
+                yoffset += 100.0;
+                break;
+            case 'a':
+                xoffset -= 100.0;
+                break;
+            case 'd':
+                xoffset += 100.0;
+                break;
+            case 'r':
+                xoffset = 0;
+                yoffset = 0;
+                zoom = 128.0; 
+                break;
+            case '[':
+                _print_mandelbrot( parameter / 1.1 );
+                break;
+            case ']':
+                _print_mandelbrot( parameter * 1.1 );
+                break;
+        }
     }
 }
 

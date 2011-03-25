@@ -1,6 +1,6 @@
 #ifndef MATH_H_
 #define MATH_H_
-#include <int_types.h>
+#include "int_types.h"
 extern double sin( double x );
 extern double cos( double x );
 extern double tan( double x );
