@@ -61,14 +61,16 @@ int main( void ) {
 
 	status_t status = _pci_scan(pciDevices);
 
-	/*if(status != E_SUCCESS){
+	if(status != E_SUCCESS){
 		c_printf("PCI bus scan failed with error 0x%x\n", status);
 		while(1);
-	}*/
+	}
 
 
 	c_printf("Detected %d PCI devices\n", pciDevices->size);
 
+
+	bcm_driver_init(pciDevices);
 
 
 	//int index = 0;
