@@ -1,5 +1,6 @@
 int * phys_mem_table = 0;
 
+// | 3702 bytes for physmem table | 4096 bytes for page directory| :
 
 void init_paging(void) {
 
@@ -35,11 +36,24 @@ int * alloc_phys_page(void) {
 
 }
 
+
+
 void free_phys_page(int * page) {
 
-	int delta = (int)page - (int)phys_mem_table / (1024 * 4) / 32;
+	// location - page = offset
+	// offset / size of page  should be the index of page in the paging area
+	// 32 indexes per native memory size should give us how many 32 bit intervals in our memory to free is in
 
-	phys_mem_table[delta
+	int delta = ( ( (int)page - (int)phys_mem_table) / (1024 * 4) ) / 32;
+	
+	int shift = ( ( (int)page - (int)phys_mem_table) / (1024 * 4) ) % 32;
+
+	// clear the bit in the table
+	phys_mem_table[delta] &= ~(1<<shift);
+
+}
+
+
 void init_phys_alloc(int * start) {
 
 	phys_mem_table = start;
