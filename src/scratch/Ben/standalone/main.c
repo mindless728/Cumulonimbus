@@ -15,15 +15,13 @@
 #include "pci_utils.h"
 #include "random.h"
 #include "cmos.h"
-#include "math.h"
 #include "vbe_info.h"
 #include "vesa_framebuffer.h"
 #include "x86arch.h"
 #include "support.h"
 #include "startup.h"
 #include "util.h"
-#include "fpu.h"
-//uint32_t aaaadonottouchmemory[8096][1024];
+#include "math.h"
 
 extern gs_framebuffer_t framebuffer;
 void remove_usb_isr( int vector, int code ) {
@@ -37,13 +35,15 @@ int main( void ) {
         //c_puts( "\nHello, world!\n" );
         //c_printf( "Seconds since midnight: %d\n", seconds_since_midnight() );
         _init_timer(); // Y U NO WORK QEMU?
-        //_print_vesa_controller_info();
-        //_print_vesa_mode_info();
+        _print_vesa_controller_info();
+        _print_vesa_mode_info();
         //_scan_all_pci_devices();
         //srandom(seconds_since_midnight());
     #ifndef NO_VESA
         _vesa_init();
+        gs_draw_console(); 
         //gs_puts_at(0,0, "Vesa successfully initialized.");
+        c_getchar();
         //gs_puts_at(0,16, "Address of Framebuffer: 0x");
         //gs_puts_at(0,32, "Address of memory to not touch: 0x");
         //gs_puts_at(26*12,16, itohex((uint32_t)&framebuffer));

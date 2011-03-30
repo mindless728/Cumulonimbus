@@ -1,5 +1,7 @@
+#include "x86arch.h"
 #include "gs_io.h"
 #include "vbe_info.h"
+
 
 static gs_draw_mode_t gs_draw_mode = GS_DRAW_MODE_XOR;
 
@@ -7,6 +9,20 @@ gs_draw_mode_t gs_set_draw_mode( gs_draw_mode_t mode ) {
     gs_draw_mode_t old_mode = mode;
     gs_draw_mode = mode;
     return old_mode;
+}
+
+void gs_draw_console() {
+    //gs_draw_mode_t old = gs_draw_mode;
+    //gs_set_draw_mode( GS_DRAW_MODE_FLAT ); 
+    int x = 0;
+    int y = 0;
+    for( y = 0; y < SCREEN_Y_SIZE; ++y ) {
+        for( x = 0; x < SCREEN_X_SIZE ; ++x ) {
+            char c = VIDEO_ADDR(x,y);
+            gs_putc_at(x*FONT_CHAR_WIDTH,y*FONT_CHAR_HEIGHT, 'A'+c );
+        }
+    }
+    //gs_set_draw_mode( old );
 }
 
 void gs_draw_pixel( int x, int y, pixel_t color ) {

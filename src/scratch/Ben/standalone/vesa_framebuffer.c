@@ -5,7 +5,6 @@
 #include "util.h"
 #include "timer_isr.h"
 #include "fpu.h"
-#include "math.h"
 
 pixel_t* vesa_video_memory; 
 uint32_t vesa_x_resolution;
@@ -90,7 +89,7 @@ void _print_hue_test() {
     c_getchar();
 }
 
-#define NUM_ITERS 1000
+#define NUM_ITERS 2000
 void _print_mandelbrot( double parameter ) {
     static double zoom = 128.0;
     static int xoffset = 0;
@@ -101,7 +100,7 @@ void _print_mandelbrot( double parameter ) {
     int i = 0;
     for(; i < NUM_ITERS; ++i ) {
         double num = (double)i / NUM_ITERS;
-        double x = exp(parameter*logn(num,2.71828182));
+        double x = pow(num, parameter);
         x *= 6;
         int s = (int)x;
         while( x > 2.0 ) x -= 2.0;
