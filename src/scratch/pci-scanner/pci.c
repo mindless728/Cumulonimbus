@@ -138,12 +138,12 @@ status_t _pci_scan(pci_device_list_t* list){
 }*/
 
 
-status_t _pci_get_device(pci_device_list_t list, pci_device_t** device, uint16_t vendor_id, uint16_t device_id){
+status_t _pci_get_device(pci_device_list_t* list, pci_device_t** device, uint16_t vendor_id, uint16_t device_id){
 	if(device == NULL){
 		return E_BAD_PARAM;
 	}
 
-	pci_device_t* tempPtr = list.first;
+	pci_device_t* tempPtr = list->first;
 
 	while(tempPtr != NULL){
 		if(tempPtr->config.vendorId == vendor_id && tempPtr->config.deviceId == device_id){
@@ -153,6 +153,34 @@ status_t _pci_get_device(pci_device_list_t list, pci_device_t** device, uint16_t
 		tempPtr = tempPtr->next;
 	}
 
+	*device = NULL;
+	return E_NOT_FOUND;
+}
+
+
+status_t _pci_get_device_by_address(pci_device_list_t* list, pci_device_t** device, pci_addr_t addr){
+	if(device == NULL
+	   || addr.bus >= PCI_MAX_BUS_COUNT
+	   || addr.slot >= PCI_MAX_SLOT_COUNT
+	   || addr.func >= PCI_MAX_FUNC_COUNT){
+
+		return E_BAD_PARAM;
+	}
+
+	pci_device_t* tempPtr = list->first;
+
+	while(tempPtr != NULL){
+		if(tempPtr->address.bus == addr.bus
+		   && tempPtr->address.slot == addr.slot
+		   && tempPtr->address.func == addr.func){
+
+			*device = tempPtr;
+			return E_SUCCESS;
+		}
+		tempPtr = tempPtr->next;
+	}
+
+	*device = NULL;
 	return E_NOT_FOUND;
 }
 
@@ -342,6 +370,24 @@ status_t _pci_read_config(pci_addr_t addr, pci_config_t* config){
 	return status;
 }
 
+
+status_t _pci_set_bits(boolean_t configAddr, pci_addr_t addr, uint32_t mask, boolean_t state){
+	uint32_t value;
+	status_t status = _pci_read_long(configAddr, addr, &value);
+
+	if(status != E_SUCCESS){
+		return status;
+	}
+
+	if(state == 0){
+		value &= ~mask;
+	}
+	else{
+		value |= mask;
+	}
+
+	return _pci_write_long(configAddr, addr, value);
+}
 
 status_t _pci_read_bar_size(pci_device_t* device, uint8_t bar_index, uint32_t* size){
 	pci_addr_t barAddr = device->address;

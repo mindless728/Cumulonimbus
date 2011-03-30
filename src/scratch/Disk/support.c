@@ -242,7 +242,7 @@ void __delay( int tenths ){
 	int	i;
 
 	while( --tenths >= 0 ){
-		for( i = 0; i < 100000000; i += 1 )
+		for( i = 0; i < 10000000; i += 1 )
 			;
 	}
 }

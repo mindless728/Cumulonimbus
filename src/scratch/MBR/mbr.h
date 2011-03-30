@@ -26,9 +26,7 @@ struct _MBR_partition_t {
 };
 
 struct _MBR_t {
-	uint8_t data[440];
-	uint32_t signature;
-	uint16_t unused;
+	uint8_t data[446];
 	MBR_partition_t partition[4];
 	uint16_t MBR_signature;
 } __attribute__((__packed__));

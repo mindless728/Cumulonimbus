@@ -32,6 +32,7 @@ typedef uint8_t		boolean_t;
 
 typedef int32_t	status_t;
 
+
 #define E_SUCCESS	0
 #define E_BAD_PARAM	1
 #define E_NOT_IMPLEMENTED 2
