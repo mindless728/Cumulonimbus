@@ -11,5 +11,5 @@ extern uint32_t random(void);
 typedef struct _random_state_t {
         uint32_t state[624];
         uint_t index;
-} random_state_t
+} random_state_t;
 #endif

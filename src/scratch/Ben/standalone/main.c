@@ -12,7 +12,6 @@
 #include "c_io.h"
 #include "gs_io.h"
 #include "timer_isr.h"
-#include "pci_utils.h"
 #include "random.h"
 #include "cmos.h"
 #include "vbe_info.h"
