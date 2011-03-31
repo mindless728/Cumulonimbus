@@ -2,6 +2,7 @@
 #define IDE_H
 
 #include "types.h"
+#include "pci.h"
 
 #define ATA_SR_BSY     0x80
 #define ATA_SR_DRDY    0x40
@@ -82,33 +83,33 @@
 #define      ATA_READ      0x00
 #define      ATA_WRITE     0x01
 
-typedef struct _ide_channel_registers_t ide_channel_registers_t;
+#define ATA_MAX_IDE_CHANNELS 8
+#define ATA_MAX_IDE_DEVICES 16
+
+typedef struct _ide_channel_t ide_channel_t;
 typedef struct _ide_device_t ide_device_t;
 
-struct _ide_channel_registers_t {
-   unsigned short io_base;  // I/O Base.
-   unsigned short control_base;  // Control Base
-   unsigned short bm_ide; // Bus Master IDE
-   unsigned char  no_interrupt;  // nIEN (No Interrupt);
+struct _ide_channel_t {
+	pci_device_t * controller;
+	unsigned short base_io_register;
+	unsigned short base_control_register;
+	unsigned short bus_master_base;
 };
 
 struct _ide_device_t {
-   unsigned char  reserved;    // 0 (Empty) or 1 (This Drive really exists).
-   unsigned char  channel;     // 0 (Primary Channel) or 1 (Secondary Channel).
-   unsigned char  drive;       // 0 (Master Drive) or 1 (Slave Drive).
-   unsigned short type;        // 0: ATA, 1:ATAPI.
-   unsigned short signature;   // Drive Signature
-   unsigned short capabilities;// Features.
-   unsigned int   command_sets; // Command Sets Supported.
-   unsigned int   size;        // Size in Sectors.
-   unsigned char  model[41];   // Model in string.
+	ide_channel_t *	ide_channel; // channel the device sits on
+	unsigned char	valid;		 // 1 - valid, 0 - invalid
+	unsigned char	channel;     // 0 (Primary Channel) or 1 (Secondary Channel).
+	unsigned char	drive;       // 0 (Master Drive) or 1 (Slave Drive).
+	unsigned short	type;        // 0: ATA, 1:ATAPI.
+	unsigned short	signature;   // Drive Signature
+	unsigned short	capabilities;// Features.
+	unsigned int	command_sets; // Command Sets Supported.
+	unsigned int	size;        // Size in Sectors.
+	unsigned char	model[41];   // Model in string.
 };
 
-extern ide_channel_registers_t registers[2];
-extern ide_device_t ide_devices[4];
-
-status_t ide_initialize(uint32_t BAR0, uint32_t BAR1, uint32_t BAR2, uint32_t BAR3, uint32_t BAR4);
-status_t ide_read(uint8_t channel, uint8_t reg, uint8_t * ret);
-status_t ide_write(uint8_t channel, uint8_t reg, uint8_t data);
+extern ide_channel_t ide_channels[ATA_MAX_IDE_CHANNELS];
+extern ide_device_t ide_devices[ATA_MAX_IDE_DEVICES];
 
 #endif

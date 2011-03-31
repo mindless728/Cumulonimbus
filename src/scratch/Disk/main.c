@@ -24,6 +24,10 @@ int main(void) {
 	//clear the screen
 	c_clearscreen();
 	
+	//output some extra info
+	c_printf("sizeof(ide_channel_t) = %d\n",sizeof(ide_channel_t));
+	c_printf("sizeof(ide_device_t) = %d\n",sizeof(ide_device_t));
+	
 	//get the ide controller
 	status = _pci_get_device(pci_devices, &controller, 0x8086, 0x27c0);
 	if(status != E_SUCCESS) {
@@ -34,9 +38,7 @@ int main(void) {
 	//print that the device was found
 	c_printf("IDE device found\n");
 	for(i = 0; i < 6; ++i)
-		c_printf("BAR%d - 0x%x\n",i,controller->config.headers.type0.bar[i]);
-	c_printf("IRQLine: 0x%x\n",controller->config.headers.type0.irqLine);
-	c_printf("IRQPin: 0x%x\n",controller->config.headers.type0.irqPin);
+		c_printf("bar[%d]: 0x%x\n",i,controller->config.headers.type0.bar[i]);
 	
 	c_printf("IDE test execution done");
 	/*c_printf("\nwaiting for 10s to run more tests");
