@@ -3,7 +3,7 @@
 # 1 "<command-line>"
 # 1 "startup.S"
 # 20 "startup.S"
-# 1 "./bootstrap.h" 1
+# 1 "bootstrap.h" 1
 # 21 "startup.S" 2
 # 32 "startup.S"
  .globl begtext
