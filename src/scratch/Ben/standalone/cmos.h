@@ -2,6 +2,7 @@
 
 #ifndef CMOS_H_
 #define CMOS_H_
+#include "int_types.h"
 // CMOS I/O Ports
 #define CMOS_REG_SELECT_PORT 0x70
 #define CMOS_IO_PORT 0x71
@@ -38,8 +39,8 @@
 // the following register allows you to change the format
 #define CMOS_REG_STATUS_B 0xB
 // Format modes
-#define CMOS_RSB_24_HOUR = 0x2
-#define CMOS_RSB_BINARY_MODE = 0x4
+#define CMOS_RSB_24_HOUR 0x2
+#define CMOS_RSB_BINARY_MODE 0x4
 
 // sample function
 extern uint32_t seconds_since_midnight(void);

@@ -109,7 +109,7 @@ void _print_mandelbrot( double parameter ) {
         x = 1 - x;
         if( x > 1.0 ) s = 6;//x = 1.0; 
         if( x < 0.0 ) s = 6;//x = 0.0; 
-        switch(s) {
+        switch((s+cycle) % 6) {
             case 0: 
             hues[i] = CREATE_PIXEL(31,(int)(63*x),0); 
             break;
@@ -191,6 +191,14 @@ void _print_mandelbrot( double parameter ) {
                 break;
             case ']':
                 _print_mandelbrot( parameter * 1.1 );
+                break;
+            case '{':
+                ++cycle;
+                _print_mandelbrot( parameter );
+                break;
+            case '}':
+                --cycle;
+                _print_mandelbrot( parameter );
                 break;
         }
     }

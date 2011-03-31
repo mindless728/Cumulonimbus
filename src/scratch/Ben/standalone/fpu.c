@@ -1,4 +1,5 @@
 /**
+ * File: fpu.c
  * @author Benjamin Mayes
  * @description A collection of functions wrapping FPU instructions for some 
  * common tasks.
@@ -32,7 +33,7 @@
  *
  * @return The floating point status register's value.
  */
-uint16_t get_fpu_status(void) {
+inline uint16_t get_fpu_status(void) {
     register uint16_t ret;
     asm volatile("fstsw %%ax\n\t" : "=r"(ret) );
     return ret;
@@ -43,7 +44,7 @@ uint16_t get_fpu_status(void) {
  *
  * @return The floating point control register's value.
  */
-uint16_t get_fpu_control(void) {
+inline uint16_t get_fpu_control(void) {
     uint16_t ret;
     asm volatile("fstcw %0\n\t" 
     : "=m"(ret) );
@@ -100,7 +101,7 @@ DOUBLE_ARGUMENT_FPU_ROUTINE(patan)
  * @param x The number to obtain the log2 of.
  * @return The log2 of x.
  */
-double log2( double x ) {
+inline double log2( double x ) {
     asm volatile(    "finit\n\t"
             "fld1\n\t" 
             "fldl %1\n\t" 
@@ -117,7 +118,7 @@ double log2( double x ) {
  * @param x The number to obtain the logn of.
  * @return The logn of x.
  */
-double logn( double x, double n ) {
+inline double logn( double x, double n ) {
     // We could use log2 as a subroutine but to be safe let's maintain precision
     // by staying in the FPU.
     asm volatile(    "finit\n\t"
@@ -141,7 +142,7 @@ double logn( double x, double n ) {
  * @param y The exponent.
  * @returns x raised to the yth power.
  */
-double pow( double x, double y ) {
+inline double pow( double x, double y ) {
     asm volatile(
         "finit\n\t"         //initialize FPU - probably not needed but good practice
         "fldl %2\n\t"       
@@ -168,7 +169,7 @@ double pow( double x, double y ) {
  *
  * @param context A pointer to memory to place the FPU state.
  */
-void _save_fpu_context( fpu_context_t *context ) {
+inline void _save_fpu_context( fpu_context_t *context ) {
     asm volatile ( "fsave %0\n\t" : "=m"(*context) );
 }
 
@@ -177,7 +178,7 @@ void _save_fpu_context( fpu_context_t *context ) {
  *
  * @param context A pointer in memory to a saved FPU state.
  */
-void _restore_fpu_context( fpu_context_t *context ) {
+inline void _restore_fpu_context( fpu_context_t *context ) {
     asm volatile ( "frstor %0\n\t" : :"m"(*context) );
 }
 

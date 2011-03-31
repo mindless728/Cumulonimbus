@@ -1,8 +1,19 @@
+/**
+ * File: fpu.h
+ * @author Benjamin Mayes
+ * @description Declarations of functions wrapping FPU instructions for some 
+ * common tasks.
+ */
+
 #ifndef FPU_H_
 #define FPU_H_
 #include "int_types.h"
-extern uint16_t get_fpu_status(void);
-extern uint16_t get_fpu_control(void);
+
+// Register access functions
+extern inline uint16_t get_fpu_status(void);
+extern inline uint16_t get_fpu_control(void);
+
+// mathematical functions
 extern inline double abs( double x );
 extern inline double sqrt( double x );
 extern inline double rndint( double x );
@@ -13,6 +24,7 @@ extern inline double log2( double x );
 extern inline double logn( double x, double base );
 extern inline double pow( double x, double y );
 
+// The context for the FPU registers
 typedef struct _fpu_context_t {
     uint16_t fpu_control_word;
     uint16_t unused1;
@@ -29,6 +41,7 @@ typedef struct _fpu_context_t {
     uint8_t st[8][10];
 } fpu_context_t;
 
-extern void save_fpu_context( fpu_context_t *context );
-extern void load_fpu_context( fpu_context_t *context );
+// Functions for saving and restoring fpu context
+extern inline void _save_fpu_context( fpu_context_t *context );
+extern inline void _load_fpu_context( fpu_context_t *context );
 #endif
