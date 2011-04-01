@@ -124,6 +124,9 @@ context_t *_setup_stack( stack_t *stack, uint32_t entry ) {
 
 	context->eflags = DEFAULT_EFLAGS;
 
+    asm ( "finit\n\t"
+          "fsave %0\n\t" : "=m"(context->fpu) );
+
 	// return the pointer to the new context
 
 	return( context );

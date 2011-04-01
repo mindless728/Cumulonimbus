@@ -47,10 +47,10 @@ CPPFLAGS = $(USER_OPTIONS) -nostdinc -I- $(INCLUDES)
 
 # WARNING: -fno-stack-protector should (probably) be removed if compiled on the Solaris machines
 CC = gcc
-CFLAGS = -fno-builtin -fno-stack-protector -march=i386 -m32 -Wall -Wstrict-prototypes $(CPPFLAGS)
+CFLAGS = -fno-builtin -fno-stack-protector -march=i686 -m32 -Wall -Wstrict-prototypes $(CPPFLAGS)
 
 AS = gas
-ASFLAGS = --32 -march=i386
+ASFLAGS = --32 -march=i686
 
 LD = gld
 LDFLAGS = -melf_i386

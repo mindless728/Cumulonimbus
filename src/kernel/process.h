@@ -65,6 +65,23 @@
 // NOTE:  the order of data members here depends on the
 // register save code in isr_stubs.S!!!!
 
+// The context for the FPU registers
+typedef struct _fpu_context_t {
+    uint16_t fpu_control_word;
+    uint16_t unused1;
+    uint16_t fpu_status_word;
+    uint16_t unused2;
+    uint16_t fpu_tag_word;
+    uint16_t unused3;
+    uint32_t fpu_instruction_pointer;
+    uint16_t fpu_code_segment;
+    uint16_t unused4;
+    uint32_t fpu_last_instruction_operand_addr;
+    uint16_t fpu_data_segment;
+    uint16_t unused5;
+    uint8_t st[8][10];
+} fpu_context_t;
+
 typedef struct context {
 	uint32_t ss;
 	uint32_t gs;
@@ -79,12 +96,16 @@ typedef struct context {
 	uint32_t edx;
 	uint32_t ecx;
 	uint32_t eax;
+    fpu_context_t fpu;
 	uint32_t vector;
 	uint32_t code;
 	uint32_t eip;
 	uint32_t cs;
 	uint32_t eflags;
+    //uint32_t test;
 } context_t;
+
+
 
 // process id
 
