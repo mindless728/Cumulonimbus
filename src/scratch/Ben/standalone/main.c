@@ -34,47 +34,16 @@ int main( void ) {
         //c_puts( "\nHello, world!\n" );
         //c_printf( "Seconds since midnight: %d\n", seconds_since_midnight() );
         _init_timer(); // Y U NO WORK QEMU?
-        _print_vesa_controller_info();
-        _print_vesa_mode_info();
+        //_print_vesa_controller_info();
+        //_print_vesa_mode_info();
         //_scan_all_pci_devices();
         //srandom(seconds_since_midnight());
-    #ifndef NO_VESA
+    #ifndef NNO_VESA
         _vesa_init();
-        gs_draw_console(); 
-        //gs_puts_at(0,0, "Vesa successfully initialized.");
-        c_getchar();
-        //gs_puts_at(0,16, "Address of Framebuffer: 0x");
-        //gs_puts_at(0,32, "Address of memory to not touch: 0x");
-        //gs_puts_at(26*12,16, itohex((uint32_t)&framebuffer));
-        //gs_puts_at(34*12,32, itohex((uint32_t)&aaaadonottouchmemory));
-        //gs_puts_at(20*12,64, itohex(get_fpu_status()));
-        //gs_puts_at(20*12,80, itohex(get_fpu_control()));
-        //gs_puts_at(20*12,112, itoa(1000*cos(1.414/2)));
-        //c_getchar();
-        //gs_puts_at(0,0, "Vesa successfully initialized.");
-        //gs_puts_at(0,16, "Address of Framebuffer: 0x");
-        //gs_puts_at(0,32, "Address of memory to not touch: 0x");
-        //gs_puts_at(26*12,16, itohex((uint32_t)&framebuffer));
-        //gs_puts_at(34*12,32, itohex((uint32_t)&aaaadonottouchmemory));
-        //gs_puts_at(20*12,64, itohex(get_fpu_status()));
-        //gs_puts_at(20*12,80, itohex(get_fpu_control()));
-        //gs_puts_at(20*12,112, itoa(1000*cos(1.414/2)));
-        
-        //_vesa_text_demo();
-        //_print_vesa_demo();
         _print_hue_test();
         _print_mandelbrot(1.0);
     #else 
-        int i = 0;
-        for( i = 0; i < 1000000; ++i ) {
-            c_printf( "%d\n", (int)(1000000*exp(0.5*logn(i,2.718182))));//logn( 2.0, 2.718182 ))));
-        }
-        //_print_vesa_controller_info();
-        //c_printf("%d\n", (int)sqrt(2500.0) );
-        //c_printf("0x%x\n", get_fpu_status() );
-        //int base = (int)log2(66234.0);
-        //c_printf("0x%x\n", (int)base );
-        //c_printf("%d\n", base);
+        while(1);
     #endif
         return 0;
 }

@@ -24,6 +24,7 @@ U_LIBS	=
 #	CLEAR_BSS_SEGMENT	include code to clear all BSS space
 #	SP2_CONFIG		enable SP2-specific startup variations
 #	REPORT_MYSTERY_INTS	print a message on interrupt 0x27
+#   NO_VESA Disables VESA activation-specific code.
 #
 USER_OPTIONS = -DCLEAR_BSS_SEGMENT -DISR_DEBUGGING_CODE -DSP2_CONFIG
 
@@ -44,13 +45,15 @@ INCLUDES = -I. -I/home/fac/wrc/include
 CPP = cpp
 CPPFLAGS = $(USER_OPTIONS) -nostdinc -I- $(INCLUDES)
 
+# WARNING: -fno-stack-protector should (probably) be removed if compiled on the Solaris machines
 CC = gcc
-CFLAGS = -fno-builtin -Wall -Wstrict-prototypes $(CPPFLAGS)
+CFLAGS = -fno-builtin -fno-stack-protector -march=i386 -m32 -Wall -Wstrict-prototypes $(CPPFLAGS)
 
 AS = gas
-ASFLAGS =
+ASFLAGS = --32 -march=i386
 
 LD = gld
+LDFLAGS = -melf_i386
 
 #		
 # Transformation rules - these ensure that all compilation
@@ -119,13 +122,13 @@ floppy.image: bootstrap.b prog.b prog.nl BuildImage Offsets #prog.dis
 	./BuildImage -d floppy -o floppy.image -b bootstrap.b prog.b 0x10000
 
 prog.out: $(OBJECTS)
-	$(LD) -o prog.out $(OBJECTS)
+	$(LD) $(LDFLAGS) -o prog.out $(OBJECTS)
 
 prog.o:	$(OBJECTS)
-	$(LD) -o prog.o -Ttext 0x10000 $(OBJECTS) $(U_LIBS)
+	$(LD) $(LDFLAGS) -o prog.o -Ttext 0x10000 $(OBJECTS) $(U_LIBS)
 
 prog.b:	prog.o
-	$(LD) -o prog.b -s --oformat binary -Ttext 0x10000 prog.o
+	$(LD) $(LDFLAGS) -o prog.b -s --oformat binary -Ttext 0x10000 prog.o
 
 #
 # Targets for copying bootable image onto boot devices
@@ -142,6 +145,12 @@ usbl:	usb.image
 
 usbr:	usb.image
 	dd if=usb.image of=/local/devices/usbr
+
+sdb: usb.image
+	sudo dd if=usb.image of=/dev/sdb
+
+qemu: usb.image
+	qemu -m 512 -vga std -hda usb.image 
 
 #
 # Special rule for creating the modification and offset programs
@@ -190,25 +199,25 @@ depend:
 bootstrap.o: bootstrap.h
 startup.o: bootstrap.h
 isr_stubs.o: bootstrap.h
-ulibs.o: syscall.h headers.h /home/fac/wrc/include/x86arch.h
-c_io.o: c_io.h startup.h support.h /home/fac/wrc/include/x86arch.h
-support.o: startup.h support.h c_io.h /home/fac/wrc/include/x86arch.h
+ulibs.o: syscall.h headers.h x86arch.h
+c_io.o: c_io.h startup.h support.h x86arch.h
+support.o: startup.h support.h c_io.h x86arch.h
 support.o: bootstrap.h
-kalloc.o: headers.h kalloc.h /home/fac/wrc/include/x86arch.h
+kalloc.o: headers.h kalloc.h x86arch.h
 clock.o: headers.h clock.h process.h queue.h stack.h scheduler.h sio.h
-clock.o: startup.h /home/fac/wrc/include/x86arch.h
+clock.o: startup.h x86arch.h
 klibc.o: headers.h
 queue.o: headers.h queue.h process.h clock.h stack.h
 process.o: headers.h process.h clock.h queue.h stack.h
 scheduler.o: headers.h scheduler.h process.h clock.h queue.h stack.h
 sio.o: headers.h sio.h queue.h process.h clock.h stack.h scheduler.h
-sio.o: startup.h /home/fac/wrc/include/uart.h /home/fac/wrc/include/x86arch.h
+sio.o: startup.h uart.h x86arch.h
 stack.o: headers.h stack.h queue.h
-syscall.o: headers.h syscall.h /home/fac/wrc/include/x86arch.h process.h
+syscall.o: headers.h syscall.h x86arch.h process.h
 syscall.o: clock.h queue.h stack.h scheduler.h sio.h system.h types.h
 syscall.o: startup.h ulib.h
 system.o: headers.h system.h types.h process.h clock.h queue.h stack.h
-system.o: bootstrap.h syscall.h /home/fac/wrc/include/x86arch.h sio.h
+system.o: bootstrap.h syscall.h x86arch.h sio.h
 system.o: scheduler.h user.h ulib.h
 ulibc.o: headers.h
 user.o: headers.h user.h
