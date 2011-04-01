@@ -2,6 +2,10 @@
 #define GS_IO_H_
 #include "vesa_framebuffer.h"
 #include "gs_font.h"
+#define VIDEO_BASE_ADDR 0xB8000
+#define	VIDEO_ADDR(x,y)	(( unsigned short * )( VIDEO_BASE_ADDR + 2 * ( (y) * SCREEN_X_SIZE + (x) ) ))
+#define SCREEN_X_SIZE 80
+#define SCREEN_Y_SIZE 25
 #define FONT_CHAR_WIDTH  12
 #define FONT_CHAR_HEIGHT 16
 
