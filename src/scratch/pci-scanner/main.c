@@ -70,7 +70,7 @@ int main( void ) {
 	c_printf("Detected %d PCI devices\n", pciDevices->size);
 
 
-	bcm_driver_init(pciDevices);
+	//bcm_driver_init(pciDevices);
 
 
 	//int index = 0;

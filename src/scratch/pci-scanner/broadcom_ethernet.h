@@ -10,6 +10,21 @@
 
 #define BCM_T3_MAGIC_NUMBER 0x4B657654
 
+//Standard Memory Map
+enum BCM_STD_Region{
+	Std_Raw = 0,
+	Std_Pci,
+	Std_Mailboxes,
+	Std_Regs,
+	Std_Mem
+};
+
+#define BCM_STD_PCI_CONFIG_OFFSET		(0x0000)
+#define BCM_STD_HIGH_PRIO_MAIL_OFFSET	(0x01ff)
+#define BCM_STD_REGISTER_OFFSET			(0x03ff)
+#define BCM_STD_MEM_WINDOW_OFFSET		(0x7fff)
+#define BCM_STD_END_OFFSET				(0xffff)
+
 
 #define BCM_SUBSYS_VENDOR_ID_REG		(0x2c)
 #define BCM_PCI_X_CMD_REG				(0x42)
@@ -100,6 +115,18 @@
 
 
 //Bit fields
+#define BCM_ETH_LED_CTL_OVERR_LINK_LED		(1)
+#define BCM_ETH_LED_CTL_1000Mbps_LED		(1<<1)
+#define BCM_ETH_LED_CTL_100Mbps_LED			(1<<2)
+#define BCM_ETH_LED_CTL_10Mbps_LED			(1<<3)
+#define BCM_ETH_LED_CTL_OVERR_TRAFFIC_LED	(1<<4)
+#define BCM_ETH_LED_CTL_BLINK_TRAFFIC_LED	(1<<5)
+#define BCM_ETH_LED_CTL_TRAFFIC_LED			(1<<6)
+#define BCM_ETH_LED_CTL_1000Mbps_STATUS		(1<<7)
+#define BCM_ETH_LED_CTL_100Mbps_STATUS		(1<<8)
+#define BCM_ETH_LED_CTL_10Mbps_STATUS		(1<<9)
+#define BCM_ETH_LED_CTL_TRAFFIC_STATUS		(1<<10)
+#define BCM_ETH_LED_CTL_LED_MODE			(0x3<<11)
 
 
 /*
@@ -204,6 +231,7 @@
 typedef struct bcm_ethernet{
 	pci_device_t* pci_device;
 	uint8_t bcm_cache_line;
+	void* base_address;
 } bcm_ethernet_t;
 
 void bcm_driver_init(pci_device_list_t* list);
@@ -217,6 +245,8 @@ status_t bcm_indirect_reg_read(bcm_ethernet_t* dev, uint32_t reg_addr, uint32_t*
 status_t bcm_indirect_reg_write(bcm_ethernet_t* dev, uint32_t reg_addr, uint32_t data);
 
 status_t bcm_indirect_reg_set_bits(bcm_ethernet_t* dev, uint32_t reg, uint32_t mask, boolean_t state);
+
+inline void* bcm_std_get_ptr(bcm_ethernet_t* dev, uint8_t type, uint32_t offset);
 
 //uint8_t	bcm_read_active_nvram_locks(pci_device_t* device);
 //status_t bcm_acquire_nvram_lock(pci_device_t* device);

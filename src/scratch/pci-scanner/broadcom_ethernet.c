@@ -33,8 +33,11 @@ void bcm_driver_init(pci_device_list_t* list){
 		return;
 	}
 
+	_bcm_device.base_address = _pci_base_addr(&_bcm_device.pci_device->config.headers.type0.bar[0]) & 0xffff0000;
+
 	c_printf("bcm_driver_init - Initializing network card...\n");
 
+	__delay(100);
 
 	uint8_t temp8=0;
 	uint16_t temp16=0;
@@ -228,6 +231,63 @@ void bcm_driver_init(pci_device_list_t* list){
 
 	//Step 29 - Configure host based send rings
 
+
+
+	/*bcm_indirect_reg_read(&_bcm_device, BCM_ETH_LED_CTL_REG, &temp32);
+	c_printf("INDIRECT MODE LED TEST 0x%x\n", temp32);
+
+	temp32 = BCM_ETH_LED_CTL_TRAFFIC_LED | BCM_ETH_LED_CTL_1000Mbps_LED | BCM_ETH_LED_CTL_100Mbps_LED | BCM_ETH_LED_CTL_10Mbps_LED;
+
+	bcm_indirect_reg_set_bits(&_bcm_device, BCM_ETH_LED_CTL_REG, BCM_ETH_LED_CTL_OVERR_TRAFFIC_LED | BCM_ETH_LED_CTL_OVERR_LINK_LED, 1);
+	bcm_indirect_reg_set_bits(&_bcm_device, BCM_ETH_LED_CTL_REG, (0x3 << 11), 0);
+
+
+
+	while(1){
+		uint32_t state=0;
+
+		bcm_indirect_reg_set_bits(&_bcm_device, BCM_ETH_LED_CTL_REG, temp32, 1);
+		bcm_indirect_reg_read(&_bcm_device, BCM_ETH_LED_CTL_REG, &state);
+
+		//state = (state >> 7) & 0x0f;
+
+		c_printf("ON 0x%x\n", state);
+		__delay(20);
+
+		bcm_indirect_reg_set_bits(&_bcm_device, BCM_ETH_LED_CTL_REG, temp32, 0);
+		bcm_indirect_reg_read(&_bcm_device, BCM_ETH_LED_CTL_REG, &state);
+
+		//state = (state >> 7) & 0x0f;
+		c_printf("OFF 0x%x\n", state);
+		__delay(20);
+	}*/
+
+	uint32_t* ptr = (uint32_t*) bcm_std_get_ptr(&_bcm_device, Std_Raw, BCM_ETH_LED_CTL_REG);
+
+	temp32 = *ptr;
+
+	uint32_t devVen = *((uint32_t*) bcm_std_get_ptr(&_bcm_device, Std_Raw, 0x0000));
+
+	c_printf("STANDARD MODE LED TEST 0x%x ptr=0x%x devVen=0x%x\n", temp32, _bcm_device.base_address, devVen);
+
+	temp32 = BCM_ETH_LED_CTL_TRAFFIC_LED | BCM_ETH_LED_CTL_1000Mbps_LED | BCM_ETH_LED_CTL_100Mbps_LED | BCM_ETH_LED_CTL_10Mbps_LED;
+
+	*ptr |= (BCM_ETH_LED_CTL_OVERR_TRAFFIC_LED | BCM_ETH_LED_CTL_OVERR_LINK_LED);
+	*ptr &= ~(0x3<<11);
+
+	while(1){
+		uint32_t state=0;
+
+		*ptr |= temp32;
+		state = *ptr;
+		c_printf("ON 0x%x\n", state);
+		__delay(20);
+
+		*ptr &= ~temp32;
+		state = *ptr;
+		c_printf("OFF 0x%x\n", state);
+		__delay(20);
+	}
 }
 
 
@@ -359,4 +419,23 @@ status_t bcm_indirect_reg_set_bits(bcm_ethernet_t* dev, uint32_t reg, uint32_t m
 	}
 
 	return bcm_indirect_reg_write(dev, reg, value);
+}
+
+void* bcm_std_get_ptr(bcm_ethernet_t* dev, uint8_t type, uint32_t offset){
+	uint32_t ptr = ((uint32_t)dev->base_address) + offset;
+
+	if(type == Std_Pci){
+		ptr += BCM_STD_PCI_CONFIG_OFFSET;
+	}
+	else if(type == Std_Mailboxes){
+		ptr += BCM_STD_HIGH_PRIO_MAIL_OFFSET;
+	}
+	else if(type == Std_Regs){
+		ptr += BCM_STD_REGISTER_OFFSET;
+	}
+	else if(type == Std_Mem){
+		ptr += BCM_STD_MEM_WINDOW_OFFSET;
+	}
+
+	return (void*) ptr;
 }

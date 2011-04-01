@@ -23,6 +23,7 @@
 
 #define PCI_BAR_INFO_MASK 0x0000000f
 #define PCI_BAR_ADDR_MASK 0xfffffff0
+#define PCI_BAR_IOSPACE_MASK 0xFFFFFFFC
 
 
 
@@ -123,7 +124,12 @@
 #define PCI_BIST_COMPLETE_CODE_MASK	(0x0f)
 
 
+#define PCI_IS_IOBARR(x) (x&0x1)
+#define PCI_GET_BAR_TYPE(x) ((x>>1)&0x3)
 
+#define PCI_32b_WIDE_BAR 0x00
+#define PCI_16b_WIDE_BAR 0x01
+#define PCI_64b_WIDE_BAR 0x02
 
 typedef struct pci_addr{
 	uint8_t bus;		//8 bits
@@ -367,5 +373,8 @@ status_t _pci_set_bits(boolean_t configAddr, pci_addr_t addr, uint32_t mask, boo
 status_t _pci_read_config(pci_addr_t addr, pci_config_t* config);
 
 status_t _pci_read_bar_size(pci_device_t* device, uint8_t bar_index, uint32_t* size);
+
+
+inline uint32_t _pci_base_addr(uint32_t bar_value);
 
 #endif	//PCI_H
