@@ -16,10 +16,10 @@ Ben:
   - Graphics System
 
 Alan:
-  - PCI subsystem
-  - Broadcom BCM5788 driver
-  - UDP Stack
-  - Messaging system (IPC)
+  - PCI subsystem (week 4)
+  - Broadcom BCM5788 driver (week 5)
+  - UDP Stack (week 6)
+  - Messaging system (IPC) (week 8)
 
 Kaz:
   - Paging system initialization
