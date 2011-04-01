@@ -1,0 +1,27 @@
+Cumulonimbus
+
+Projects by person (due date):
+
+Colin:
+  - Hard disk driver (week 6)
+  - Shell (week 6)
+  - FAT64 filesystem (week 7)
+  - Virtual Filesystem: VFS (week 8)
+  - Term service (week 9)
+
+Ben:
+  - Timer interface
+  - Vesa driver (week 4)
+  - Math Library (week 4)
+  - Graphics System
+
+Alan:
+  - PCI subsystem
+  - Broadcom BCM5788 driver
+  - UDP Stack
+  - Messaging system (IPC)
+
+Kaz:
+  - Paging system initialization
+  - Paging Allocation/Deallocation
+  - Virtual Memory via Paging
