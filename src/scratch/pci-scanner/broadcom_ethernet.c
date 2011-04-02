@@ -33,17 +33,17 @@ void bcm_driver_init(pci_device_list_t* list){
 		return;
 	}
 
-	_bcm_device.base_address = _pci_base_addr(&_bcm_device.pci_device->config.headers.type0.bar[0]) & 0xffff0000;
+	_bcm_device.base_address = (void*) _pci_base_addr(_bcm_device.pci_device->config.headers.type0.bar[0]);
 
-	c_printf("bcm_driver_init - Initializing network card...\n");
-
-	__delay(100);
 
 	uint8_t temp8=0;
 	uint16_t temp16=0;
 	uint32_t temp32=0;
 	pci_addr_t tempAddr = _bcm_device.pci_device->address;
 	uint8_t byte_offset = 0;
+
+	c_printf("bcm_driver_init - Initializing network card...\n");
+
 
 	//STEP1: Enable memory_space and bus_master bits of command register
 	//Update command register
@@ -55,7 +55,6 @@ void bcm_driver_init(pci_device_list_t* list){
 	//STEP2: Disable interrupts
 	//Update Miscellaneous Host Control register(p.325)
 	tempAddr.offset = PCI_REG_ADDR( BCM_MISC_HOST_CTL_REG );
-
 
 
 	_pci_read_long(1, tempAddr, &temp32);
@@ -101,7 +100,6 @@ void bcm_driver_init(pci_device_list_t* list){
 
 	c_printf("INFO: Step 4 complete\n");
 
-
 	//STEP5(a): Set the Enable bit in the Memory Arbiter Mode register p460.
 	status = bcm_indirect_reg_set_bits(&_bcm_device, BCM_MEM_ARB_MODE_REG, BCM_MEM_ARB_MODE_EA, 1);
 	ERROR_CHECK(status);
@@ -121,6 +119,15 @@ void bcm_driver_init(pci_device_list_t* list){
 	c_printf("INFO: Step 6 complete\n");
 
 
+	__delay(10);
+	temp32 = ((uint32_t*) _bcm_device.base_address)[0];
+	c_printf("Device/Vendor = 0x%x\n", temp32);
+
+	tempAddr.offset = PCI_REG_ADDR(BCM_DMA_RW_CTL_REG);
+	_pci_read_long(1, tempAddr, &temp32);
+	c_printf("BCM_DMA_RW_CTL_REG = 0x%x\n", temp32);
+	__delay(60);
+
 
 	//STEP7: Reset the core clocks
 	tempAddr.offset = PCI_REG_ADDR( BCM_MISC_CFG_SHADOW_REG );
@@ -134,18 +141,14 @@ void bcm_driver_init(pci_device_list_t* list){
 	c_printf("Done\n");
 
 
-	//STEP9: Disable interrupts, turn on indirect access, set endianness
+	//STEP9: Disable interrupts
 	tempAddr.offset = PCI_REG_ADDR( BCM_MISC_HOST_CTL_REG );
 	_pci_read_long(1, tempAddr, &temp32);
 	c_printf("DEBUG: Step9 - BCM_MISC_HOST_CTL_REG = 0x%x\n", temp32);
 
 
 	status = _pci_set_bits(1, tempAddr, BCM_MISC_HOST_CTL_MASK_PCI_INT |
-										BCM_MISC_HOST_CTL_CLEAR_INTA |
-										BCM_MISC_HOST_CTL_ENDIAN_WORD_SWAP |
-										BCM_MISC_HOST_CTL_STATE_RW_EA |
-										BCM_MISC_HOST_CTL_CLK_CTL_EA |
-										BCM_MISC_HOST_CTL_INDIRECT_ACCESS, 1);
+										BCM_MISC_HOST_CTL_CLEAR_INTA , 1);
 	ERROR_CHECK(status);
 
 	__delay(1);
@@ -174,7 +177,17 @@ void bcm_driver_init(pci_device_list_t* list){
 	//Step13: Skip, specific to BCM5700 only
 
 	//Step14: Enable PCI Clock control register
-	//Skip, configured all needed registers in  in step 9
+	tempAddr.offset = PCI_REG_ADDR( BCM_MISC_HOST_CTL_REG );
+	_pci_read_long(1, tempAddr, &temp32);
+
+	status = _pci_set_bits(1, tempAddr, BCM_MISC_HOST_CTL_ENDIAN_WORD_SWAP |
+										BCM_MISC_HOST_CTL_STATE_RW_EA |
+										BCM_MISC_HOST_CTL_CLK_CTL_EA |
+										BCM_MISC_HOST_CTL_INDIRECT_ACCESS, 1);
+	ERROR_CHECK(status);
+
+	__delay(5);
+	c_printf("INFO: Step14 - complete\n");
 
 	//Step15: Configure Byte swapping for non-frame data and data byte-swap
 	status = bcm_indirect_reg_set_bits(&_bcm_device, BCM_MODE_CTL_REG,
@@ -262,11 +275,16 @@ void bcm_driver_init(pci_device_list_t* list){
 		__delay(20);
 	}*/
 
+	tempAddr.offset = PCI_REG_ADDR(BCM_DMA_RW_CTL_REG);
+	_pci_read_long(1, tempAddr, &temp32);
+	c_printf("BCM_DMA_RW_CTL_REG = 0x%x", temp32);
+	__delay(40);
+
 	uint32_t* ptr = (uint32_t*) bcm_std_get_ptr(&_bcm_device, Std_Raw, BCM_ETH_LED_CTL_REG);
 
 	temp32 = *ptr;
 
-	uint32_t devVen = *((uint32_t*) bcm_std_get_ptr(&_bcm_device, Std_Raw, 0x0000));
+	uint32_t devVen = ((uint32_t*) _bcm_device.base_address)[0];
 
 	c_printf("STANDARD MODE LED TEST 0x%x ptr=0x%x devVen=0x%x\n", temp32, _bcm_device.base_address, devVen);
 
@@ -422,7 +440,7 @@ status_t bcm_indirect_reg_set_bits(bcm_ethernet_t* dev, uint32_t reg, uint32_t m
 }
 
 void* bcm_std_get_ptr(bcm_ethernet_t* dev, uint8_t type, uint32_t offset){
-	uint32_t ptr = ((uint32_t)dev->base_address) + offset;
+	void* ptr = (dev->base_address) + offset;
 
 	if(type == Std_Pci){
 		ptr += BCM_STD_PCI_CONFIG_OFFSET;
@@ -437,5 +455,5 @@ void* bcm_std_get_ptr(bcm_ethernet_t* dev, uint8_t type, uint32_t offset){
 		ptr += BCM_STD_MEM_WINDOW_OFFSET;
 	}
 
-	return (void*) ptr;
+	return ptr;
 }

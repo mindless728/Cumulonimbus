@@ -9,6 +9,7 @@ mandelbrot.c
 mandelbrot.h
 pci.c
 pci.h
+pci_defines.h
 startup.h
 support.c
 support.h
@@ -18,6 +19,8 @@ utils.h
 x86arch.h
 broadcom_ethernet.c
 broadcom_ethernet.h
+intel8255x_ethernet.c
+intel8255x_ethernet.h
 kalloc.c
 kalloc.h
 bootstrap.S

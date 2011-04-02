@@ -9,8 +9,8 @@
 #
 # User supplied files
 #
-U_C_SRC = main.c mandelbrot.c utils.c ethernet.c kalloc.c pci.c broadcom_ethernet.c
-U_C_OBJ = main.o mandelbrot.o utils.o ethernet.o kalloc.o pci.o broadcom_ethernet.o
+U_C_SRC = main.c mandelbrot.c utils.c ethernet.c kalloc.c pci.c broadcom_ethernet.c intel8255x_ethernet.c
+U_C_OBJ = main.o mandelbrot.o utils.o ethernet.o kalloc.o pci.o broadcom_ethernet.o intel8255x_ethernet.o
 U_S_SRC =
 U_S_OBJ =
 U_LIBS	=

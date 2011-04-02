@@ -644,7 +644,7 @@ int c_getchar( void ){
 	c = *__c_next_char & 0xff;
 	__c_next_char = __c_increment( __c_next_char );
 	if( c != EOT ){
-		c_putchar( c );
+		//c_putchar( c );
 	}
 	return c;
 }

@@ -142,6 +142,7 @@ enum BCM_STD_Region{
 #define BCM_MEM_ARB_MODE_RESET		(1)
 #define BCM_MEM_ARB_MODE_EA			(1<<1)
 
+#define BCM_DMA_COMPLETION_MODE_REG	(0x6400)
 
 #define BCM_MODE_CTL_REG			(0x6800)
 #define BCM_MISC_CFG_REG			(0x6804)

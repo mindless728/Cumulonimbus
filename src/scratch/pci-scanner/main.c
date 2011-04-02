@@ -38,26 +38,12 @@ int main( void ) {
 
 	c_clearscreen();
 
-	__install_isr(0x2a, dummy_isr);
 
+	asm( "sti" );
 
-	/*if(init_ethernet(0x8086, 0x1229) == 0){
-		c_printf("Ethenet 0x1229 detected, w00t!\n");
-		c_getchar();
-	}
-	else if(init_ethernet(0x8086, 0x1049) == 0){
-		c_printf("Ethenet 0x1049 detected, w00t!\n");
-		c_getchar();
-	}
-	else{
-		c_printf("Ethernet Initialization failed to find device!\n");
-		c_getchar();
-	}*/
 
 
 	_pci_alloc_device_list(&pciDevices);
-
-	//c_printf("pciDevices 0x%x\n", pciDevices);
 
 	status_t status = _pci_scan(pciDevices);
 
@@ -71,16 +57,12 @@ int main( void ) {
 
 
 	//bcm_driver_init(pciDevices);
+	i8255x_driver_init(pciDevices);
 
-
-	//int index = 0;
 	pci_device_t* dev = pciDevices->first;
 
 	while(dev!=NULL){
-		_pci_print_config(dev);
 		char scan = c_getchar();
-		c_clearscreen();
-		c_moveto(0,0);
 
 		switch(scan){
 			case 0x34:		//Left arrow
@@ -90,6 +72,9 @@ int main( void ) {
 				else{
 					dev = dev->prev;
 				}
+				c_clearscreen();
+				c_moveto(0,0);
+				_pci_print_config(dev);
 				break;
 			case 0x36:		//Right arrow
 				if(dev->next == NULL){
@@ -98,12 +83,24 @@ int main( void ) {
 				else{
 					dev = dev->next;
 				}
+				c_clearscreen();
+				c_moveto(0,0);
+				_pci_print_config(dev);
+				break;
+			case 0x0A:		//Enter key
+				//Mask device's interrupt
+				_pci_mask_inta(dev);
+				c_clearscreen();
+				_pci_read_config(dev->address, &dev->config);
+				c_moveto(0,0);
+				_pci_print_config(dev);
+				c_printf("MASKED");
 				break;
 			default:
-				c_printf("Got key=0x%x\n", scan);
-				__delay(20);
+				c_printf_at(78, 0, "%x", (int)scan);
+				break;
 		}
-		__delay(2);
+		//__delay(2);
 	}
 
 

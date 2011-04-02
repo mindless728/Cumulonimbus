@@ -190,7 +190,11 @@ void _pci_print_config(pci_device_t* device){
 	c_printf("Bus=%d Slot=%d Func=%d\n", device->address.bus, device->address.slot, device->address.func);
 	c_printf("    DeviceId:  0x%x\n", device->config.deviceId);
 	c_printf("    VendorId:  0x%x\n", device->config.vendorId);
-	c_printf("    Status:    0x%x\n", device->config.status);
+	c_printf("    Status:    0x%x", device->config.status);
+	if((PCI_STATUS_INTERRUPT_STATUS & device->config.status) != 0 ){
+		c_printf("    IRQ Triggered");
+	}
+	c_printf("\n");
 	c_printf("    Command:   0x%x\n", device->config.command);
 	c_printf("    Class:     0x%x\n", device->config.classCode);
 	c_printf("    SubClass:  0x%x\n", device->config.subClass);
@@ -200,9 +204,9 @@ void _pci_print_config(pci_device_t* device){
 	c_printf("    Header:    0x%x\n", device->config.headerType);
 	c_printf("    Latency:   0x%x\n", device->config.latencyTimer);
 	c_printf("    CacheSize: 0x%x\n", device->config.cacheLineSize);
+	c_printf("    IRQLine:   0x%x\n", device->config.headers.type0.irqLine);
+	c_printf("    IRQPin:    0x%x\n", device->config.headers.type0.irqPin);
 	if(device->config.headerType == 0x00){
-		//c_printf("----BARS----\n");
-
 		uint32_t* bars = device->config.headers.type0.bar;
 
 		int i=0;
@@ -230,9 +234,6 @@ void _pci_print_config(pci_device_t* device){
 				i++;
 			}
 		}
-
-		//c_printf("    BAR0:      0x%x\n", device->config.headers.type0.bar[0]);
-		//c_printf("    BAR0_Size: %d\n", device->memory_space);
 	}
 }
 
@@ -437,6 +438,7 @@ uint32_t _pci_base_addr(uint32_t bar_value){
 	c_printf("type=0x%x\n", PCI_GET_BAR_TYPE(bar_value));
 	__panic("NOT_SUPPORTED: _pci_base_addr - Unsupported PCI BAR");
 
+
 	return 0x0;
 }
 
@@ -491,5 +493,11 @@ status_t _pci_append_device(pci_device_list_t* list, pci_device_t* device){
 
 	list->size++;
 	return E_SUCCESS;
+}
+
+status_t _pci_mask_inta(pci_device_t* device){
+	pci_addr_t tempAddr = device->address;
+	tempAddr.offset = PCI_COMMAND_REG;
+	return _pci_set_bits(1, tempAddr, PCI_CMD_INTERRUPT_DISABLE, 1);
 }
 
