@@ -648,8 +648,10 @@ static void _sys_switchscreen( context_t *context ) {
     screen_descriptor_t sd = ARG(context,1);
     if( sd >= 0 && sd < NUM_SCREENS ) {
         screen_descriptor_t old = active_screen; 
-        _memcpy( vesa_video_memory, &_screens[old].fb, sizeof(gs_framebuffer_t)); 
-        _memcpy( &_screens[sd].fb, vesa_video_memory, sizeof(gs_framebuffer_t));
+        #ifndef NO_VESA
+        _memcpy( &_screens[old].fb, vesa_video_memory, sizeof(gs_framebuffer_t)); 
+        _memcpy( vesa_video_memory, &_screens[sd].fb, sizeof(gs_framebuffer_t));
+        #endif
         active_screen = sd;
         context->eax = old;
     } else {

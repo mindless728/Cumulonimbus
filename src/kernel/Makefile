@@ -28,7 +28,7 @@ U_LIBS	=
 #	REPORT_MYSTERY_INTS	print a message on interrupt 0x27
 #   NO_VESA Disables VESA activation-specific code.
 #
-USER_OPTIONS = -DISR_DEBUGGING_CODE -DSP2_CONFIG
+USER_OPTIONS = -DISR_DEBUGGING_CODE -DSP2_CONFIG -DNO_VESA
 
 #
 # YOU SHOULD NOT NEED TO CHANGE ANYTHING BELOW THIS POINT!!!
@@ -55,7 +55,10 @@ AS = gas
 ASFLAGS = --32 -march=i686
 
 LD = gld
-LDFLAGS = -melf_i386
+LDFLAGS = 
+#-melf_i386
+
+RM = rm
 
 #		
 # Transformation rules - these ensure that all compilation

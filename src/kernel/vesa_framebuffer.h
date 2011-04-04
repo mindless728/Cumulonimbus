@@ -25,6 +25,7 @@
 #define GET_PIXEL_BUF(x,y,buf) ((pixel_t*)(buf)+((y)*vesa_x_resolution) + (x))
 //#define GET_PIXEL_BUF(x,y,buf) &((buf)->buffer[(x)][(y)])
 #define GET_DOUBLE_PIXEL(x,y) (((double_pixel_t*)vesa_video_memory)+((y)*(vesa_x_resolution >> 1) + (x >> 1)))
+#define GET_DOUBLE_PIXEL_BUF(x,y,buf) ((double_pixel_t*)(buf)+((y)*(vesa_x_resolution>>1)) + (x>>1))
 //#define GET_DOUBLE_PIXEL(x,y) (vesa_video_memory->dpbuffer[(x)>>2][(y)])
 
 // A pixel datatype

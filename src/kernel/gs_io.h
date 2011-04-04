@@ -1,7 +1,7 @@
 #ifndef GS_IO_H_
 #define GS_IO_H_
-#include "vesa_framebuffer.h"
 #include "gs_font.h"
+#include "vesa_framebuffer.h"
 #define VIDEO_BASE_ADDR 0xB8000
 #define	VIDEO_ADDR(x,y)	(( unsigned short * )( VIDEO_BASE_ADDR + 2 * ( (y) * SCREEN_X_SIZE + (x) ) ))
 #define SCREEN_X_SIZE 80

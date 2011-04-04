@@ -291,7 +291,7 @@ void _init( void ) {
     c_puts("Initializing screens...\n");
     _screen_init(); // init screens
     c_puts("Initializing VESA...\n");
-    //_vesa_init();
+    _vesa_init();
     c_puts("Initializing scheduler...\n");
 	_sched_init();
     c_puts("Initializng clock...\n");
