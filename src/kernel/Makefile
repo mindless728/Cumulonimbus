@@ -43,7 +43,8 @@ INCLUDES = -I. -I/home/fac/wrc/include
 # Compilation/assembly/linking commands and options
 #
 CPP = cpp
-CPPFLAGS = $(USER_OPTIONS) -nostdinc -I- $(INCLUDES)
+#CPPFLAGS = $(USER_OPTIONS) -nostdinc -I- $(INCLUDES)
+CPPFLAGS = $(USER_OPTIONS) -nostdinc -iquote $(INCLUDES)
 
 # WARNING: -fno-stack-protector should (probably) be removed if compiled on the Solaris machines
 CC = gcc
