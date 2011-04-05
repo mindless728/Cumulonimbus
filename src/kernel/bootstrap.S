@@ -400,7 +400,34 @@ switch:
 	movb	$0x80, %al	/* disable NMIs */
 	outb	%al, $0x70
 
+    #ifndef NO_VESA
+        #define DUMP_VESA_INFO
+        #define GET_VESA_MODE 0x11A
+        #define SET_VESA_MODE 0x11A
+    #endif
+
+
 	call	floppy_off
+
+    push %cx
+    push %bx
+    push %ax
+    #ifdef DUMP_VESA_INFO 
+    call    vesa_information
+    #endif
+    #ifdef GET_VESA_MODE
+    movw $GET_VESA_MODE, %cx
+    call get_vesa_mode
+    #endif
+    #ifdef SET_VESA_MODE
+    movw $SET_VESA_MODE, %bx
+    call set_vesa_mode
+    #endif
+    pop %ax
+    pop %bx
+    pop %cx
+
+
 	call	enable_A20
 	call	move_gdt
 	call	check_mem
@@ -438,6 +465,48 @@ switch:
 	.code32
 	ljmp	$GDT_CODE, $TARGET_ADDRESS
 	.code16
+/**
+ * @author Benjamin Mayes
+ * @description: Puts VESA controller information at memory address 0x3000
+ **/ 
+vesa_information:
+    push %es
+    push %di
+    movw $0x4f00, %ax 
+    movw $0x0000, %di
+    movw %di, %es
+    movw $0x3000, %di
+    int $0x10
+    pop %di
+    pop %es
+    ret
+
+/**
+ * @author Benjamin Mayes
+ * @description: Puts information about the VESA mode in %cx at memory address 0x4000
+ */
+get_vesa_mode:
+    push %es
+    push %di
+    movw $0x4f01, %ax
+    movw $0x0000, %di
+    movw %di, %es
+    movw $0x4000, %di
+    int $0x10
+    pop %di
+    pop %es
+    ret
+
+/**
+ * @author Benjamin Mayes
+ * @description Sets the VESA mode to the mode in %bx
+ */
+set_vesa_mode:
+    movw $0x4f02,%ax
+    int $0x10
+    ret
+
+
 
 /*
 ** Supporting code.

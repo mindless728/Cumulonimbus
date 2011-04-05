@@ -40,9 +40,16 @@
 #define	SYS_setprio	14
 #define	SYS_settime	15
 
+// screen system calls
+#define SYS_setscreen       16
+#define SYS_getscreen       17
+#define SYS_switchscreen    18
+#define SYS_openscreen      19
+#define SYS_closescreen      20
+
 // number of "real" system calls
 
-#define	N_SYSCALLS	16
+#define	N_SYSCALLS	21
 
 // dummy system call code to test the syscall ISR
 

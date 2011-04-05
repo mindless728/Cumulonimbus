@@ -13,6 +13,7 @@
 #include "headers.h"
 
 #include "user.h"
+#include "gs_io.h"
 
 /*
 ** USER PROCESSES
@@ -695,6 +696,22 @@ void idle( void ) {
 */
 
 void init( void ) {
+#ifndef NO_VESA
+    screen_descriptor_t sd1 = openscreen();
+    screen_descriptor_t sd2 = openscreen();
+    setscreen(sd1);
+    switchscreen(sd1);
+    gs_puts_at(0,0,"HELLO< WORLD!");
+    setscreen(sd2);
+    gs_puts_at(0,0,"hello, world1");
+    c_getchar();
+    switchscreen(sd2);
+    c_getchar();
+    gs_puts_at(0,0,"hello, world2");
+    c_getchar();
+    switchscreen(sd1);
+#endif
+
 	pid_t pid;
 	info_t info;
 
