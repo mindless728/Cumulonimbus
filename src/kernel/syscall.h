@@ -19,7 +19,7 @@
 ** General (C and/or assembly) definitions
 */
 
-#include <x86arch.h>
+#include "x86arch.h"
 
 // system call codes
 
