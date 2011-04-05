@@ -28,7 +28,7 @@ typedef struct intel_tx_buffer{
 } intel_tx_buffer_t;
 
 
-typedef struct intel_csr{
+struct intel_csr{
 	uint16_t status;
 	uint16_t command;
 
@@ -50,12 +50,16 @@ typedef struct intel_csr{
 	uint16_t reserved2;
 
 	uint32_t reserved3;
+	uint32_t reserved4;
+	uint32_t reserved5;
+	uint32_t reserved6;
 	uint32_t func_event;
 	uint32_t func_event_mask;
 	uint32_t func_present_state;
 	uint32_t force_event;
+} __attribute__((__packed__));
 
-} intel_csr_t;
+typedef struct intel_csr intel_csr_t ;
 
 typedef struct intel_ethernet{
 	pci_device_t* pci;

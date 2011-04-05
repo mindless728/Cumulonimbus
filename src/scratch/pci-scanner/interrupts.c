@@ -118,6 +118,7 @@ void _interrupt_wait_handler(int vector, int code){
 
 
 void _interrupt_global_handler(int vector, int code){
+	asm( "cli" );
 	//Validate vector
 	if(vector >= INT_VECTOR_COUNT || vector < 0){
 		__panic("_interrupt_global_handler - Invalid interrupt vector!\n");
@@ -129,10 +130,14 @@ void _interrupt_global_handler(int vector, int code){
 	//Lookup list in vector table;
 	_isr_action_t* action = _isr_vector_table[vector];
 
-	//c_printf("ISR vector=0x%x code=0x%x\n", vector, code);
+	c_printf_at(0, 0, "ISR vector=0x%x code=0x%x calls=%d\n", vector, code, action->calls);
 
 	while(action != NULL && _terminate_isr == false){
 		if(action->handler != NULL){
+			if(vector != 0x6){
+				c_printf("calling 0x%x @action=0x%x\n", action->handler, action);
+			}
+
 			//Call handler
 			action->handler(vector, code);
 		}
@@ -147,6 +152,7 @@ void _interrupt_global_handler(int vector, int code){
 	//Indicate that we are no longer executing ISRs
 	_handling_int = false;
 	_interrupt_clear(vector);
+	asm( "sti" );
 }
 
 
