@@ -27,3 +27,5 @@ bootstrap.S
 isr_stubs.S
 startup.S
 types.h
+interrupts.c
+interrupts.h

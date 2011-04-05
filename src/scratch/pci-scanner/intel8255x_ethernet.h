@@ -5,6 +5,12 @@
 #include "pci_defines.h"
 #include "types.h"
 
+typedef struct intel_cmd_hdr{
+	uint16_t status;
+	uint16_t command;
+
+	uint32_t general_ptr;
+} intel_cmd_hdr_t;
 
 typedef struct intel_csr{
 	uint16_t status;
@@ -40,10 +46,25 @@ typedef struct intel_ethernet{
 	intel_csr_t* csr_bar;
 	uint32_t ioport;
 	void* flash_bar;
-
+	int irq_vector;
+	boolean_t wrong_irq;
 } intel_ethernet_t;
 
-void i8255x_driver_init(pci_device_list_t* list);
+status_t i8255x_driver_init(pci_device_list_t* list);
+
+status_t i8255x_driver_setup_irq();
+
+status_t i8255x_driver_transmit(void* frame, uint16_t size, boolean_t blocking);
+
+status_t i8225x_driver_rx_wait();
+
+status_t i8225x_driver_tx_wait();
+
+status_t i8255x_driver_recieve(void*);
+
+void i8255x_driver_isr(int vector, int code);
+
+
 
 #define INTEL8255x_DEVICE_ID 0x1229
 
@@ -61,6 +82,7 @@ void i8255x_driver_init(pci_device_list_t* list);
 	#define SCB_STATUS_CUS_SUSPENDED		(0x1)
 	#define SCB_STATUS_CUS_LPQ_ACTIVE		(0x2)
 	#define SCB_STATUS_CUS_HQP_ACTIVE		(0x3)
+
 //! Flow Control Pause
 #define INTEL_ETH_SCB_STATUS_FCP	(1<<8)
 //! Software Interrupt
@@ -78,7 +100,7 @@ void i8255x_driver_init(pci_device_list_t* list);
 
 
 //! Recieve unit command
-#define INTEL_ETH_SCB_CMD_RUC			(0x7)
+#define INTEL_ETH_SCB_CMD_RUC			(0x7<<0)
 	#define SCB_CMD_RUC_NOP					(0x0)
 	#define SCB_CMD_RUC_START				(0x1)
 	#define SCB_CMD_RUC_RESUME				(0x2)
@@ -87,7 +109,7 @@ void i8255x_driver_init(pci_device_list_t* list);
 	#define SCB_CMD_RUC_LD_HDS				(0x5)
 	#define SCB_CMD_RUC_LD_RU_BASE			(0x6)
 //! Command unit command
-#define INTEL_ETH_SCB_CMD_CUC			(0xf<<3)
+#define INTEL_ETH_SCB_CMD_CUC			(0xf<<4)
 	#define SCB_CMD_CUC_NOP					(0x0)
 	#define SCB_CMD_CUC_START				(0x1)
 	#define SCB_CMD_CUC_RESUME				(0x2)

@@ -8,8 +8,8 @@ int abs(int num);
 int pow(int x, int y);
 int strlen(char* str);
 void* memset(void* buf, int value, int size);
-void clear_interrupt(int vector);
 
 void console_char_chart(void);
+
 
 #endif //UTILS_H

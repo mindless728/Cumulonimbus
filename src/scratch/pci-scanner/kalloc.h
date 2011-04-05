@@ -11,7 +11,11 @@ enum AlignmentValue{
 	Align_Paragraph = 0x10
 };
 
+//TODO: IMPLEMENT
+void kfree(void* ptr);
+
 void* kalloc(uint32_t bytes);
+
 void* kalloc_aligned(uint32_t bytes, uint8_t alignment);
 
 //void* _kalloc_base;
