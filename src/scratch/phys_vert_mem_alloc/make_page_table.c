@@ -1,11 +1,12 @@
 int * phys_mem_table = 0;
 
+// | 3702 bytes for physmem table | 4096 bytes for page directory| :
 
 void init_paging(void) {
 
-	int * start = (int *)1073741824;  //This should be the start of the 2nd gig in ram
-
-	init_phys_alloc(start);
+	//TODO make this line into a define
+	phys_mem_table = (int *)1073741824;  //This should be the start of the 2nd gig in ram
+	init_phys_alloc(phys_mem_table);
 }
 
 int * alloc_phys_page(void) {
@@ -14,17 +15,23 @@ int * alloc_phys_page(void) {
 		//TODO error out because you called this before calling init_phys_alloc
 	}
 
-	int x;
 
+	// find free bit in table
+	int x;
 	for(x = 0; x < 24576; x++) {
+		// If this native memory sized block in table is not all taken
 		if(phys_mem_table[x] != 0xFFFFFFFF) {
 			int mask;
 			int y = 0;
+			//From right to left find the first bit that is not clear
 			for(mask = 0x00000001; mask != 0x00000000; mask<<1) {
+				//if bit is clear
 				if(mask && phys_mem_table == 0) {
 					phys_mem_table[x] = phys_mem_table[x] || mask;
+					// 32 pages per x
+					// 1 page per y
 					//start of phys_mem_table + 32 pages per x + y pages
-					return (int)phys_mem_table + (1024 * 4 * 32 * x + 1024 * 4 * y);  
+					return (int*)( phys_mem_table + ( (1024 * 4 * 32 * x ) + ( 1024 * 4 * y ) ) );  
 				}
 				y++;
 			}
@@ -35,11 +42,24 @@ int * alloc_phys_page(void) {
 
 }
 
+
+
 void free_phys_page(int * page) {
 
-	int delta = (int)page - (int)phys_mem_table / (1024 * 4) / 32;
+	// location - page = offset
+	// offset / size of page  should be the index of page in the paging area
+	// 32 indexes per native memory size should give us how many 32 bit intervals in our memory to free is in
 
-	phys_mem_table[delta
+	int delta = ( ( (int)page - (int)phys_mem_table) / (1024 * 4) ) / 32;
+	
+	int shift = ( ( (int)page - (int)phys_mem_table) / (1024 * 4) ) % 32;
+
+	// clear the bit in the table
+	phys_mem_table[delta] &= ~(1<<shift);
+
+}
+
+
 void init_phys_alloc(int * start) {
 
 	phys_mem_table = start;
@@ -68,9 +88,8 @@ void init_phys_alloc(int * start) {
 		start[x] = 0xFFFFFFFF;
 	}
 	
-	return;
-}	
-	}
+	return;	
+}
 
 void enable_paging(void) {
 	__asm__("mov	%eax,	POINTER_TO_PAGE_TABLE\n\t"  //CR3 needs to point to the page table
@@ -80,4 +99,4 @@ void enable_paging(void) {
 		"mov 	%cr0,	%eax\n\t"); 
 	}
 
-void make_page_directory(
+void make_page_directory( 

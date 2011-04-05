@@ -7,7 +7,7 @@
 
 #ifndef FPU_H_
 #define FPU_H_
-#include <types.h>
+#include "types.h"
 
 // Register access functions
 extern inline uint16_t get_fpu_status(void);

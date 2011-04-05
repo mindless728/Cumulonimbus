@@ -76,17 +76,4 @@ void console_char_chart(void){
 	}
 }
 
-/**
-*	Clears pending interrupt
-*
-*	@param	vector	Interrupt vector to clear
-*/
-void clear_interrupt(int vector){
-	if( vector >= 0x20 && vector < 0x30 ){
-		__outb( PIC_MASTER_CMD_PORT, PIC_EOI );
-		if( vector > 0x28 ){
-			__outb( PIC_SLAVE_CMD_PORT, PIC_EOI );
-		}
-	}
-}
 

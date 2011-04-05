@@ -15,21 +15,22 @@
 #include "x86arch.h"
 #include "uart.h"
 #include "utils.h"
+#include "interrupts.h"
 #include "ethernet.h"
 #include "mandelbrot.h"
 #include "pci.h"
 #include "broadcom_ethernet.h"
+#include "intel8255x_ethernet.h"
 
 
 #define BACKSPACE 0x08
 
 
-void dummy_isr(int vector, int code);
+//void dummy_isr(int vector, int code);
 
 int animOverride=0;
 
 
-extern struct MandelbrotInfo mbInfo;
 
 pci_device_list_t* pciDevices = NULL;
 
@@ -38,9 +39,8 @@ int main( void ) {
 
 	c_clearscreen();
 
-
-	asm( "sti" );
-
+	_interrupt_init();
+	c_io_init();	//HACK: To avoid updating c_io for the moment
 
 
 	_pci_alloc_device_list(&pciDevices);
@@ -57,7 +57,13 @@ int main( void ) {
 
 
 	//bcm_driver_init(pciDevices);
-	i8255x_driver_init(pciDevices);
+	status = i8255x_driver_init(pciDevices);
+	if(status != E_SUCCESS){
+		c_printf("ERROR: Failed to initialize network card!\n");
+	}
+	else{
+		c_printf("SUCCESS: Network card initialized\n");
+	}
 
 	pci_device_t* dev = pciDevices->first;
 
@@ -109,7 +115,8 @@ int main( void ) {
 }
 
 
-void dummy_isr(int vector, int code){
+
+/*void dummy_isr(int vector, int code){
 	clear_interrupt(vector);
-}
+}*/
 

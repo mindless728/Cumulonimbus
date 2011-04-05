@@ -25,7 +25,7 @@
 // need the info_t structure
 #include "ulib.h"
 
-#include <x86arch.h>
+#include "x86arch.h"
 
 /*
 ** PRIVATE DEFINITIONS

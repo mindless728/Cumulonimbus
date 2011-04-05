@@ -5,8 +5,8 @@
  * common tasks.
  */
 
-#include <fpu.h>
-#include <types.h>
+#include "fpu.h"
+#include "types.h"
 
 #define SINGLE_ARGUMENT_FPU_ROUTINE( NAME ) inline double NAME( double x ) {  \
     asm volatile( "finit\n\t"                           \

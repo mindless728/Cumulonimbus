@@ -45,7 +45,8 @@ INCLUDES = -I. -I/home/fac/wrc/include
 # Compilation/assembly/linking commands and options
 #
 CPP = cpp
-CPPFLAGS = $(USER_OPTIONS) -nostdinc -I- $(INCLUDES)
+#CPPFLAGS = $(USER_OPTIONS) -nostdinc -I- $(INCLUDES)
+CPPFLAGS = $(USER_OPTIONS) -nostdinc -iquote $(INCLUDES)
 
 # WARNING: -fno-stack-protector should (probably) be removed if compiled on the Solaris machines
 CC = gcc
@@ -55,8 +56,7 @@ AS = gas
 ASFLAGS = --32 -march=i686
 
 LD = gld
-LDFLAGS = 
-#-melf_i386
+LDFLAGS = -melf_i386
 
 RM = rm
 
@@ -83,12 +83,12 @@ RM = rm
 
 .S.o:
 	$(CPP) $(CPPFLAGS) -o $*.s $*.S
-	$(AS) -o $*.o $*.s -a=$*.lst
+	$(AS) $(ASFLAGS) -o $*.o $*.s -a=$*.lst
 	$(RM) -f $*.s
 
 .s.b:
-	$(AS) -o $*.o $*.s -a=$*.lst
-	$(LD) -Ttext 0x0 -s --oformat binary -e begtext -o $*.b $*.o
+	$(AS) $(ASFLAGS) -o $*.o $*.s -a=$*.lst
+	$(LD) $(LDFLAGS) -Ttext 0x0 -s --oformat binary -e begtext -o $*.b $*.o
 
 .c.o:
 	$(CC) $(CFLAGS) -c $*.c
