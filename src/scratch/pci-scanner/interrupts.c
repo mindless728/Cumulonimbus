@@ -16,6 +16,7 @@ int _handled_int = -1;
 _isr_handler_t* _test_handler = NULL;
 int _wait_irq_count = 0;
 
+//! Table of interrupt handlers
 _isr_action_t* _isr_vector_table[INT_VECTOR_COUNT];
 
 
@@ -89,6 +90,9 @@ status_t _interrupt_wait(uint32_t timeout_ms, _isr_handler_t* handler){
 	if(_wait_irq_count == 1){
 		return E_SUCCESS;
 	}
+	else if(_wait_irq_count > 1){
+		return E_ERROR;
+	}
 
 	return E_TIMEOUT;
 }
@@ -100,6 +104,7 @@ void _interrupt_terminate(void){
 		_terminate_isr = true;
 	}
 }
+
 
 void _interrupt_wait_handler(int vector, int code){
 	_wait_irq_count++;
@@ -143,6 +148,7 @@ void _interrupt_global_handler(int vector, int code){
 	_handling_int = false;
 	_interrupt_clear(vector);
 }
+
 
 status_t _interrupt_add_isr(_isr_handler_t handler, int vector){
 	//Validate vector
