@@ -18,6 +18,8 @@ void* kalloc(uint32_t bytes);
 
 void* kalloc_aligned(uint32_t bytes, uint8_t alignment);
 
+void* kalloc_set_base(void* base_ptr);
+
 //void* _kalloc_base;
 
 #endif	//KALLOC_H

@@ -29,3 +29,4 @@ startup.S
 types.h
 interrupts.c
 interrupts.h
+defines.h
