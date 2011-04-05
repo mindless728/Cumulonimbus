@@ -2,6 +2,9 @@
 #define TYPES_H
 
 #define NULL 0x00
+#define true 0
+#define false 1
+
 
 typedef signed char		int8_t;
 typedef signed short	int16_t;
@@ -32,11 +35,14 @@ typedef uint8_t		boolean_t;
 
 typedef int32_t	status_t;
 
-
+#define E_TIMEOUT -3
+#define E_TOO_MANY_TRIES -2
+#define E_ERROR -1
 #define E_SUCCESS	0
 #define E_BAD_PARAM	1
 #define E_NOT_IMPLEMENTED 2
 #define E_NOT_FOUND	3
+#define E__INSUFFICIENT_RESOURCES 4
 
 typedef struct link_node{
 	struct link_node_t* prev;

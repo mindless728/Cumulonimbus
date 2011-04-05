@@ -69,6 +69,11 @@ SYSCALL(getprio)
 SYSCALL(gettime)
 SYSCALL(setprio)
 SYSCALL(settime)
+SYSCALL(getscreen)
+SYSCALL(setscreen)
+SYSCALL(switchscreen)
+SYSCALL(openscreen)
+SYSCALL(closescreen)
 
 /*
 ** This is a bogus system call; it's here so that we can test

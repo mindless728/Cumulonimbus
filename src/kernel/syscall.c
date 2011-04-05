@@ -20,6 +20,7 @@
 #include "sio.h"
 #include "system.h"
 #include "startup.h"
+#include "screen.h"
 
 // need the info_t structure
 #include "ulib.h"
@@ -625,11 +626,51 @@ static void _sys_exit( context_t *context ) {
 
 	// choose a new current process
 
-	_dispatch();
+    _dispatch();
 
 }
 
+static void _sys_setscreen( context_t *context ) {
+    screen_descriptor_t sd = ARG(context,1);
+    if( sd >= 0 && sd < NUM_SCREENS ) {
+        context->eax = _current->screen;
+        _current->screen = sd;
+    } else {
+        context->eax = E_BAD_PARAM;
+    }
+}
 
+static void _sys_getscreen( context_t *context ) {
+   context->eax = _current->screen; 
+}
+
+static void _sys_switchscreen( context_t *context ) {
+    screen_descriptor_t sd = ARG(context,1);
+    if( sd >= 0 && sd < NUM_SCREENS ) {
+        screen_descriptor_t old = active_screen; 
+        #ifndef NO_VESA
+        _memcpy( &_screens[old].fb, vesa_video_memory, sizeof(gs_framebuffer_t)); 
+        _memcpy( vesa_video_memory, &_screens[sd].fb, sizeof(gs_framebuffer_t));
+        #endif
+        active_screen = sd;
+        context->eax = old;
+    } else {
+        context->eax = E_BAD_PARAM;
+    }
+}
+
+static void _sys_openscreen( context_t *context ) {
+    context->eax = _screen_dequeue();
+}
+
+static void _sys_closescreen( context_t *context ) {
+    screen_descriptor_t sd = ARG(context,1);
+    if( sd >= 0 && sd < NUM_SCREENS ) {
+        context->eax = _screen_enqueue(sd);
+    } else {
+        context->eax = E_BAD_PARAM;
+    }
+}
 /*
 ** PUBLIC FUNCTIONS
 */
@@ -714,6 +755,12 @@ void _syscall_init( void ) {
 	_syscalls[ SYS_gettime ]  =  _sys_gettime;
 	_syscalls[ SYS_setprio ]  =  _sys_setprio;
 	_syscalls[ SYS_settime ]  =  _sys_settime;
+    // screen system calls
+    _syscalls[ SYS_setscreen ] = _sys_setscreen;
+    _syscalls[ SYS_getscreen ] = _sys_getscreen;
+    _syscalls[ SYS_switchscreen ] = _sys_switchscreen;
+    _syscalls[ SYS_openscreen ] = _sys_openscreen;
+    _syscalls[ SYS_closescreen ] = _sys_closescreen;
 
 	/*
 	** Report that we've initialized this module.

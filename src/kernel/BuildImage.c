@@ -147,7 +147,7 @@ void process_file( char *name, char *addr ){
 		address = strtol( addr, &unused, 0 );
 		segment = (short)( address >> 4 );
 		offset = (short)( address & 0xf );
-		valid_address = *unused == '\0' && address <= 0x0009ffff;
+		valid_address = *unused == '\0' && address <= 0x009fffff;
 	}
 	if( !valid_address ){
 		fprintf( stderr, "%s: Invalid address: %s\n", progname, addr );
@@ -157,7 +157,7 @@ void process_file( char *name, char *addr ){
 	/*
 	** Make sure the program will fit!
 	*/
-	if( address + n_sectors * 512 > 0x0009ffff ){
+	if( address + n_sectors * 512 > 0x009fffff ){
 		fprintf( stderr, "Program %s too large to start at 0x%08x\n",
 		    name, address );
 		quit( NULL, FALSE );

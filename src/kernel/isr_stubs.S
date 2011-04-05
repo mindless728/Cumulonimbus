@@ -77,6 +77,8 @@ isr_save:
 **	    saved CS		saved by the hardware
 **	    saved EFLAGS	saved by the hardware
 */
+    addl $-108, %esp //create room (108 bytes) for fpu registers
+    fsave (%esp)     //save the fpu registers 
 	pusha			// save E*X, ESP, EBP, ESI, EDI
 	pushl	%ds		// save segment registers
 	pushl	%es
@@ -87,8 +89,8 @@ isr_save:
 /*
 ** Stack contents (all 32-bit longwords) and offsets from ESP:
 **
-**   SS GS FS ES DS EDI ESI EBP ESP EBX EDX ECX EAX vec cod EIP CS EFL
-**   0  4  8  12 16 20  24  28  32  36  40  44  48  52  56  60  64 68
+**   SS GS FS ES DS EDI ESI EBP ESP EBX EDX ECX EAX fpu vec cod EIP CS  EFL
+**   0  4  8  12 16 20  24  28  32  36  40  44  48  52  160 164 168 172 176
 **
 ** Note that the saved ESP is the contents before the PUSHA.
 **
@@ -105,8 +107,8 @@ isr_save:
 	movl	_current, %ebx	// save context pointer for current proc
 	movl	%esp, (%ebx)	// (must be first field in PCB)
 
-	movl	52(%esp),%eax	// get vector number and error code
-	movl	56(%esp),%ebx
+	movl	160(%esp),%eax  // get vector number and error code
+	movl	164(%esp),%ebx
 
 	movl	_system_esp, %esp	// switch to OS stack
 
@@ -193,7 +195,8 @@ __isr_restore:
 	popl	%es
 	popl	%ds
 	popa			// restore others
-	addl	$8, %esp	// discard the error code and vector
+    frstor (%esp) // restore the fpu registers
+	addl	$116, %esp	// discard the  fpu registers, error code, and vector
 	iret			// and return
 
 #ifdef ISR_DEBUGGING_CODE

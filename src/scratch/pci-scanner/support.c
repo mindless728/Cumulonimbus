@@ -102,11 +102,19 @@ static void __default_expected_handler( int vector, int code ){
 **		interrupt whose source has not been identified.
 */
 static void __default_mystery_handler( int vector, int code ){
-
+	static int counter;
 #ifdef REPORT_MYSTERY_INTS
-	c_printf( "\nMystery interrupt!\nVector=0x%02x, code=%d\n",
-		  vector, code );
+	c_printf( "\nMystery interrupt!\nVector=0x%02x, code=%d %d\n",
+		  vector, code, counter );
 #endif
+
+	//if((counter&0xf) == 0x0){
+		//char wheel[] = {'|', '/', '-', '\\'};
+		//int index = (counter>>4) & 0x3;
+		c_putchar_at( 79, 24, "|/-\\"[ counter &0x3 ] );
+
+	//}
+	counter++;
 
 	__outb( PIC_MASTER_CMD_PORT, PIC_EOI );
 
@@ -195,6 +203,7 @@ static void init_idt( void ){
 	__install_isr( INT_VEC_KEYBOARD, __default_expected_handler );
 	__install_isr( INT_VEC_TIMER,    __default_expected_handler );
 	__install_isr( INT_VEC_MYSTERY,  __default_mystery_handler );
+	__install_isr( 0x2a, __default_mystery_handler);
 }
 
 /*
@@ -242,7 +251,16 @@ void __delay( int tenths ){
 	int	i;
 
 	while( --tenths >= 0 ){
-		for( i = 0; i < 100000000; i += 1 )
+		for( i = 0; i < 48000000; i += 1 )
+			;
+	}
+}
+
+void __delay_ms(int milli){
+	int	i;
+
+	while( --milli >= 0 ){
+		for( i = 0; i < 48000; i += 1 )
 			;
 	}
 }

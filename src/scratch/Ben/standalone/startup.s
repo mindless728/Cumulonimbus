@@ -34,7 +34,7 @@ _start:
  movw $0x0020, %ax
  movw %ax, %ss
 
- movl $0x00010000, %ebp
+ movl $0x00020000, %ebp
  movl %ebp, %esp
 # 70 "startup.S"
  .globl __bss_start,_end

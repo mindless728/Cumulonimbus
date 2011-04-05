@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "pci.h"
 #include "startup.h"
+#include "support.h"
 #include "c_io.h"
 
 
@@ -189,7 +190,11 @@ void _pci_print_config(pci_device_t* device){
 	c_printf("Bus=%d Slot=%d Func=%d\n", device->address.bus, device->address.slot, device->address.func);
 	c_printf("    DeviceId:  0x%x\n", device->config.deviceId);
 	c_printf("    VendorId:  0x%x\n", device->config.vendorId);
-	c_printf("    Status:    0x%x\n", device->config.status);
+	c_printf("    Status:    0x%x", device->config.status);
+	if((PCI_STATUS_INTERRUPT_STATUS & device->config.status) != 0 ){
+		c_printf("    IRQ Triggered");
+	}
+	c_printf("\n");
 	c_printf("    Command:   0x%x\n", device->config.command);
 	c_printf("    Class:     0x%x\n", device->config.classCode);
 	c_printf("    SubClass:  0x%x\n", device->config.subClass);
@@ -199,9 +204,36 @@ void _pci_print_config(pci_device_t* device){
 	c_printf("    Header:    0x%x\n", device->config.headerType);
 	c_printf("    Latency:   0x%x\n", device->config.latencyTimer);
 	c_printf("    CacheSize: 0x%x\n", device->config.cacheLineSize);
+	c_printf("    IRQLine:   0x%x\n", device->config.headers.type0.irqLine);
+	c_printf("    IRQPin:    0x%x\n", device->config.headers.type0.irqPin);
 	if(device->config.headerType == 0x00){
-		c_printf("    BAR0:      0x%x\n", device->config.headers.type0.bar[0]);
-		c_printf("    BAR0_Size: %d\n", device->memory_space);
+		uint32_t* bars = device->config.headers.type0.bar;
+
+		int i=0;
+		for(; i < PCI_HEADER_1_BAR_COUNT; i++){
+			uint32_t bar = bars[i];
+
+			if(bar == 0x0){
+				continue;
+			}
+
+			uint32_t addr = _pci_base_addr(bar);
+
+			if(PCI_IS_IOBARR(bar) == 1){
+				c_printf("    BAR%d: 0x%x iospace\n", i, addr);
+			}
+			else if(PCI_GET_BAR_TYPE(bar) == PCI_32b_WIDE_BAR){
+				c_printf("    BAR%d:      0x%x 32bit\n", i, addr);
+				_pci_read_bar_size(device, i, &addr);
+				c_printf("    BAR%d_Size: %d bytes\n", i, addr);
+			}
+			else if(PCI_GET_BAR_TYPE(bar) == PCI_64b_WIDE_BAR){
+				c_printf("    BAR%d:      0x%x%x 64bit\n", i, bars[i+1], addr);
+				_pci_read_bar_size(device, i, &addr);
+				c_printf("    BAR%d_Size: %d bytes\n", i, addr);
+				i++;
+			}
+		}
 	}
 }
 
@@ -389,6 +421,27 @@ status_t _pci_set_bits(boolean_t configAddr, pci_addr_t addr, uint32_t mask, boo
 	return _pci_write_long(configAddr, addr, value);
 }
 
+uint32_t _pci_base_addr(uint32_t bar_value){
+	if(PCI_IS_IOBARR(bar_value) == 1){
+		//c_printf("INFO: _pci_base_addr - IO Space BAR\n");
+		return bar_value & PCI_BAR_IOSPACE_MASK;
+	}
+	else if(PCI_GET_BAR_TYPE(bar_value) == PCI_32b_WIDE_BAR){
+		//c_printf("INFO: _pci_base_addr - 32bit BAR\n");
+		return bar_value & PCI_BAR_ADDR_MASK;
+	}
+	else if(PCI_GET_BAR_TYPE(bar_value) == PCI_64b_WIDE_BAR){
+		//c_printf("WARNING: _pci_base_addr - 64bit bars NOT IMPLEMENTED!\n");
+		return bar_value & PCI_BAR_ADDR_MASK;
+	}
+
+	c_printf("type=0x%x\n", PCI_GET_BAR_TYPE(bar_value));
+	__panic("NOT_SUPPORTED: _pci_base_addr - Unsupported PCI BAR");
+
+
+	return 0x0;
+}
+
 status_t _pci_read_bar_size(pci_device_t* device, uint8_t bar_index, uint32_t* size){
 	pci_addr_t barAddr = device->address;
 	uint32_t original_bar = 0;
@@ -440,5 +493,11 @@ status_t _pci_append_device(pci_device_list_t* list, pci_device_t* device){
 
 	list->size++;
 	return E_SUCCESS;
+}
+
+status_t _pci_mask_inta(pci_device_t* device){
+	pci_addr_t tempAddr = device->address;
+	tempAddr.offset = PCI_COMMAND_REG;
+	return _pci_set_bits(1, tempAddr, PCI_CMD_INTERRUPT_DISABLE, 1);
 }
 
