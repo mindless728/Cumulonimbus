@@ -277,27 +277,24 @@ void _init( void ) {
 	*/
 
 	c_puts( "Starting module init:\n " );
-
-    c_puts("Intializing queues...\n");
+    //c_puts("Intializing queues...\n");
 	_q_init();		// must be first
-    c_puts("Initializing pcbs...\n");
+    //c_puts("Initializing pcbs...\n");
 	_pcb_init();
-    c_puts("Initializing stacks...\n");
+    //c_puts("Initializing stacks...\n");
 	_stack_init();
-    c_puts("Initializing UART/SIO...\n");
+    //c_puts("Initializing UART/SIO...\n");
 	_sio_init();
-    c_puts("Initializing syscalls...\n");
+    //c_puts("Initializing syscalls...\n");
 	_syscall_init();
-    c_puts("Initializing screens...\n");
+    //c_puts("Initializing screens...\n");
     _screen_init(); // init screens
-    c_puts("Initializing VESA...\n");
+    //c_puts("Initializing VESA...\n");
     _vesa_init();
-    c_puts("Initializing scheduler...\n");
+    //c_puts("Initializing scheduler...\n");
 	_sched_init();
-    c_puts("Initializng clock...\n");
+    //c_puts("Initializng clock...\n");
 	_clock_init();
-
-	c_puts( "\n" );
 
 	/*
 	** Create the initial system ESP

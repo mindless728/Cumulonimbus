@@ -63,7 +63,7 @@
 #define	SPAWN_T		// writec, getprio, setprio, exit
 // no user U
 // no user V
-
+#define SPAWN_VESA_DEMO
 /*
 ** Users W-Z are spawned from other processes; they should
 ** should never be spawned directly.

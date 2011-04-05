@@ -107,8 +107,10 @@ isr_save:
 	movl	_current, %ebx	// save context pointer for current proc
 	movl	%esp, (%ebx)	// (must be first field in PCB)
 
-	movl	160(%esp),%eax  // get vector number and error code
-	movl	164(%esp),%ebx
+    movl	160(%esp),%eax  // get vector number and error code
+    #movl	52(%esp),%eax  // get vector number and error code
+    movl	164(%esp),%ebx
+    #movl	56(%esp),%ebx  // get vector number and error code
 
 	movl	_system_esp, %esp	// switch to OS stack
 
@@ -196,7 +198,8 @@ __isr_restore:
 	popl	%ds
 	popa			// restore others
     frstor (%esp) // restore the fpu registers
-	addl	$116, %esp	// discard the  fpu registers, error code, and vector
+    addl	$116, %esp	// discard the  fpu registers, error code, and vector
+    #addl	$8, %esp	// discard the  fpu registers, error code, and vector
 	iret			// and return
 
 #ifdef ISR_DEBUGGING_CODE

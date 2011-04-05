@@ -13,6 +13,7 @@
 #include "headers.h"
 
 #include "user.h"
+#include "vesa_demo.h"
 #include "gs_io.h"
 
 /*
@@ -62,7 +63,7 @@ void user_m( void ); void user_n( void ); void user_o( void );
 void user_p( void ); void user_q( void ); void user_r( void );
 void user_s( void ); void user_t( void ); void user_u( void );
 void user_v( void ); void user_w( void ); void user_x( void );
-void user_y( void ); void user_z( void );
+void user_y( void ); void user_z( void ); void user_vesa_demo( void );
 
 /*
 ** Users A, B, and C are identical, except for the character they
@@ -658,6 +659,24 @@ void user_z( void ) {
 
 }
 
+void user_vesa_demo( void ) {
+    c_getchar();
+    screen_descriptor_t s = openscreen();
+    screen_descriptor_t sold = setscreen(s);
+    c_printf( "VESA DEMO SCREEN_DESCRIPTOR: %d, formerly: %d\n", s, sold );
+    c_getchar();
+    switchscreen(s);
+    _print_hue_test();
+    c_getchar();
+    _print_mandelbrot( 1.0 );
+}
+void user_draw_console( void ) {
+    while( 1 ) {
+        gs_draw_console();
+        sleep(10);
+    }
+}
+
 
 /*
 ** SYSTEM PROCESSES
@@ -698,17 +717,7 @@ void idle( void ) {
 void init( void ) {
 #ifndef NO_VESA
     screen_descriptor_t sd1 = openscreen();
-    screen_descriptor_t sd2 = openscreen();
     setscreen(sd1);
-    switchscreen(sd1);
-    gs_puts_at(0,0,"HELLO< WORLD!");
-    setscreen(sd2);
-    gs_puts_at(0,0,"hello, world1");
-    c_getchar();
-    switchscreen(sd2);
-    c_getchar();
-    gs_puts_at(0,0,"hello, world2");
-    c_getchar();
     switchscreen(sd1);
 #endif
 
@@ -733,6 +742,7 @@ void init( void ) {
 	}
 
 #ifdef SPAWN_A
+    gs_putc_at(250,0, 'a');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user A\n" );
@@ -744,6 +754,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_B
+    gs_putc_at(250,0, 'b');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user B\n" );
@@ -755,6 +766,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_C
+    gs_putc_at(250,0, 'c');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user C\n" );
@@ -766,6 +778,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_D
+    gs_putc_at(250,0, 'd');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user D\n" );
@@ -777,6 +790,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_E
+    gs_putc_at(250,0, 'e');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user E\n" );
@@ -788,6 +802,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_F
+    gs_putc_at(250,0, 'f');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user F\n" );
@@ -799,6 +814,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_G
+    gs_putc_at(250,0, 'g');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user G\n" );
@@ -810,6 +826,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_H
+    gs_putc_at(250,0, 'h');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user H\n" );
@@ -821,6 +838,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_J
+    gs_putc_at(250,0, 'j');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user J\n" );
@@ -832,6 +850,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_K
+    gs_putc_at(250,0, 'k');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user K\n" );
@@ -843,6 +862,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_L
+    gs_putc_at(250,0, 'l');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user L\n" );
@@ -854,6 +874,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_M
+    gs_putc_at(250,0, 'm');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user M\n" );
@@ -865,6 +886,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_N
+    gs_putc_at(250,0, 'n');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user N\n" );
@@ -876,6 +898,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_P
+    gs_putc_at(250,0, 'p');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user P\n" );
@@ -887,6 +910,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_Q
+    gs_putc_at(250,0, 'q');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user Q\n" );
@@ -898,6 +922,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_R
+    gs_putc_at(250,0, 'r');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user R\n" );
@@ -909,6 +934,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_S
+    gs_putc_at(250,0, 's');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user S\n" );
@@ -920,6 +946,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_T
+    gs_putc_at(250,0, 't');
 	pid = fork();
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user T\n" );
@@ -930,6 +957,28 @@ void init( void ) {
 	}
 #endif
 
+#ifdef SPAWN_VESA_DEMO
+    gs_putc_at(250,0, 'v');
+    pid = fork();
+    if( pid < 0 ) {
+        //error
+    } else if( pid == 0 ) {
+        exec( PRIO_STANDARD, user_vesa_demo );
+        //if code past here executes it's bad :(
+        exit( X_FAILURE );
+    }
+#endif
+
+#ifndef NO_VESA
+    gs_putc_at(250,0, 'Z');
+    pid = fork();
+    if( pid < 0 ) {
+
+    } else if( pid == 0 ){
+        exec(PRIO_STANDARD, user_draw_console );
+        exit( X_FAILURE );
+    }
+#endif
 	writec( '!' );
 
 	/*

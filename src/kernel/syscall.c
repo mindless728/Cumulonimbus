@@ -205,6 +205,7 @@ static void _sys_fork( context_t *context ) {
 	pcb->ppid = _current->pid;
 	pcb->prio = _current->prio;
 	pcb->stack = stack;
+    pcb->screen = _current->screen;
 
 	// Duplicate the parent's stack for the child.
 
