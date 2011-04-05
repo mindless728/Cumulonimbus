@@ -53,10 +53,10 @@ CC = gcc
 CFLAGS = -fno-builtin -fno-stack-protector -march=i686 -m32 -Wall -Wstrict-prototypes $(CPPFLAGS)
 
 AS = gas
-ASFLAGS = --32 -march=i686
+ASFLAGS = --32
 
 LD = gld
-LDFLAGS = -melf_i386
+LDFLAGS =
 
 RM = rm
 

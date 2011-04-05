@@ -52,7 +52,6 @@ void _print_mandelbrot( double parameter ) {
     pixel_t hues[NUM_ITERS+1];
     hues[NUM_ITERS] = 0.0;
     while( 1 ) {
-        gs_puts_at(0,0, "LARGE LOOP BEGIN");
         int i = 0;
         for(; i < NUM_ITERS; ++i ) {
             double num = (double)i / NUM_ITERS;
@@ -89,7 +88,6 @@ void _print_mandelbrot( double parameter ) {
                     break;
             }
         }
-        gs_puts_at(0,16, "HUES GENERATED");
         
         done = 0;
         while( !done ) {
@@ -165,7 +163,6 @@ void _print_mandelbrot( double parameter ) {
                     exit(0);
                     break;
             }
-            gs_puts_at(0,32,"END OF ITERATION");
         }
     }
 }
