@@ -1,8 +1,9 @@
 #include "ethernet.h"
 #include "pci.h"
 #include "c_io.h"
+#include "defines.h"
 
-pci_device_t _eth0;
+//pci_device_t _eth0;
 
 /*int init_ethernet(unsigned int vendor, unsigned int device){
 	_eth0.config.vendorId = vendor;
@@ -22,3 +23,41 @@ pci_device_t _eth0;
 	return -1;
 }
 */
+
+
+uint32_t htonl(uint32_t hostlong){
+	#ifdef LITTLE_ENDIAN
+	uint16_t temp = ((uint16_t*)&hostlong)[1];
+	hostlong = hostlong<<sizeof(uint16_t) | temp;
+	#endif
+
+	return hostlong;
+}
+
+uint16_t htons(uint16_t hostshort){
+	#ifdef LITTLE_ENDIAN
+	uint8_t temp = ((uint8_t*)&hostshort)[1];
+	hostshort = hostshort<<sizeof(uint8_t) | temp;
+	#endif
+
+	return hostshort;
+}
+
+uint32_t ntohl(uint32_t netlong){
+	#ifdef LITTLE_ENDIAN
+	uint16_t temp = ((uint16_t*)&netlong)[1];
+	netlong = netlong<<sizeof(uint16_t) | temp;
+	#endif
+
+	return netlong;
+}
+
+
+uint16_t ntohs(uint16_t netshort){
+	#ifdef LITTLE_ENDIAN
+	uint8_t temp = ((uint8_t*)&netshort)[1];
+	netshort = netshort<<sizeof(uint8_t) | temp;
+	#endif
+
+	return netshort;
+}
