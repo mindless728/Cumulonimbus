@@ -1,6 +1,6 @@
 #include "kalloc.h"
 
-#define KALLOC_BASE_ADDR 0x20000000
+#define KALLOC_BASE_ADDR 0x2000000
 
 uint32_t _kalloc_base = (uint32_t) KALLOC_BASE_ADDR;
 

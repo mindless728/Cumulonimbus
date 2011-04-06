@@ -12,6 +12,13 @@ typedef struct intel_action_hdr{
 	uint32_t link_addr;
 } intel_action_hdr_t;
 
+struct intel_action_dump{
+	intel_action_hdr_t header;
+	uint32_t offset;
+	uint8_t buffer[596];
+} __attribute__((__packed__));
+
+typedef struct intel_action_dump intel_action_dump_t;
 
 typedef struct intel_rx_buffer{
 	intel_action_hdr_t header;

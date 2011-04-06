@@ -130,7 +130,11 @@ void _interrupt_global_handler(int vector, int code){
 	//Lookup list in vector table;
 	_isr_action_t* action = _isr_vector_table[vector];
 
-	c_printf_at(0, 0, "ISR vector=0x%x code=0x%x calls=%d\n", vector, code, action->calls);
+	int value = __inb(PIC_MASTER_IMR_PORT);
+
+	c_printf_at(0, 0, "ISR vector=0x%x code=0x%x calls=%d value=0x%x\n", vector, code, action->calls, value);
+
+
 
 	while(action != NULL && _terminate_isr == false){
 		if(action->handler != NULL){

@@ -60,48 +60,77 @@ status_t i8255x_driver_init(pci_device_list_t* list){
 	c_printf("\n");
 
 
-	/*c_printf("0x%x", _i8255x_device.csr_bar);
+	//void* old = kalloc_set_base(((uint32_t)_i8255x_device.csr_bar) + sizeof(intel_csr_t));
 
-	while(1);*/
-
-	//c_printf("0x%d", sizeof(struct intel_csr));
-
-	//Setup general command base
-	_i8255x_device.command_base = (intel_action_hdr_t*)(((uint32_t)_i8255x_device.csr_bar) + (uint32_t)sizeof(struct intel_csr));
-
-
-
-	void* old_base_ptr = 0; //kalloc_set_base(_i8255x_device.command_base);
 
 	c_printf("csr_bar = 0x%x\n", _i8255x_device.csr_bar);
-	//Make sure command base is aligned
-	_i8255x_device.command_base = kalloc_aligned(sizeof(intel_action_hdr_t), Align_QWord);
 
-	c_printf("command_base = 0x%x\n", &_i8255x_device.command_base[0]);
+	/*
+	//Make sure command base is aligned
+	_i8255x_device.command_base = kalloc_aligned(sizeof(intel_action_dump_t), Align_QWord);
+
 	c_printf("command_base = 0x%x\n", _i8255x_device.command_base);
 
 	_i8255x_device.csr_bar->command = 0x00;
 
 	//Setup a NOP command
-	_i8255x_device.command_base[0].command = CU_ACTION_NOP | ACTION_HDR_CMD_EL;
+	_i8255x_device.command_base[0].command = CU_ACTION_DUMP | ACTION_HDR_CMD_EL | ACTION_HDR_CMD_I;
 	_i8255x_device.command_base[0].status = 0x0000;
 	_i8255x_device.command_base[0].link_addr = 0x00000000;
 
+
+	c_printf("base = 0x%x\n", ((uint32_t)_i8255x_device.csr_bar) + sizeof(intel_csr_t));
+
+	((intel_action_dump_t*)_i8255x_device.command_base)->buffer = kalloc_aligned(596, Align_DWord);
+
+	c_printf("buffer = 0x%x\n", ((intel_action_dump_t*)_i8255x_device.command_base)->buffer);
+
 	_i8255x_device.cu_transition = false;
-	i8255x_write_cu_cmd(SCB_CMD_CUC_START, (uint32_t)_i8255x_device.command_base);
+	i8255x_write_cu_cmd(SCB_CMD_CUC_START, (uint32_t)_i8255x_device.command_base); */
 
-	c_printf(".");
 
-	//_i8255x_device.csr_bar->command |= INTEL_ETH_SCB_CMD_TRIGGER_SI;
+	struct intel_action_dump dump;
+	dump.header.command = CU_ACTION_DUMP | ACTION_HDR_CMD_EL | ACTION_HDR_CMD_I;
+	dump.header.status = 0x0000;
+	dump.header.link_addr = 0x00000000;
+	dump.offset = &dump.buffer;
+
+	i8255x_write_cu_cmd(SCB_CMD_CUC_START, (uint32_t)&dump);
+
 
 	int j=0;
-	for(j=0; j<3; j++){
+	for(j=0; j<30; j++){
 		if(_i8255x_device.cu_transition == true){
 			c_printf("\nCU Transitioned\n");
 			break;
 		}
+		else if((dump.header.status & ACTION_HDR_STATUS_C) != 0){
+			c_printf("\nCommand completed\n");
+			break;
+		}
 		c_printf("|");
 		__delay_ms(5000);
+	}
+
+	for(j=0; j<10; j++){
+		if((dump.header.status & ACTION_HDR_STATUS_C) != 0){
+			c_printf("\nCommand completed\n");
+			break;
+		}
+		c_printf("-");
+		__delay_ms(500);
+	}
+
+	if((dump.header.status & ACTION_HDR_STATUS_OK) != 0){
+		c_printf("MAC Address = ");
+
+		for(j=0; j<6; j++){
+			c_printf("%x:", dump.buffer[39+j]);
+		}
+		c_printf("\n");
+	}
+	else{
+		c_printf("ERROR: Failed to dump data!\n");
 	}
 
 
@@ -134,18 +163,18 @@ void i8255x_write_ru_cmd(uint8_t cmd, uint32_t generel_ptr){
 	//cmdTemp |= (INTEL_ETH_SCB_CMD_RUC_MASK & cmd) << INTEL_ETH_SCB_CMD_RUC_SHIFT;
 	//_i8255x_device.csr_bar->command = cmdTemp;
 
-	c_printf("DEBUG: i8255x_write_ru_cmd - pre  0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
+	//c_printf("DEBUG: i8255x_write_ru_cmd - pre  0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
 
 	_i8255x_device.csr_bar->command |= INTEL_ETH_SCB_CMD_RUC_MASK & (cmd << INTEL_ETH_SCB_CMD_RUC_SHIFT);
 
-	c_printf("DEBUG: i8255x_write_ru_cmd - mid  0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
+	//c_printf("DEBUG: i8255x_write_ru_cmd - mid  0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
 
 
 	while((_i8255x_device.csr_bar->command & INTEL_ETH_SCB_CMD_RUC_MASK) != 0x0){
 		//Wait for command acceptance
-		c_printf("r");
+		//c_printf("r");
 	}
-	c_printf("DEBUG: i8255x_write_ru_cmd - post 0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
+	//c_printf("DEBUG: i8255x_write_ru_cmd - post 0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
 }
 
 
@@ -157,9 +186,9 @@ void i8255x_write_cu_cmd(uint8_t cmd, uint32_t generel_ptr){
 
 	_i8255x_device.csr_bar->command = cmdTemp;*/
 
-	c_printf("DEBUG: i8255x_write_cu_cmd - setting cu = 0x%x\n", (INTEL_ETH_SCB_CMD_CUC_MASK & (cmd << INTEL_ETH_SCB_CMD_CUC_SHIFT)));
+	//c_printf("DEBUG: i8255x_write_cu_cmd - setting cu = 0x%x\n", (INTEL_ETH_SCB_CMD_CUC_MASK & (cmd << INTEL_ETH_SCB_CMD_CUC_SHIFT)));
 
-	c_printf("DEBUG: i8255x_write_cu_cmd - pre  0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
+	//c_printf("DEBUG: i8255x_write_cu_cmd - pre  0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
 
 	_i8255x_device.csr_bar->command |= INTEL_ETH_SCB_CMD_CUC_MASK & (cmd << INTEL_ETH_SCB_CMD_CUC_SHIFT);
 
@@ -167,9 +196,9 @@ void i8255x_write_cu_cmd(uint8_t cmd, uint32_t generel_ptr){
 
 	while((_i8255x_device.csr_bar->command & INTEL_ETH_SCB_CMD_CUC_MASK) != 0x0){
 		//Wait for command acceptance
-		c_printf("c");
+		//c_printf("c");
 	}
-	c_printf("DEBUG: i8255x_write_cu_cmd - post 0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
+	//c_printf("DEBUG: i8255x_write_cu_cmd - post 0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
 }
 
 
