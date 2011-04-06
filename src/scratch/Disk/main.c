@@ -1,19 +1,26 @@
 #include "ide.h"
 #include "startup.h"
 #include "utils.h"
-#include "pci.h"
+#include "../pci-scanner/pci.h"
 #include "types.h"
 #include "support.h"
 #include "c_io.h"
 
-pci_device_list_t* pci_devices = NULL;
+pci_device_list_t * pci_devices = NULL;
+int count = 0;
+
+void dummy(int vector, int code);
 
 int main(void) {
-	pci_device_t * controller;
 	status_t status;
-	int i;
 	
 	asm("cli");
+	__init_interrupts();
+	__install_isr(0x27, dummy);
+	__install_isr(0x2a, dummy);
+	asm("sti");
+	
+	c_io_init();
 	
 	//allocate memory for pci list
 	_pci_alloc_device_list(&pci_devices);
@@ -24,29 +31,16 @@ int main(void) {
 	//clear the screen
 	c_clearscreen();
 	
-	//output some extra info
-	c_printf("sizeof(ide_channel_t) = %d\n",sizeof(ide_channel_t));
-	c_printf("sizeof(ide_device_t) = %d\n",sizeof(ide_device_t));
+	//initialize the ide system
+	ide_init(pci_devices);
 	
-	//get the ide controller
-	status = _pci_get_device(pci_devices, &controller, 0x8086, 0x27c0);
-	if(status != E_SUCCESS) {
-		c_printf("ERROR: IDE device not found");
-		while(1) {}
-	}
-	
-	//print that the device was found
-	c_printf("IDE device found\n");
-	for(i = 0; i < 6; ++i)
-		c_printf("bar[%d]: 0x%x\n",i,controller->config.headers.type0.bar[i]);
-	
-	c_printf("IDE test execution done");
-	/*c_printf("\nwaiting for 10s to run more tests");
-	__delay(100);
-	
-	c_clearscreen();*/
+	//ide initialization done
+	c_printf("IDE Initialized!\n");
 		
 	while(1) {}
 	
 	return 0;
+}
+
+void dummy(int vector, int code) {
 }
