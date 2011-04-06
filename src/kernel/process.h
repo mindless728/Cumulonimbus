@@ -96,13 +96,14 @@ typedef struct context {
 	uint32_t edx;
 	uint32_t ecx;
 	uint32_t eax;
+    #ifndef DISABLE_FPU
     fpu_context_t fpu;
+    #endif
 	uint32_t vector;
 	uint32_t code;
 	uint32_t eip;
 	uint32_t cs;
 	uint32_t eflags;
-    //uint32_t test;
 } context_t;
 
 

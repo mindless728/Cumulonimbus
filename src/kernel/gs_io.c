@@ -5,12 +5,26 @@
 #include "process.h"
 #include "screen.h"
 
-static gs_draw_mode_t gs_draw_mode = GS_DRAW_MODE_XOR;
+//TODO: Integrate draw modes correctly
+static gs_draw_mode_t gs_draw_mode = GS_DRAW_MODE_FLAT;
 
 gs_draw_mode_t gs_set_draw_mode( gs_draw_mode_t mode ) {
     gs_draw_mode_t old_mode = _screens[_current->screen].draw_mode;
     _screens[_current->screen].draw_mode = mode;
     return old_mode;
+}
+
+void gs_draw_console() {
+    gs_set_draw_mode( GS_DRAW_MODE_FLAT );
+    unsigned short* mem = VIDEO_BASE_ADDR;
+    int r = 0;
+    int c = 0;
+    for( r = 0; r < LEGACY_SCREEN_HEIGHT; ++r ) {
+        for( c = 0; c < LEGACY_SCREEN_WIDTH; ++c ) {
+            gs_putc_at( c*FONT_CHAR_WIDTH, r*FONT_CHAR_HEIGHT, (char)(*mem & 0xFF) );
+            ++mem;
+        }
+    }   
 }
 
 void gs_draw_pixel( int x, int y, pixel_t color ) {
@@ -66,41 +80,33 @@ void gs_putc_at_buf( int x, int y, char c, gs_framebuffer_t* buf ) {
         for( j = 0; j < FONT_CHAR_WIDTH>>1; ++j ) {
             pixel_t pix = font[(uint32_t)c][i][j];
             if( pix ) pix = -1;
-            /*if(pix){
-             *GET_PIXEL_BUF(x+(j<<1),y+(i<<1),buf) ^= pix;
-             *GET_PIXEL_BUF(x+(j<<1),y+1+(i<<1),buf) ^= pix;
-             *GET_PIXEL_BUF(x+1+(j<<1),y+(i<<1),buf) ^= pix;
-             *GET_PIXEL_BUF(x+1+(j<<1),y+1+(i<<1),buf) ^= pix;
-             }*/
             if( gs_draw_mode & GS_DRAW_MODE_INVERT ) pix = ~pix;
-            if( pix || (gs_draw_mode & GS_DRAW_MODE_DRAW_BLACK) ){
-                switch(gs_draw_mode&GS_DRAW_MODE_MASK) {
-                    case GS_DRAW_MODE_FLAT:
-                        *GET_PIXEL_BUF(x+(j<<1),y+(i<<1),buf) = pix;
-                        *GET_PIXEL_BUF(x+(j<<1),y+1+(i<<1),buf) = pix;
-                        *GET_PIXEL_BUF(x+1+(j<<1),y+(i<<1),buf) = pix;
-                        *GET_PIXEL_BUF(x+1+(j<<1),y+1+(i<<1),buf) = pix;
-                        break;
-                    case GS_DRAW_MODE_XOR:
-                        *GET_PIXEL_BUF(x+(j<<1),y+(i<<1),buf) ^= pix;
-                        *GET_PIXEL_BUF(x+(j<<1),y+1+(i<<1),buf) ^= pix;
-                        *GET_PIXEL_BUF(x+1+(j<<1),y+(i<<1),buf) ^= pix;
-                        *GET_PIXEL_BUF(x+1+(j<<1),y+1+(i<<1),buf) ^= pix;
-                        break;
-                    case GS_DRAW_MODE_AND:
-                        *GET_PIXEL_BUF(x+(j<<1),y+(i<<1),buf) &= pix;
-                        *GET_PIXEL_BUF(x+(j<<1),y+1+(i<<1),buf) &= pix;
-                        *GET_PIXEL_BUF(x+1+(j<<1),y+(i<<1),buf) &= pix;
-                        *GET_PIXEL_BUF(x+1+(j<<1),y+1+(i<<1),buf) &= pix;
-                        break;
-                    case GS_DRAW_MODE_OR:
-                        *GET_PIXEL_BUF(x+(j<<1),y+(i<<1),buf) |= pix;
-                        *GET_PIXEL_BUF(x+(j<<1),y+1+(i<<1),buf) |= pix;
-                        *GET_PIXEL_BUF(x+1+(j<<1),y+(i<<1),buf) |= pix;
-                        *GET_PIXEL_BUF(x+1+(j<<1),y+1+(i<<1),buf) |= pix;
-                        break;
-                }       
-            }
+            switch(gs_draw_mode&GS_DRAW_MODE_MASK) {
+                case GS_DRAW_MODE_FLAT:
+                    *GET_PIXEL_BUF(x+(j<<1),y+(i<<1),buf) = pix;
+                    *GET_PIXEL_BUF(x+(j<<1),y+1+(i<<1),buf) = pix;
+                    *GET_PIXEL_BUF(x+1+(j<<1),y+(i<<1),buf) = pix;
+                    *GET_PIXEL_BUF(x+1+(j<<1),y+1+(i<<1),buf) = pix;
+                    break;
+                case GS_DRAW_MODE_XOR:
+                    *GET_PIXEL_BUF(x+(j<<1),y+(i<<1),buf) ^= pix;
+                    *GET_PIXEL_BUF(x+(j<<1),y+1+(i<<1),buf) ^= pix;
+                    *GET_PIXEL_BUF(x+1+(j<<1),y+(i<<1),buf) ^= pix;
+                    *GET_PIXEL_BUF(x+1+(j<<1),y+1+(i<<1),buf) ^= pix;
+                    break;
+                case GS_DRAW_MODE_AND:
+                    *GET_PIXEL_BUF(x+(j<<1),y+(i<<1),buf) &= pix;
+                    *GET_PIXEL_BUF(x+(j<<1),y+1+(i<<1),buf) &= pix;
+                    *GET_PIXEL_BUF(x+1+(j<<1),y+(i<<1),buf) &= pix;
+                    *GET_PIXEL_BUF(x+1+(j<<1),y+1+(i<<1),buf) &= pix;
+                    break;
+                case GS_DRAW_MODE_OR:
+                    *GET_PIXEL_BUF(x+(j<<1),y+(i<<1),buf) |= pix;
+                    *GET_PIXEL_BUF(x+(j<<1),y+1+(i<<1),buf) |= pix;
+                    *GET_PIXEL_BUF(x+1+(j<<1),y+(i<<1),buf) |= pix;
+                    *GET_PIXEL_BUF(x+1+(j<<1),y+1+(i<<1),buf) |= pix;
+                    break;
+            }       
         }
     }
 

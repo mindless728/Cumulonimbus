@@ -163,21 +163,3 @@ inline double pow( double x, double y ) {
 
     return x;
 }
-
-/**
- * Saves the context of the FPU in the given context struct.
- *
- * @param context A pointer to memory to place the FPU state.
- */
-inline void _save_fpu_context( fpu_context_t *context ) {
-    asm volatile ( "fsave %0\n\t" : "=m"(*context) );
-}
-
-/**
- * Restores the context of the FPU previous saved in a context structure.
- *
- * @param context A pointer in memory to a saved FPU state.
- */
-inline void _restore_fpu_context( fpu_context_t *context ) {
-    asm volatile ( "frstor %0\n\t" : :"m"(*context) );
-}
