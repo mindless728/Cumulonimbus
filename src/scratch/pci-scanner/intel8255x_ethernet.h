@@ -4,31 +4,59 @@
 #include "pci.h"
 #include "pci_defines.h"
 #include "types.h"
+#include "ethernet.h"
 
-typedef struct intel_action_hdr{
+#define I8255X_DEFAULT_IRQ	0x2b
+
+#define I8255X_TX_BUFFER_COUNT	5
+#define I8255X_TX_BUFFER_SIZE	(sizeof(struct intel_tx_buffer)*I8255X_tX_BUFFER_COUNT)
+
+#define I8255X_RX_BUFFER_COUNT	5
+#define I8255X_RX_BUFFER_SIZE	(sizeof(struct intel_rx_buffer)*I8255X_RX_BUFFER_COUNT)
+
+struct intel_action_hdr{
 	uint16_t status;
 	uint16_t command;
 
 	uint32_t link_addr;
-} intel_action_hdr_t;
+} __attribute__((__packed__));
 
+typedef struct intel_action_hdr intel_action_hdr_t;
 
-typedef struct intel_rx_buffer{
+struct intel_action_dump{
 	intel_action_hdr_t header;
+
+	uint32_t offset;
+	uint8_t buffer[596];
+} __attribute__((__packed__));
+
+typedef struct intel_action_dump intel_action_dump_t;
+
+
+struct intel_rx_buffer{
+	intel_action_hdr_t header;
+
+	uint32_t reserved;
 
 	uint16_t actual_count;
 	uint16_t size;
-} intel_rx_buffer_t;
+
+	uint8_t frame[ETH_DATA_LEN];
+} __attribute__((__packed__));
+
+typedef struct intel_rx_buffer intel_rx_buffer_t;
 
 
-typedef struct intel_tx_buffer{
+struct intel_tx_buffer{
 	intel_action_hdr_t header;
 
 	uint32_t tbd_addr;
-} intel_tx_buffer_t;
+} __attribute__((__packed__));
+
+typedef struct intel_tx_buffer intel_tx_buffer_t;
 
 
-typedef struct intel_csr{
+struct intel_csr{
 	uint16_t status;
 	uint16_t command;
 
@@ -50,12 +78,16 @@ typedef struct intel_csr{
 	uint16_t reserved2;
 
 	uint32_t reserved3;
+	uint32_t reserved4;
+	uint32_t reserved5;
+	uint32_t reserved6;
 	uint32_t func_event;
 	uint32_t func_event_mask;
 	uint32_t func_present_state;
 	uint32_t force_event;
+} __attribute__((__packed__));
 
-} intel_csr_t;
+typedef struct intel_csr intel_csr_t ;
 
 typedef struct intel_ethernet{
 	pci_device_t* pci;
@@ -65,11 +97,17 @@ typedef struct intel_ethernet{
 	int irq_vector;
 	boolean_t wrong_irq;
 
+	uint8_t mac_addr[6];
+
 	boolean_t cu_transition;
 	boolean_t ru_transition;
 
 	intel_action_hdr_t* command_base;
+
 	intel_rx_buffer_t* rx_buffer_base;
+	intel_rx_buffer_t* rx_buffer_ptr;
+	intel_rx_buffer_t* rx_buffer_end;
+
 	intel_tx_buffer_t* tx_buffer_base;
 } intel_ethernet_t;
 
@@ -91,7 +129,9 @@ void i8255x_write_ru_cmd(uint8_t cmd, uint32_t generel_ptr);
 
 void i8255x_write_cu_cmd(uint8_t cmd, uint32_t generel_ptr);
 
+status_t i8255x_setup_rfa(void);
 
+//status_t i8255x_tx_insert(int32_t handle, ethframe* data);
 
 #define INTEL8255x_DEVICE_ID 0x1229
 

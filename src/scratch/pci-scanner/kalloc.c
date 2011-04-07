@@ -1,6 +1,6 @@
 #include "kalloc.h"
 
-#define KALLOC_BASE_ADDR 0xA00000
+#define KALLOC_BASE_ADDR 0x2000000
 
 uint32_t _kalloc_base = (uint32_t) KALLOC_BASE_ADDR;
 
@@ -43,7 +43,7 @@ void* kalloc_aligned(uint32_t bytes, uint8_t alignment){
 		}
 	}
 
-	_kalloc_base += bytes;
+	_kalloc_base = retVal + bytes;
 	return (void*) retVal;
 }
 

@@ -12,7 +12,7 @@ void init_phys_alloc(int*);
 // | 3702 bytes for physmem table | 4096 bytes for page directory| :
 
 void main(void) {
-
+	printf("this is a numb %x\n", 1000);
 	printf("Enabling paging (not really)\n");
 	init_paging();
 }
@@ -32,9 +32,19 @@ void init_paging(void) {
 	
 	init_phys_alloc(phys_mem_table);
 	print_phys_mem_bitmap(phys_mem_table);
-	alloc_phys_page();
-	print_phys_mem_bitmap(phys_mem_table);
-	alloc_phys_page();
+//	alloc_phys_page();
+//	print_phys_mem_bitmap(phys_mem_table);
+//	alloc_phys_page();
+//	print_phys_mem_bitmap(phys_mem_table);
+	printf("going to allocate 33 more, go!\n");
+	
+	int x;
+
+	for(x = 0; x < 33; x++) {
+
+		alloc_phys_page();
+	}
+
 	print_phys_mem_bitmap(phys_mem_table);
 }
 
@@ -68,13 +78,13 @@ printf("gunna getcha a page\n");
 			//From right to left find the first bit that is not clear
 			for(mask = 0x00000001; mask != 0x00000000; mask = mask<<1) {
 				//if bit is clear
-printf("mask is %x, entry is %x\n", mask, phys_mem_table[x]); sleep(1);
+//printf("mask is %x, entry is %x\n", mask, phys_mem_table[x]); sleep(1);
 				if((mask & phys_mem_table[x]) == 0) {
 					phys_mem_table[x] = phys_mem_table[x] | mask;
 					// 32 pages per x
 					// 1 page per y
 					//start of phys_mem_table + 32 pages per x + y pages
-					return (int*)( phys_mem_table + ( (1024 * 4 * 32 * x ) + ( 1024 * 4 * y ) ) );  
+					return (int*)( ( (int)phys_mem_table ) + ( (1024 * 4 * 32 * x ) + ( 1024 * 4 * y ) ) );  
 				}
 				y++;
 			}
@@ -98,7 +108,7 @@ void free_phys_page(int * page) {
 	int shift = ( ( (int)page - (int)phys_mem_table) / (1024 * 4) ) % 32;
 
 	// clear the bit in the table
-	phys_mem_table[delta] &= ~(1<<shift);
+	phys_mem_table[delta] &= ~(shift<<0x00000001);
 
 }
 
@@ -125,7 +135,8 @@ void init_phys_alloc(int * start) {
 	for(x = 0; x < (24576 / 32); x++) {
 		start[x] = 0xFFFFFFFF;
 	}
-	
+
+	start[x] = 0x01000000;
 	return;	
 }
 
