@@ -60,7 +60,7 @@ static void _enqueue( screen_queue_t* q, screen_qnode_t* n ) {
 static void _clear_screen( screen_t* screen ) {
     _memclr( (void*)screen,sizeof(screen_t) );
     screen->owner = -1;
-    screen->draw_mode = GS_DRAW_MODE_XOR;
+    screen->draw_mode = GS_DRAW_MODE_FLAT;
 }
 
 void _screen_init() {

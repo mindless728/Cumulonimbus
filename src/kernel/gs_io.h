@@ -2,16 +2,19 @@
 #define GS_IO_H_
 #include "gs_font.h"
 #include "vesa_framebuffer.h"
-#define VIDEO_BASE_ADDR 0xB8000
-#define	VIDEO_ADDR(x,y)	(( unsigned short * )( VIDEO_BASE_ADDR + 2 * ( (y) * SCREEN_X_SIZE + (x) ) ))
-#define SCREEN_X_SIZE 80
-#define SCREEN_Y_SIZE 25
+#define LEGACY_SCREEN_WIDTH 80
+#define LEGACY_SCREEN_HEIGHT 25
 #define FONT_CHAR_WIDTH  12
 #define FONT_CHAR_HEIGHT 16
 
 // A buffer that allows for compact storage of text
 typedef struct _gs_text_buffer_t {
-    char buffer[106][64];
+    uint8_t buffer[106][64];
+    uint32_t scroll_min_x, scroll_min_y;
+    uint32_t scroll_max_x, scroll_max_y;
+    uint32_t curr_x, curr_y;
+    uint32_t min_x, min_y;
+    uint32_t max_x, max_y;
 } gs_textbuffer_t;
 
 typedef union _gs_frame_buffer_t {

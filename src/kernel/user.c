@@ -13,6 +13,8 @@
 #include "headers.h"
 
 #include "user.h"
+#include "screen_users.h"
+#include "vesa_demo.h"
 #include "gs_io.h"
 
 /*
@@ -62,7 +64,8 @@ void user_m( void ); void user_n( void ); void user_o( void );
 void user_p( void ); void user_q( void ); void user_r( void );
 void user_s( void ); void user_t( void ); void user_u( void );
 void user_v( void ); void user_w( void ); void user_x( void );
-void user_y( void ); void user_z( void );
+void user_y( void ); void user_z( void ); void user_vesa_demo( void );
+void user_draw_console( void );
 
 /*
 ** Users A, B, and C are identical, except for the character they
@@ -658,6 +661,25 @@ void user_z( void ) {
 
 }
 
+void user_vesa_demo( void ) {
+    //c_getchar();
+    screen_descriptor_t s = openscreen();
+    screen_descriptor_t sold = setscreen(s);
+    c_printf( "VESA DEMO SCREEN_DESCRIPTOR: %d, formerly: %d\n", s, sold );
+    c_getchar();
+    switchscreen(s);
+    _print_hue_test();
+    c_getchar();
+    _print_mandelbrot( 1.0 );
+    exit(X_SUCCESS);
+}
+void user_draw_console( void ) {
+    while( 1 ) {
+        gs_draw_console();
+        sleep(10);
+    }
+}
+
 
 /*
 ** SYSTEM PROCESSES
@@ -698,17 +720,7 @@ void idle( void ) {
 void init( void ) {
 #ifndef NO_VESA
     screen_descriptor_t sd1 = openscreen();
-    screen_descriptor_t sd2 = openscreen();
     setscreen(sd1);
-    switchscreen(sd1);
-    gs_puts_at(0,0,"HELLO< WORLD!");
-    setscreen(sd2);
-    gs_puts_at(0,0,"hello, world1");
-    c_getchar();
-    switchscreen(sd2);
-    c_getchar();
-    gs_puts_at(0,0,"hello, world2");
-    c_getchar();
     switchscreen(sd1);
 #endif
 
@@ -930,7 +942,27 @@ void init( void ) {
 	}
 #endif
 
+#ifdef SPAWN_VESA_DEMO
+    pid = fork();
+    if( pid < 0 ) {
+        //error
+    } else if( pid == 0 ) {
+        exec( PRIO_STANDARD, user_vesa_demo );
+        exit( X_FAILURE );
+    }
+#endif
+
+#ifndef NO_VESA
+    pid = fork();
+    if( pid < 0 ) {
+    } else if( pid == 0 ){
+        exec(PRIO_STANDARD, user_draw_console );
+        exit( X_FAILURE );
+    }
+#endif
 	writec( '!' );
+
+    spawn_screen_users();
 
 	/*
 	** At this point, we go into an infinite loop

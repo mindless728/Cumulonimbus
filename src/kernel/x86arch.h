@@ -18,7 +18,11 @@
 /*
 ** Video stuff
 */
+#ifdef NO_VESA
 #define	VIDEO_BASE_ADDR		0xB8000
+#else
+#define	VIDEO_BASE_ADDR		0x50000
+#endif
 
 /*
 ** Memory management
