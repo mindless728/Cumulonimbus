@@ -8,7 +8,6 @@
 #include "intel8255x_ethernet.h"
 
 intel_ethernet_t _i8255x_device;
-//struct intel_csr global_csr = { 0, 0, 0,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0};
 
 status_t i8255x_driver_init(pci_device_list_t* list){
 
@@ -30,17 +29,14 @@ status_t i8255x_driver_init(pci_device_list_t* list){
 
 	_i8255x_device.csr_bar = (intel_csr_t*) _pci_base_addr(_i8255x_device.pci->config.headers.type0.bar[0]);
 
-
 	_pci_print_config(_i8255x_device.pci);
-
 
 	status = i8255x_driver_setup_irq();
 
 
 	if(status != E_SUCCESS){
 		//Failed to detect IRQ
-		_i8255x_device.csr_bar->status |= INTEL_ETH_SCB_STATUS_SWI;
-		c_printf("ERROR: i8255x_driver_init - Failed to determine IRQ\n");
+		c_printf("ERROR: i8255x_driver_init - Failed to auto determine IRQ\n");
 		return E_NOT_FOUND;
 	}
 
@@ -49,156 +45,144 @@ status_t i8255x_driver_init(pci_device_list_t* list){
 	c_printf("Command: 0x%x\n", _i8255x_device.csr_bar->command);
 	c_printf("Status:  0x%x\n", _i8255x_device.csr_bar->status);
 
-	c_printf("================ TEST 1 ================\n");
-
-	//Setup RU and CU base
-	c_printf("Load CU Base\n");
+	//Setup CU and RU base
 	i8255x_write_cu_cmd(SCB_CMD_CUC_LD_CU_BASE, 0x00000000);
-
-	c_printf("Load RU Base\n");
 	i8255x_write_ru_cmd(SCB_CMD_RUC_LD_RU_BASE, 0x00000000);
-	c_printf("\n");
 
-
-	//void* old = kalloc_set_base(((uint32_t)_i8255x_device.csr_bar) + sizeof(intel_csr_t));
-
-
-	c_printf("csr_bar = 0x%x\n", _i8255x_device.csr_bar);
-
-	/*
-	//Make sure command base is aligned
-	_i8255x_device.command_base = kalloc_aligned(sizeof(intel_action_dump_t), Align_QWord);
-
-	c_printf("command_base = 0x%x\n", _i8255x_device.command_base);
-
-	_i8255x_device.csr_bar->command = 0x00;
-
-	//Setup a NOP command
-	_i8255x_device.command_base[0].command = CU_ACTION_DUMP | ACTION_HDR_CMD_EL | ACTION_HDR_CMD_I;
-	_i8255x_device.command_base[0].status = 0x0000;
-	_i8255x_device.command_base[0].link_addr = 0x00000000;
-
-
-	c_printf("base = 0x%x\n", ((uint32_t)_i8255x_device.csr_bar) + sizeof(intel_csr_t));
-
-	((intel_action_dump_t*)_i8255x_device.command_base)->buffer = kalloc_aligned(596, Align_DWord);
-
-	c_printf("buffer = 0x%x\n", ((intel_action_dump_t*)_i8255x_device.command_base)->buffer);
-
-	_i8255x_device.cu_transition = false;
-	i8255x_write_cu_cmd(SCB_CMD_CUC_START, (uint32_t)_i8255x_device.command_base); */
-
-
-	struct intel_action_dump dump;
+	//Setup dump comand
+	intel_action_dump_t dump;
 	dump.header.command = CU_ACTION_DUMP | ACTION_HDR_CMD_EL | ACTION_HDR_CMD_I;
 	dump.header.status = 0x0000;
 	dump.header.link_addr = 0x00000000;
-	dump.offset = &dump.buffer;
+	dump.offset = (uint32_t) dump.buffer;
 
+	//Start command processing
 	i8255x_write_cu_cmd(SCB_CMD_CUC_START, (uint32_t)&dump);
 
-
-	int j=0;
-	for(j=0; j<30; j++){
+	int timeout = 15000;
+	while(timeout > 0){
 		if(_i8255x_device.cu_transition == true){
 			c_printf("\nCU Transitioned\n");
 			break;
 		}
-		else if((dump.header.status & ACTION_HDR_STATUS_C) != 0){
-			c_printf("\nCommand completed\n");
-			break;
-		}
-		c_printf("|");
-		__delay_ms(5000);
-	}
-
-	for(j=0; j<10; j++){
-		if((dump.header.status & ACTION_HDR_STATUS_C) != 0){
-			c_printf("\nCommand completed\n");
-			break;
-		}
-		c_printf("-");
+		timeout -= 500;
 		__delay_ms(500);
 	}
 
-	if((dump.header.status & ACTION_HDR_STATUS_OK) != 0){
-		c_printf("MAC Address = ");
+	int j=0;
+	if(timeout > 0){
+		if((dump.header.status & ACTION_HDR_STATUS_C) != 0){
+			c_printf("\nCommand completed\n");
 
-		for(j=0; j<6; j++){
-			c_printf("%x:", dump.buffer[39+j]);
+			if((dump.header.status & ACTION_HDR_STATUS_OK) != 0){
+				for(j=0; j<6; j++){
+					_i8255x_device.mac_addr[j] = dump.buffer[39+j];
+				}
+			}
+			else{
+				c_printf("ERROR: Failed to dump data!\n");
+				return E_ERROR;
+			}
 		}
-		c_printf("\n");
+		else{
+			c_printf("ERROR: Dump command failed to complete!\n");
+			return E_ERROR;
+		}
 	}
 	else{
-		c_printf("ERROR: Failed to dump data!\n");
+		c_printf("ERROR: Waited too long for command to complete!\n");
+		return E_TIMEOUT;
 	}
 
+	c_printf("MAC Address = ");
+	for(j=0; j<6; j++){
+
+		if(j==5){
+			c_printf("%x\n", _i8255x_device.mac_addr[j]);
+			continue;
+		}
+		c_printf("%x:", _i8255x_device.mac_addr[j]);
+	}
+
+	i8255x_setup_rfa();
 
 	c_printf("Command: 0x%x\n", _i8255x_device.csr_bar->command);
 	c_printf("Status:  0x%x\n", _i8255x_device.csr_bar->status);
 
-	//Restore allocator base_ptr
-	//kalloc_set_base(old_base_ptr);
-
-	return E_SUCCESS;
 
 
 	//Allocate Recieve frame area(RFA)
+
+
 	//Initialize RFA and all Receive Frame Descriptors(RFDs)
 
 	//Tell Device about RFA
 
-	//Check for
 
 	return E_SUCCESS;
 }
 
 
+status_t i8255x_setup_rfa(void){
+	int i = 0;
+	status_t status = E_SUCCESS;
+	intel_rx_buffer_t* first_buf = NULL;
+	intel_rx_buffer_t* prev_buf = NULL;
+
+	do{
+		intel_rx_buffer_t* rx_buf = kalloc_aligned(sizeof(intel_rx_buffer_t), Align_DWord);
+
+		memset(rx_buf, 0x00, sizeof(intel_rx_buffer_t));
+
+		rx_buf->size = ETH_DATA_LEN;
+
+		if(prev_buf != NULL){
+			prev_buf->header.link_addr = (uint32_t)rx_buf;
+		}
+
+		if(first_buf == NULL){
+			first_buf = rx_buf;
+		}
+
+		prev_buf = rx_buf;
+		i++;
+	}
+	while(i<I8255X_RX_BUFFER_COUNT && status == E_SUCCESS);
+
+	prev_buf->header.link_addr = (uint32_t) first_buf;
+	prev_buf->header.command = ACTION_HDR_CMD_EL | ACTION_HDR_CMD_S;
+
+	_i8255x_device.rx_buffer_base = first_buf;
+	_i8255x_device.rx_buffer_ptr = first_buf;
+	_i8255x_device.rx_buffer_end = prev_buf;
+
+	c_printf("i8255x_setup_rfa - Allocated %d RFDs totalling %d bytes\n", i, I8255X_RX_BUFFER_SIZE);
+	__delay_ms(15000);
+
+	i8255x_write_ru_cmd(SCB_CMD_RUC_START, (uint32_t)first_buf);
+
+	return status;
+}
 
 
 void i8255x_write_ru_cmd(uint8_t cmd, uint32_t generel_ptr){
 	_i8255x_device.csr_bar->general_ptr = generel_ptr;
-	//uint16_t cmdTemp = _i8255x_device.csr_bar->command;
-	//cmdTemp &= ~INTEL_ETH_SCB_CMD_RUC_MASK;
-	//cmdTemp |= (INTEL_ETH_SCB_CMD_RUC_MASK & cmd) << INTEL_ETH_SCB_CMD_RUC_SHIFT;
-	//_i8255x_device.csr_bar->command = cmdTemp;
-
-	//c_printf("DEBUG: i8255x_write_ru_cmd - pre  0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
 
 	_i8255x_device.csr_bar->command |= INTEL_ETH_SCB_CMD_RUC_MASK & (cmd << INTEL_ETH_SCB_CMD_RUC_SHIFT);
 
-	//c_printf("DEBUG: i8255x_write_ru_cmd - mid  0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
-
-
 	while((_i8255x_device.csr_bar->command & INTEL_ETH_SCB_CMD_RUC_MASK) != 0x0){
 		//Wait for command acceptance
-		//c_printf("r");
 	}
-	//c_printf("DEBUG: i8255x_write_ru_cmd - post 0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
 }
 
 
 void i8255x_write_cu_cmd(uint8_t cmd, uint32_t generel_ptr){
 	_i8255x_device.csr_bar->general_ptr = generel_ptr;
-	/*uint16_t cmdTemp = _i8255x_device.csr_bar->command;
-	cmdTemp &= ~INTEL_ETH_SCB_CMD_CUC_MASK;
-	cmdTemp |= (INTEL_ETH_SCB_CMD_CUC_MASK & cmd) << INTEL_ETH_SCB_CMD_CUC_SHIFT;
-
-	_i8255x_device.csr_bar->command = cmdTemp;*/
-
-	//c_printf("DEBUG: i8255x_write_cu_cmd - setting cu = 0x%x\n", (INTEL_ETH_SCB_CMD_CUC_MASK & (cmd << INTEL_ETH_SCB_CMD_CUC_SHIFT)));
-
-	//c_printf("DEBUG: i8255x_write_cu_cmd - pre  0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
-
 	_i8255x_device.csr_bar->command |= INTEL_ETH_SCB_CMD_CUC_MASK & (cmd << INTEL_ETH_SCB_CMD_CUC_SHIFT);
-
-	//c_printf("DEBUG: i8255x_write_cu_cmd - mid  0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
 
 	while((_i8255x_device.csr_bar->command & INTEL_ETH_SCB_CMD_CUC_MASK) != 0x0){
 		//Wait for command acceptance
-		//c_printf("c");
 	}
-	//c_printf("DEBUG: i8255x_write_cu_cmd - post 0x%x, 0x%x\n", _i8255x_device.csr_bar->command, _i8255x_device.csr_bar->status);
 }
 
 
@@ -216,10 +200,8 @@ void i8255x_driver_isr(int vector, int code){
 
 		if((_i8255x_device.csr_bar->status & INTEL_ETH_SCB_STATUS_SWI) != 0){
 			c_printf("INFO: _i8255x_driver_isr - SWI\n");
-			//_i8255x_device.csr_bar->status |= INTEL_ETH_SCB_STATUS_SWI;
 			if(_i8255x_device.irq_vector == -1){
 				_i8255x_device.irq_vector = vector;
-				//c_printf("_i8255x_driver_isr - IRQ Vector:  0x%x\n", _i8255x_device.irq_vector);
 			}
 			handled=true;
 		}
@@ -233,6 +215,29 @@ void i8255x_driver_isr(int vector, int code){
 		if((_i8255x_device.csr_bar->status & INTEL_ETH_SCB_STATUS_FR) != 0){
 			c_printf("INFO: _i8255x_driver_isr - FR\n");
 			//TODO: Wake up sleeping process thats waiting for packet info
+
+			intel_rx_buffer_t* rx_buf = _i8255x_device.rx_buffer_ptr;
+			while(rx_buf->header.status != 0x00){
+				c_printf("PACKET - status=0x%x EOF=%d F=%d actual_count=0x%x\n",
+							rx_buf->header.status,
+							((rx_buf->actual_count>>15) & 1),
+							((rx_buf->actual_count>>14) & 1),
+							((~(1<<15) & ~(1<<14)) & rx_buf->actual_count));
+				int i=0;
+				for(; i<ETH_HLEN; i++){
+					c_printf("%x ", rx_buf->frame[i]);
+				}
+				c_printf("\n");
+
+				if(rx_buf->header.link_addr == (uint32_t)_i8255x_device.rx_buffer_ptr){
+					break;
+				}
+
+				rx_buf = (intel_rx_buffer_t*) rx_buf->header.link_addr;
+			}
+
+			_i8255x_device.rx_buffer_ptr = rx_buf;
+			//__delay_ms(5000);
 			handled=true;
 		}
 
@@ -302,7 +307,6 @@ status_t i8255x_driver_setup_irq(void){
 		//c_printf("Initial Status:  0x%x\n", _i8255x_device.csr_bar->status);
 
 		//Setup our ISR
-		//c_printf("Setup ISR\n");
 		status = _interrupt_add_isr(&i8255x_driver_isr, _i8255x_device.irq_vector);
 
 		if(status != E_SUCCESS){
@@ -338,6 +342,27 @@ status_t i8255x_driver_setup_irq(void){
 	}
 
 	if(i == 3){
+		//Try using the default IRQ
+		_i8255x_device.irq_vector = I8255X_DEFAULT_IRQ;
+		status = _interrupt_add_isr(&i8255x_driver_isr, I8255X_DEFAULT_IRQ);
+
+
+		if(status != E_SUCCESS){
+			c_printf("ERROR: i8255x_driver_setup_irq - Failed to add ISR with status=0x%x\n", status);
+			__panic("CRITICAL");
+		}
+
+		//Test out our ISR
+		_i8255x_device.csr_bar->command |= INTEL_ETH_SCB_CMD_TRIGGER_SI;
+		__delay_ms(10);
+		//c_printf("Final Status:  0x%x\n", _i8255x_device.csr_bar->status);
+		if(_i8255x_device.csr_bar->status == 0x0){
+			c_printf("INFO: i8255x_driver_setup_irq -  Using default IRQ\n");
+			return E_SUCCESS;
+		}
+
+		_interrupt_del_isr(&i8255x_driver_isr, I8255X_DEFAULT_IRQ);
+
 		return E_TOO_MANY_TRIES;
 	}
 

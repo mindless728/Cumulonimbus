@@ -4,7 +4,7 @@
 #include "types.h"
 
 #define INT_VECTOR_COUNT 256
-#define MAX_IRQ_FIND_TRIES 20
+#define MAX_IRQ_FIND_TRIES 3
 
 typedef void (_isr_handler_t)(int vector, int code);
 
