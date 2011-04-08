@@ -120,6 +120,7 @@ context_t *_setup_stack( stack_t *stack, uint32_t entry ) {
 	*/
 
 	context->eip = entry;
+    
 
 	// EFLAGS must be properly initialized
 
@@ -129,6 +130,12 @@ context_t *_setup_stack( stack_t *stack, uint32_t entry ) {
     asm ( "finit\n\t"
           "fsave %0\n\t" : "=m"(context->fpu) );
     #endif
+    
+    asm("movl %%cr0, %0\n\t"
+        "movl %%cr2, %1\n\t"
+        "movl %%cr3, %2\n\t"
+        "movl %%cr4, %3\n\t"
+        : "=r"(context->cr0), "=r"(context->cr2), "=r"(context->cr3), "=r"(context->cr4) );
 
 	// return the pointer to the new context
 
