@@ -41,7 +41,7 @@
 ** uncomment its entry in this list.
 */
 
-#define	SPAWN_A		// writec, exit
+/*#define	SPAWN_A		// writec, exit
 #define	SPAWN_B		// writec, exit
 #define	SPAWN_C		// writec, exit
 #define	SPAWN_D		// writec, fork, exec, exit
@@ -60,10 +60,12 @@
 #define	SPAWN_Q		// writec, bogus, exit
 #define	SPAWN_R		// writec, readc, sleep, exit
 #define	SPAWN_S		// writec, sleep, forever
-#define	SPAWN_T		// writec, getprio, setprio, exit
+#define	SPAWN_T		// writec, getprio, setprio, exit*/
 // no user U
 // no user V
-#define SPAWN_VESA_DEMO
+#ifndef NO_VESA
+//#define SPAWN_VESA_DEMO
+#endif
 /*
 ** Users W-Z are spawned from other processes; they should
 ** should never be spawned directly.

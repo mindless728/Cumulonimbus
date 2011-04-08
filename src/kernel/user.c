@@ -13,6 +13,7 @@
 #include "headers.h"
 
 #include "user.h"
+#include "screen_users.h"
 #include "vesa_demo.h"
 #include "gs_io.h"
 
@@ -960,6 +961,8 @@ void init( void ) {
     }
 #endif
 	writec( '!' );
+
+    spawn_screen_users();
 
 	/*
 	** At this point, we go into an infinite loop

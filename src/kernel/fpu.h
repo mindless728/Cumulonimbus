@@ -1,7 +1,7 @@
 /**
- * File: fpu.h
+ * file: fpu.h
  * @author Benjamin Mayes
- * @description Declarations of functions wrapping FPU instructions for some 
+ * @description declarations of functions wrapping fpu instructions for some 
  * common tasks.
  */
 
