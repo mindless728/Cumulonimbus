@@ -40,7 +40,6 @@ int main( void ) {
 	c_clearscreen();
 
 	_interrupt_init();
-	c_io_init();	//HACK: To avoid updating c_io for the moment
 
 
 	_pci_alloc_device_list(&pciDevices);
@@ -58,6 +57,9 @@ int main( void ) {
 
 	//bcm_driver_init(pciDevices);
 	status = i8255x_driver_init(pciDevices);
+
+	c_io_init();	//HACK: To avoid updating c_io for the moment
+
 	if(status != E_SUCCESS){
 		c_printf("ERROR: Failed to initialize network card!\n");
 	}
