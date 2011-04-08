@@ -99,7 +99,7 @@ isr_save:
 ** Stack contents (all 32-bit longwords) and offsets from ESP:
 **
 **   SS GS FS ES DS CR0 CR2 CR3 CR4 EDI ESI EBP ESP EBX EDX ECX EAX fpu vec cod EIP CS  EFL
-**   0  4  8  12 16 20  24  28  32  36  40  44  48  52  56  60  64  68  176 180 192 196 200
+**   0  4  8  12 16 20  24  28  32  36  40  44  48  52  56  60  64  68  176 180 184 188 192
 **
 ** Note that the saved ESP is the contents before the PUSHA.
 **
@@ -181,7 +181,7 @@ __isr_restore:
 	movl	_system_time, %eax	// current time
 	pushl	%eax
 	pushl	$fmt2
-	pushl	$5
+	pushl	$6
 	pushl	$0
 	call	c_printf_at
 	addl	$24, %esp
@@ -195,6 +195,19 @@ __isr_restore:
 	pushl	$0
 	call	c_printf_at
 	addl	$12,%esp
+    #ifndef DISABLE_FPU
+    movl %esp, %eax
+    pushl 192(%eax)
+    pushl 188(%eax)
+    pushl 184(%eax)
+    pushl 180(%eax)
+    pushl 176(%eax)
+    pushl $fmtfpu 
+    pushl $5
+    pushl $0
+    call c_printf_at
+    addl $32, %esp
+    #endif
 /*
 ** END OF DEBUGGING CODE PART 1
 */
@@ -233,9 +246,15 @@ __isr_restore:
 fmt:	.ascii	" ss=%08x  gs=%08x  fs=%08x  es=%08x  ds=%08x\n"
 	.ascii	"cr0=%08x cr2=%08x cr3=%08x cr4=%08x\n"
 	.ascii	"edi=%08x esi=%08x ebp=%08x esp=%08x ebx=%08x\n"
+    #ifdef DISABLE_FPU
 	.ascii	"edx=%08x ecx=%08x eax=%08x vec=%08x cod=%08x\n"
 	.string	"eip=%08x  cs=%08x efl=%08x\n"
+    #else
+	.string	"edx=%08x ecx=%08x eax=%08x fcw=%08x fsw=%08x\n"
+    #endif
 
+fmtfpu:
+	.string	"vec=%08x cod=%08x eip=%08x  cs=%08x efl=%08x\n"
 /*
 ** MODS for 20103 SP2
 */
