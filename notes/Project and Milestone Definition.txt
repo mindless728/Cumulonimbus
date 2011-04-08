@@ -10,10 +10,13 @@ Colin:
   - Term service (week 9)
 
 Ben:
-  - Timer interface
-  - Vesa driver (week 4)
-  - Math Library (week 4)
-  - Graphics System
+  - CMOS Timer interface (week 6)
+  - Mouse driver (week 6)
+  - Vesa driver (week 5)
+  - Math Library using FPU functions and FPU stack stuff (done)
+  - Graphics System/Screen Interface and User Library (week 6)
+  - Documentation (ongoing)
+  - Later tasks will consist of picking up slack/tasks and cleaning up code.
 
 Alan:
   - PCI subsystem (week 4)
