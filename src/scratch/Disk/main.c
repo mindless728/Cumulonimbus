@@ -2,6 +2,7 @@
 #include "startup.h"
 #include "utils.h"
 #include "../pci-scanner/pci.h"
+#include "../IOPorts/ioports.h"
 #include "types.h"
 #include "support.h"
 #include "c_io.h"
@@ -16,11 +17,13 @@ int main(void) {
 	
 	asm("cli");
 	__init_interrupts();
+	__install_isr(0x23, dummy);
 	__install_isr(0x27, dummy);
 	__install_isr(0x2a, dummy);
 	asm("sti");
 	
 	c_io_init();
+	ioports_init();
 	
 	//allocate memory for pci list
 	_pci_alloc_device_list(&pci_devices);
