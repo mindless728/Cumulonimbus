@@ -22,6 +22,6 @@ Alan:
   - Messaging system (IPC) (week 8)
 
 Kaz:
-  - Paging system initialization
-  - Paging Allocation/Deallocation
-  - Virtual Memory via Paging
+  - Paging system initialization (week 3 (Done but not tested) )
+  - Paging Allocation/Deallocation (week 5)
+  - Virtual Memory via Paging (weel 5)
