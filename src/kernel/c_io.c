@@ -635,7 +635,7 @@ int c_getchar( void ){
 			** Must read the next keystroke ourselves.
 			*/
 			while( ( __inb( KEYBOARD_STATUS ) & READY ) == 0 ){
-				;
+				sleep(10);
 			}
 			__c_input_scan_code( __inb( KEYBOARD_DATA ) );
 		}

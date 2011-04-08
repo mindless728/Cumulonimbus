@@ -1,55 +1,16 @@
 #include "gs_io.h"
 #include "fpu.h"
 #include "vesa_demo.h"
-
-void _print_hue_test() {
-    int x = 0;
-    int y = 0;
-    for( y = 0; y < 1024; ++y ) {
-        double hue = (double)y/1024;
-        double z = 6*hue;
-        int h = z;
-        while( z > 2.0 ) z -= 2.0;
-        z -= 1.0;
-        if( z < 0.0 ) z = -z;
-        z = 1 - z;
-        pixel_t color = 0;
-        switch(h) {
-            case 0: 
-                color = CREATE_PIXEL(31,(int)(63*z),0); 
-                break;
-            case 1: 
-                color = CREATE_PIXEL((int)(31*z),63,0); 
-                break;
-            case 2: 
-                color = CREATE_PIXEL(0,63,(int)(31*z)); 
-                break;
-            case 3: 
-                color = CREATE_PIXEL(0,(int)(63*z),31); 
-                break;
-            case 4: 
-                color = CREATE_PIXEL((int)(31*z),0,31); 
-                break;
-            case 5: 
-                color = CREATE_PIXEL(31,0,(int)(31*z)); 
-                break;
-            default: 
-                break;
-        }
-        for( x = 0; x < 1280; ++x ) {
-            gs_draw_pixel(x,y, color);
-        }
-    }
-}
+#include "user.h"
 
 #define NUM_ITERS 2000
+pixel_t hues[NUM_ITERS+1];
 void _print_mandelbrot( double parameter ) {
     double zoom = 128.0;
     double xoffset = 0;
     double yoffset = 0;
     int cycle = 0;
     int done = 0;
-    pixel_t hues[NUM_ITERS+1];
     hues[NUM_ITERS] = 0.0;
     while( 1 ) {
         int i = 0;
@@ -88,7 +49,6 @@ void _print_mandelbrot( double parameter ) {
                     break;
             }
         }
-        
         done = 0;
         while( !done ) {
             int r,c;
@@ -160,12 +120,55 @@ void _print_mandelbrot( double parameter ) {
                     break;
                 case 'x':
                     switchscreen(0);
-                    exit(0);
+                    exit(X_SUCCESS);
+                    return;
                     break;
             }
         }
     }
 }
+
+void _print_hue_test() {
+    int x = 0;
+    int y = 0;
+    for( y = 0; y < 1024; ++y ) {
+        double hue = (double)y/1024;
+        double z = 6*hue;
+        int h = z;
+        while( z > 2.0 ) z -= 2.0;
+        z -= 1.0;
+        if( z < 0.0 ) z = -z;
+        z = 1 - z;
+        pixel_t color = 0;
+        switch(h) {
+            case 0: 
+                color = CREATE_PIXEL(31,(int)(63*z),0); 
+                break;
+            case 1: 
+                color = CREATE_PIXEL((int)(31*z),63,0); 
+                break;
+            case 2: 
+                color = CREATE_PIXEL(0,63,(int)(31*z)); 
+                break;
+            case 3: 
+                color = CREATE_PIXEL(0,(int)(63*z),31); 
+                break;
+            case 4: 
+                color = CREATE_PIXEL((int)(31*z),0,31); 
+                break;
+            case 5: 
+                color = CREATE_PIXEL(31,0,(int)(31*z)); 
+                break;
+            default: 
+                break;
+        }
+        for( x = 0; x < 1280; ++x ) {
+            gs_draw_pixel(x,y, color);
+        }
+    }
+}
+
+
 
     /*void _print_vesa_demo() {
       vbe_mode_info_t* c = (vbe_mode_info_t*)VBE_MODE_INFO_LOCATION;

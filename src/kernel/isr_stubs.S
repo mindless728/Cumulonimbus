@@ -18,7 +18,6 @@
 */
 
 #include "bootstrap.h"
-
 /*
 ** Configuration options - define in Makefile
 **
@@ -77,8 +76,10 @@ isr_save:
 **	    saved CS		saved by the hardware
 **	    saved EFLAGS	saved by the hardware
 */
+    #ifndef DISABLE_FPU
     addl $-108, %esp //create room (108 bytes) for fpu registers
     fsave (%esp)     //save the fpu registers 
+    #endif
 	pusha			// save E*X, ESP, EBP, ESI, EDI
 	pushl	%ds		// save segment registers
 	pushl	%es
@@ -107,10 +108,13 @@ isr_save:
 	movl	_current, %ebx	// save context pointer for current proc
 	movl	%esp, (%ebx)	// (must be first field in PCB)
 
+    #ifndef DISABLE_FPU
     movl	160(%esp),%eax  // get vector number and error code
-    #movl	52(%esp),%eax  // get vector number and error code
     movl	164(%esp),%ebx
-    #movl	56(%esp),%ebx  // get vector number and error code
+    #else
+    movl	52(%esp),%eax  // get vector number and error code
+    movl	56(%esp),%ebx  // get vector number and error code
+    #endif
 
 	movl	_system_esp, %esp	// switch to OS stack
 
@@ -197,9 +201,12 @@ __isr_restore:
 	popl	%es
 	popl	%ds
 	popa			// restore others
+    #ifndef DISABLE_FPU
     frstor (%esp) // restore the fpu registers
     addl	$116, %esp	// discard the  fpu registers, error code, and vector
-    #addl	$8, %esp	// discard the  fpu registers, error code, and vector
+    #else
+    addl	$8, %esp	// discard the  fpu registers, error code, and vector
+    #endif
 	iret			// and return
 
 #ifdef ISR_DEBUGGING_CODE

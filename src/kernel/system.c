@@ -125,8 +125,10 @@ context_t *_setup_stack( stack_t *stack, uint32_t entry ) {
 
 	context->eflags = DEFAULT_EFLAGS;
 
+    #ifndef DISABLE_FPU
     asm ( "finit\n\t"
           "fsave %0\n\t" : "=m"(context->fpu) );
+    #endif
 
 	// return the pointer to the new context
 

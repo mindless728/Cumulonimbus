@@ -12,7 +12,7 @@
 U_USER_C_SRC = fpu.c gs_io.c gs_font.c vesa_framebuffer.c vbe_info.c deadspace.c screen.c vesa_demo.c
 U_C_SRC = kalloc.c clock.c klibc.c queue.c process.c scheduler.c sio.c \
 	  stack.c syscall.c system.c ulibc.c user.c  
-U_USER_C_OBJ = fpu.o gs_io.o gs_font.o vesa_framebuffer.o vbe_info.o deadspace.o screen.o vesa_demo.o
+U_USER_C_OBJ = deadspace.o fpu.o gs_io.o gs_font.o vesa_framebuffer.o screen.o vesa_demo.o
 U_C_OBJ = kalloc.o clock.o klibc.o queue.o process.o scheduler.o sio.o \
 	  stack.o syscall.o system.o ulibc.o user.o
 U_S_SRC = klibs.S ulibs.S
@@ -27,8 +27,9 @@ U_LIBS	=
 #	SP2_CONFIG		enable SP2-specific startup variations
 #	REPORT_MYSTERY_INTS	print a message on interrupt 0x27
 #   NO_VESA Disables VESA activation-specific code.
+#   DISABLE_FPU disables saving the FPU
 #
-USER_OPTIONS = -DISR_DEBUGGING_CODE -DSP2_CONFIG
+USER_OPTIONS = -DISR_DEBUGGING_CODE -DSP2_CONFIG -DCLEAR_BSS_SEGMENT -DDISABLE_FPU 
 
 #
 # YOU SHOULD NOT NEED TO CHANGE ANYTHING BELOW THIS POINT!!!
