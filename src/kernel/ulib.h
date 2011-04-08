@@ -25,7 +25,6 @@
 #ifndef __ASM__20103__
 
 #include "types.h"
-
 #include "process.h"
 
 /*
@@ -207,6 +206,12 @@ int setprio( int prio );
 */
 
 time_t settime( time_t time );
+
+screen_descriptor_t getscreen( void );
+screen_descriptor_t setscreen( screen_descriptor_t sd );
+screen_descriptor_t switchscreen( screen_descriptor_t sd );
+screen_descriptor_t openscreen( void );
+status_t closescreen( screen_descriptor_t sd );
 
 /*
 ** bogus - a bogus system call, for testing our syscall ISR

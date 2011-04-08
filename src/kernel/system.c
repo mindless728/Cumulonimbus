@@ -21,6 +21,7 @@
 #include "syscall.h"
 #include "sio.h"
 #include "scheduler.h"
+#include "screen.h"
 
 // need init() address
 #include "user.h"
@@ -275,14 +276,25 @@ void _init( void ) {
 	** Initialize various OS modules
 	*/
 
-	c_puts( "Starting module init: " );
+	c_puts( "Starting module init:\n " );
 
+    c_puts("Intializing queues...\n");
 	_q_init();		// must be first
+    c_puts("Initializing pcbs...\n");
 	_pcb_init();
+    c_puts("Initializing stacks...\n");
 	_stack_init();
+    c_puts("Initializing UART/SIO...\n");
 	_sio_init();
+    c_puts("Initializing syscalls...\n");
 	_syscall_init();
+    c_puts("Initializing screens...\n");
+    _screen_init(); // init screens
+    c_puts("Initializing VESA...\n");
+    //_vesa_init();
+    c_puts("Initializing scheduler...\n");
 	_sched_init();
+    c_puts("Initializng clock...\n");
 	_clock_init();
 
 	c_puts( "\n" );
@@ -330,6 +342,7 @@ void _init( void ) {
 	pcb->pid  = PID_INIT;
 	pcb->ppid = PID_INIT;
 	pcb->prio = PRIO_MAXIMUM;
+    pcb->screen = 0; //TODO: properly initialize 
 
 	/*
 	** Set up the initial process context.

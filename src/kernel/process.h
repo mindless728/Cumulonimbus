@@ -124,6 +124,7 @@ typedef struct pcb {
 	time_t		sleeptime;	// when the process started sleeping
 	int8_t		state;		// current process state
 	uint8_t		prio;		// current process priority
+    uint32_t    screen;     // current process' screen
 } pcb_t;
 
 /*

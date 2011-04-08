@@ -54,6 +54,7 @@ typedef uint8_t		bool_t;
 
 typedef int		status_t;
 
+typedef int32_t screen_descriptor_t;
 #endif
 
 #endif
