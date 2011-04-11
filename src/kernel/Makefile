@@ -57,7 +57,7 @@ AS = gas
 ASFLAGS = --32
 
 LD = gld
-LDFLAGS =
+LDFLAGS = -melf_i386
 
 RM = rm
 
