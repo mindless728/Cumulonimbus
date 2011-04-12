@@ -11,6 +11,10 @@ ide_controller_t ide_controllers[ATA_MAX_IDE_CONTROLLERS];
 ide_channel_t ide_channels[ATA_MAX_IDE_CHANNELS];
 ide_device_t ide_devices[ATA_MAX_IDE_DEVICES];
 
+void ide_controller_init(pci_device_t * device);
+void ide_channel_init();
+void ide_device_init();
+
 void copy_device_to_controller(ide_controller_t * controller, pci_device_t * device);
 void set_base_io_register(pci_device_t * device, uint8_t channel, uint16_t base_port);
 void set_base_control_register(pci_device_t * device, uint8_t channel, uint16_t base_port);
@@ -33,6 +37,7 @@ status_t ide_init(pci_device_list_t * list) {
 				  ide_type = 0;
 	
 	while(device) {
+		//@TODO break up into separate init functions
 		if(device->config.classCode == 1 && device->config.subClass == 1) {
 			//get controller pointer
 			ide_controller = &(ide_controllers[ide_num_controllers]);
@@ -46,7 +51,7 @@ status_t ide_init(pci_device_list_t * list) {
 			copy_device_to_controller(ide_controller, device);
 			
 			//debug output @TODO remove
-			c_printf("-IDE Device, VEN: 0x%x, DEV: 0x%x\n", ide_controller->VID, ide_controller->DID);
+			c_printf("- IDE Device, VEN: 0x%x, DEV: 0x%x\n", ide_controller->VID, ide_controller->DID);
 			
 			
 			//set type to not assumed
@@ -117,12 +122,10 @@ status_t ide_init(pci_device_list_t * list) {
 					__delay(1);
 					
 					//read status
-					while(1) {
+					while(register_read) {
 						ide_register_read(ide_device, ATA_REG_STATUS, &register_read);
-						if(!register_read) break;
 						if(register_read & ATA_SR_ERR) {register_read = 0xff; break;}
 						if(!(register_read & ATA_SR_BSY) && (register_read & ATA_SR_DRQ)) break;
-						c_printf("Register Read: 0x%x\n", register_read);
 					}
 					
 					//debug output @TODO remove
@@ -140,8 +143,8 @@ status_t ide_init(pci_device_list_t * list) {
 }
 
 status_t ide_register_read(ide_device_t * device, unsigned char reg, unsigned char * ret) {
-	//if(reg > 0x7 && reg < 0xc)
-		//ide_register_write(device, ATA_REG_CONTROL, 0x82);
+	if(reg > 0x7 && reg < 0xc)
+		ide_register_write(device, ATA_REG_CONTROL, 0x82);
 	if (reg < 0x08)
 		*ret = __inb(device->ide_channel->base_io_register + reg - 0x00);
 	else if (reg < 0x0C)
@@ -150,14 +153,14 @@ status_t ide_register_read(ide_device_t * device, unsigned char reg, unsigned ch
 		*ret = __inb(device->ide_channel->base_control_register  + reg - 0x0A);
 	else if (reg < 0x16)
 		*ret = __inb(device->ide_channel->bus_master_base + reg - 0x0E);
-	//if(reg > 0x7 && reg < 0xc)
-		//ide_register_write(device, ATA_REG_CONTROL, 0x2);
+	if(reg > 0x7 && reg < 0xc)
+		ide_register_write(device, ATA_REG_CONTROL, 0x2);
 	return E_SUCCESS;
 }
 
 status_t ide_register_write(ide_device_t * device, unsigned char reg, unsigned char out) {
-	//if(reg > 0x7 && reg < 0xc)
-		//ide_register_write(device, ATA_REG_CONTROL, 0x82);
+	if(reg > 0x7 && reg < 0xc)
+		ide_register_write(device, ATA_REG_CONTROL, 0x82);
 	if (reg < 0x08)
 		__outb(device->ide_channel->base_io_register + reg - 0x00, out);
 	else if (reg < 0x0C)
@@ -166,8 +169,8 @@ status_t ide_register_write(ide_device_t * device, unsigned char reg, unsigned c
 		__outb(device->ide_channel->base_control_register  + reg - 0x0A, out);
 	else if (reg < 0x16)
 		__outb(device->ide_channel->bus_master_base + reg - 0x0E, out);
-	//if(reg > 0x7 && reg < 0xc)
-		//ide_register_write(device, ATA_REG_CONTROL, 0x2);
+	if(reg > 0x7 && reg < 0xc)
+		ide_register_write(device, ATA_REG_CONTROL, 0x2);
 	return E_SUCCESS;
 }
 
