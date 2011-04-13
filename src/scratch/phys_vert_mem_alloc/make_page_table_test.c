@@ -68,7 +68,9 @@ printf("gunna getcha a page\n");
 
 	// find free bit in table
 	int x;
-	for(x = 0; x < 24576; x++) {
+	//x does not need to start at the begining, instead it starts searching directly after the permenatnly
+	//alocated mem for the table itself
+	for(x = (24576 / 32) ; x < 24576; x++) {
 //printf("I am on page %i\r", x);
 //fflush(stdout);
 		// If this native memory sized block in table is not all taken
@@ -136,7 +138,6 @@ void init_phys_alloc(int * start) {
 		start[x] = 0xFFFFFFFF;
 	}
 
-	start[x] = 0x01000000;
 	return;	
 }
 
@@ -152,3 +153,28 @@ void enable_paging(void) {
 
 void make_page_directory( 
 */
+
+
+void init_page_directory(int * start) {
+
+	int next_page =  start;
+	int * page_dir =  start + (24576 / 32);
+	int x;	
+	int page_table_address = (int*) ( (int)page_dir + 4096 );
+	int address = (int) page_table_address;
+	for(x = 0; x < 768; x++) {
+
+		page_dir[x] = address | 3; 
+		address += 4096;
+
+		int y;
+
+		for(y = 0; y < 1024; y++) {
+		
+			((int*)address)[y] = next_page | 3;
+			next_page += 4096;
+		}
+	}
+	
+	
+}
