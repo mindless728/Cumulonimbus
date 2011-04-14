@@ -72,19 +72,16 @@ status_t ide_init(pci_device_list_t * list) {
 						ide_type = 1;
 						ide_channel->base_io_register = 0;
 					}
-					
-					//check to see if the io register needs to be allocated
-					if(ide_channel->base_io_register & 0x1) {
+
+					//check to see if the device is not parallel and assign ports
+					if(!ide_type) {
 						ide_channel->base_io_register = allocate_ports_align(8,8);
 						set_base_io_register(device, i, ide_channel->base_io_register);
 						if(!i)
 							ide_controller->PCMD_BAR = ide_channel->base_io_register;
 						else
 							ide_controller->SCMD_BAR = ide_channel->base_io_register;
-					}
-					
-					//check to see if the io register needs to be allocated
-					if(ide_channel->base_control_register & 0x1) {
+
 						ide_channel->base_control_register = allocate_ports_align(4,4);
 						set_base_control_register(device, i, ide_channel->base_control_register);
 						if(!i)

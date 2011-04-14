@@ -43,7 +43,7 @@ CPP = cpp
 CPPFLAGS = $(USER_OPTIONS) -nostdinc $(INCLUDES)
 
 CC = gcc
-CFLAGS = -fno-builtin -Wall -Wstrict-prototypes $(CPPFLAGS) -march=i386 -m32
+CFLAGS = -fno-builtin -Wall -fno-stack-protector -Wstrict-prototypes $(CPPFLAGS) -march=i386 -m32
 
 AS = as
 ASFLAGS = --32 -march=i386

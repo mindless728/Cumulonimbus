@@ -2,6 +2,10 @@
 # 1 "<built-in>"
 # 1 "<command-line>"
 # 1 "isr_stubs.S"
+# 1 "isr_stubs.S"
+# 1 "<built-in>"
+# 1 "<command-line>"
+# 1 "isr_stubs.S"
 # 20 "isr_stubs.S"
 # 1 "bootstrap.h" 1
 # 21 "isr_stubs.S" 2

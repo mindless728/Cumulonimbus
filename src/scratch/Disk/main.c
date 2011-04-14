@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "../pci-scanner/pci.h"
 #include "../IOPorts/ioports.h"
-#include "types.h"
+#include "../pci-scanner/types.h"
 #include "support.h"
 #include "c_io.h"
 
