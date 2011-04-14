@@ -14,6 +14,7 @@ void dummy(int vector, int code);
 
 int main(void) {
 	status_t status;
+	int i = 0;
 	
 	asm("cli");
 	__init_interrupts();
@@ -33,12 +34,19 @@ int main(void) {
 	
 	//clear the screen
 	c_clearscreen();
+	c_moveto(0,0);
 	
 	//initialize the ide system
 	ide_init(pci_devices);
 	
 	//ide initialization done
 	c_printf("IDE Initialized!\n");
+
+	c_printf("Controllers: %d, Channels: %d, Devices: %d\n",ide_num_controllers, ide_num_channels, ide_num_devices);
+	for(i = 0; i < ide_num_devices; ++i) {
+		c_printf("\nDevice Model: %s\n", ide_devices[i].model);
+		c_printf("Number Sectors: %d (GiB: %d)\n", ide_devices[i].size, ide_devices[i].size / 2097152);
+	}
 		
 	while(1) {}
 	

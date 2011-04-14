@@ -62,8 +62,6 @@ struct _ide_device_t {
 	unsigned char	model[41];   // Model in string.
 };
 
-
-
 extern unsigned int ide_num_devices;
 extern unsigned int ide_num_channels;
 extern unsigned int ide_num_controllers;
@@ -75,5 +73,9 @@ extern ide_device_t ide_devices[ATA_MAX_IDE_DEVICES];
 status_t ide_init(pci_device_list_t * list); //initializes the ide driver
 status_t ide_register_read(ide_device_t * device, unsigned char reg, unsigned char * ret); //reads an ide register
 status_t ide_register_write(ide_device_t * device, unsigned char reg, unsigned char out); //writes an ide register
+status_t ide_read_ident_space(ide_device_t * device, uint8_t * buf);
+
+status_t ide_pio_lba_read(ide_device_t * device, uint32_t sector, uint8_t * buf);
+status_t ide_pio_lba_write(ide_device_t * device, uint32_t sector, uint8_t * buf);
 
 #endif

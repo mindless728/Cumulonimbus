@@ -1,6 +1,6 @@
 
 
-2011-04-14 10:06                                                          Page 1
+2011-04-14 19:52                                                          Page 1
 
 
 00010000 T _start	   00010265 T __isr_0x2d      0001045d T __isr_0x65
@@ -66,7 +66,7 @@
 
 
 
-2011-04-14 10:06                                                          Page 2
+2011-04-14 19:52                                                          Page 2
 
 
 000106ac T __isr_0x9d	   0001094c T __isr_0xd5      000116b3 T c_printf_at
@@ -80,51 +80,51 @@
 0001070c T __isr_0xa5	   000109ac T __isr_0xdd      00011bba T __install_isr
 00010718 T __isr_0xa6	   000109b8 T __isr_0xde      00011bdf T __delay
 00010724 T __isr_0xa7	   000109c4 T __isr_0xdf      00011c08 T main
-00010730 T __isr_0xa8	   000109d0 T __isr_0xe0      00011cac T dummy
-0001073c T __isr_0xa9	   000109dc T __isr_0xe1      00011cb4 T ide_init
-00010748 T __isr_0xaa	   000109e8 T __isr_0xe2      000120be T ide_register_re
-00010754 T __isr_0xab	   000109f4 T __isr_0xe3      000121cf T ide_register_wr
-00010760 T __isr_0xac	   00010a00 T __isr_0xe4      000122de T copy_device_to_
-0001076c T __isr_0xad	   00010a0c T __isr_0xe5      000123da T set_base_io_reg
-00010778 T __isr_0xae	   00010a18 T __isr_0xe6      0001243f T set_base_contro
-00010784 T __isr_0xaf	   00010a24 T __isr_0xe7      000124a3 T set_bus_master_
-00010790 T __isr_0xb0	   00010a30 T __isr_0xe8      000124f0 T _pci_alloc_devi
-0001079c T __isr_0xb1	   00010a3c T __isr_0xe9      0001253c T _pci_alloc_devi
-000107a8 T __isr_0xb2	   00010a48 T __isr_0xea      00012588 T _pci_scan
-000107b4 T __isr_0xb3	   00010a54 T __isr_0xeb      0001278b T _pci_get_device
-000107c0 T __isr_0xb4	   00010a60 T __isr_0xec      000127fe T _pci_get_device
-000107cc T __isr_0xb5	   00010a6c T __isr_0xed      0001287e T _pci_print_conf
-000107d8 T __isr_0xb6	   00010a78 T __isr_0xee      00012b87 T _pci_read_long
-000107e4 T __isr_0xb7	   00010a84 T __isr_0xef      00012c2c T _pci_read_short
-000107f0 T __isr_0xb8	   00010a90 T __isr_0xf0      00012c9f T _pci_read_byte
-000107fc T __isr_0xb9	   00010a9c T __isr_0xf1      00012d13 T _pci_write_long
-00010808 T __isr_0xba	   00010aa8 T __isr_0xf2      00012da5 T _pci_write_shor
-00010814 T __isr_0xbb	   00010ab4 T __isr_0xf3      00012e31 T _pci_write_byte
-00010820 T __isr_0xbc	   00010ac0 T __isr_0xf4      00012ebc T _pci_read_confi
-0001082c T __isr_0xbd	   00010acc T __isr_0xf5      00012ff3 T _pci_set_bits
-00010838 T __isr_0xbe	   00010ad8 T __isr_0xf6      00013063 T _pci_base_addr
-00010844 T __isr_0xbf	   00010ae4 T __isr_0xf7      000130d4 T _pci_read_bar_s
-00010850 T __isr_0xc0	   00010af0 T __isr_0xf8      0001317d T _pci_append_dev
-0001085c T __isr_0xc1	   00010afc T __isr_0xf9      00013219 T _pci_mask_inta
-00010868 T __isr_0xc2	   00010b08 T __isr_0xfa      00013244 T kfree
-00010874 T __isr_0xc3	   00010b14 T __isr_0xfb      00013249 T kalloc
-00010880 T __isr_0xc4	   00010b20 T __isr_0xfc      00013269 T kalloc_aligned
-0001088c T __isr_0xc5	   00010b2c T __isr_0xfd      000132fa T kalloc_set_base
-00010898 T __isr_0xc6	   00010b38 T __isr_0xfe      00013318 T abs
-000108a4 T __isr_0xc7	   00010b44 T __isr_0xff      00013329 T pow
-000108b0 T __isr_0xc8	   00010c87 T c_setscroll     00013356 T strlen
-000108bc T __isr_0xc9	   00010d1c T c_moveto	      00013379 T memset
-000108c8 T __isr_0xca	   00010d73 T c_putchar_at    000133ac T console_char_ch
-000108d4 T __isr_0xcb	   00010de7 T c_putchar	      00013420 T ioports_init
-000108e0 T __isr_0xcc	   00010ee2 T c_puts_at	      0001342e T allocate_ports
-000108ec T __isr_0xcd	   00010f23 T c_puts	      0001344f T allocate_ports_
-000108f8 T __isr_0xce	   00010f54 T c_clearscroll   000138a0 R last_port
-00010904 T __isr_0xcf	   00010fc9 T c_clearscreen   00014000 D __isr_stub_tabl
-00010910 T __isr_0xd0	   0001103d T c_scroll	      00014400 D hexdigits
-0001091c T __isr_0xd1	   00011174 T cvtdec0	      00014420 D scan_code
-00010928 T __isr_0xd2	   000111fc T cvtdec	      0001452c D _kalloc_base
-00010934 T __isr_0xd3	   00011242 T cvthex	      00014530 A __bss_start
-00010940 T __isr_0xd4	   000112bc T cvtoct	      00014530 A _edata
+00010730 T __isr_0xa8	   000109d0 T __isr_0xe0      00011d55 T dummy
+0001073c T __isr_0xa9	   000109dc T __isr_0xe1      00011d5c T ide_init
+00010748 T __isr_0xaa	   000109e8 T __isr_0xe2      00012279 T ide_register_re
+00010754 T __isr_0xab	   000109f4 T __isr_0xe3      0001238a T ide_register_wr
+00010760 T __isr_0xac	   00010a00 T __isr_0xe4      00012499 T ide_read_ident_
+0001076c T __isr_0xad	   00010a0c T __isr_0xe5      000124e6 T ide_pio_lba_rea
+00010778 T __isr_0xae	   00010a18 T __isr_0xe6      00012610 T ide_pio_lba_wri
+00010784 T __isr_0xaf	   00010a24 T __isr_0xe7      0001261a T copy_device_to_
+00010790 T __isr_0xb0	   00010a30 T __isr_0xe8      00012716 T set_base_io_reg
+0001079c T __isr_0xb1	   00010a3c T __isr_0xe9      0001277b T set_base_contro
+000107a8 T __isr_0xb2	   00010a48 T __isr_0xea      000127df T set_bus_master_
+000107b4 T __isr_0xb3	   00010a54 T __isr_0xeb      0001282b T ide_polling
+000107c0 T __isr_0xb4	   00010a60 T __isr_0xec      00012894 T _pci_alloc_devi
+000107cc T __isr_0xb5	   00010a6c T __isr_0xed      000128e0 T _pci_alloc_devi
+000107d8 T __isr_0xb6	   00010a78 T __isr_0xee      0001292c T _pci_scan
+000107e4 T __isr_0xb7	   00010a84 T __isr_0xef      00012b2f T _pci_get_device
+000107f0 T __isr_0xb8	   00010a90 T __isr_0xf0      00012ba2 T _pci_get_device
+000107fc T __isr_0xb9	   00010a9c T __isr_0xf1      00012c22 T _pci_print_conf
+00010808 T __isr_0xba	   00010aa8 T __isr_0xf2      00012f2b T _pci_read_long
+00010814 T __isr_0xbb	   00010ab4 T __isr_0xf3      00012fd0 T _pci_read_short
+00010820 T __isr_0xbc	   00010ac0 T __isr_0xf4      00013043 T _pci_read_byte
+0001082c T __isr_0xbd	   00010acc T __isr_0xf5      000130b7 T _pci_write_long
+00010838 T __isr_0xbe	   00010ad8 T __isr_0xf6      00013149 T _pci_write_shor
+00010844 T __isr_0xbf	   00010ae4 T __isr_0xf7      000131d5 T _pci_write_byte
+00010850 T __isr_0xc0	   00010af0 T __isr_0xf8      00013260 T _pci_read_confi
+0001085c T __isr_0xc1	   00010afc T __isr_0xf9      00013397 T _pci_set_bits
+00010868 T __isr_0xc2	   00010b08 T __isr_0xfa      00013407 T _pci_base_addr
+00010874 T __isr_0xc3	   00010b14 T __isr_0xfb      00013478 T _pci_read_bar_s
+00010880 T __isr_0xc4	   00010b20 T __isr_0xfc      00013521 T _pci_append_dev
+0001088c T __isr_0xc5	   00010b2c T __isr_0xfd      000135bd T _pci_mask_inta
+00010898 T __isr_0xc6	   00010b38 T __isr_0xfe      000135e8 T kfree
+000108a4 T __isr_0xc7	   00010b44 T __isr_0xff      000135ed T kalloc
+000108b0 T __isr_0xc8	   00010c87 T c_setscroll     0001360d T kalloc_aligned
+000108bc T __isr_0xc9	   00010d1c T c_moveto	      0001369e T kalloc_set_base
+000108c8 T __isr_0xca	   00010d73 T c_putchar_at    000136bc T abs
+000108d4 T __isr_0xcb	   00010de7 T c_putchar	      000136cd T pow
+000108e0 T __isr_0xcc	   00010ee2 T c_puts_at	      000136fa T strlen
+000108ec T __isr_0xcd	   00010f23 T c_puts	      0001371d T memset
+000108f8 T __isr_0xce	   00010f54 T c_clearscroll   00013750 T console_char_ch
+00010904 T __isr_0xcf	   00010fc9 T c_clearscreen   000137c4 T ioports_init
+00010910 T __isr_0xd0	   0001103d T c_scroll	      000137d2 T allocate_ports
+0001091c T __isr_0xd1	   00011174 T cvtdec0	      000137f3 T allocate_ports_
+00010928 T __isr_0xd2	   000111fc T cvtdec	      00013c28 R last_port
+00010934 T __isr_0xd3	   00011242 T cvthex	      00014000 D __isr_stub_tabl
+00010940 T __isr_0xd4	   000112bc T cvtoct	      00014400 D hexdigits
 
 
 
@@ -132,18 +132,18 @@
 
 
 
-2011-04-14 10:06                                                          Page 3
+2011-04-14 19:52                                                          Page 3
 
 
-0001460c B pci_devices	   00014628 B scroll_min_y    00014e40 B ide_controllers
-00014610 B count	   0001462c B min_x	      00014f20 B ide_num_channel
-00014614 B scroll_max_x	   00014630 B curr_y	      00014f24 B ide_num_devices
-00014618 B max_x	   00014634 B max_y	      00014f40 B ide_channels
-0001461c B curr_x	   00014638 B scroll_min_x    00014fa0 B ide_num_control
-00014620 B min_y	   00014640 B __isr_table     00014fa4 B current_port
-00014624 B scroll_max_y	   00014a40 B ide_devices     00014fa8 A _end
-
-
+00014420 D scan_code	   00014620 B min_y	      00014a40 B ide_devices
+0001452c D _kalloc_base	   00014624 B scroll_max_y    00014e40 B ide_controllers
+00014530 A __bss_start	   00014628 B scroll_min_y    00014f20 B ide_num_channel
+00014530 A _edata	   0001462c B min_x	      00014f24 B ide_num_devices
+0001460c B pci_devices	   00014630 B curr_y	      00014f40 B ide_channels
+00014610 B count	   00014634 B max_y	      00014fa0 B ide_num_control
+00014614 B scroll_max_x	   00014638 B scroll_min_x    00014fa4 B current_port
+00014618 B max_x	   00014640 B __isr_table     00014fa8 A _end
+0001461c B curr_x
 
 
 

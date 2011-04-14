@@ -1,3 +1,6 @@
+#ifndef IDE_DEFINES_H
+#define IDE_DEFINES_H
+
 //status bits
 #define ATA_SR_BSY     0x80
 #define ATA_SR_DRDY    0x40
@@ -73,3 +76,5 @@
 #define ATA_MAX_IDE_CONTROLLERS 4
 #define ATA_MAX_IDE_CHANNELS 8
 #define ATA_MAX_IDE_DEVICES 16
+
+#endif

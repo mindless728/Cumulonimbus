@@ -21,7 +21,7 @@ uint16_t allocate_ports_align(uint16_t amount, uint16_t alignment) {
 	new_current_port += align_offset;
 
 	if(new_current_port <= last_port) {
-		ret = current_port;
+		ret = current_port+align_offset;
 		current_port = new_current_port;
 	}
 
