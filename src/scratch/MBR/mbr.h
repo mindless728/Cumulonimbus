@@ -1,7 +1,7 @@
 #ifndef MBR_H
 #define MBR_H
 
-#include "../../include/types.h"
+//#include "../../include/types.h"
 
 typedef struct _MBR_t MBR_t;
 typedef struct _MBR_partition_t MBR_partition_t;
