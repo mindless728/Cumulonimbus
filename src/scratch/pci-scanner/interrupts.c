@@ -132,14 +132,14 @@ void _interrupt_global_handler(int vector, int code){
 
 	int value = __inb(PIC_MASTER_IMR_PORT);
 
-	c_printf_at(0, 0, "ISR vector=0x%x code=0x%x calls=%d value=0x%x\n", vector, code, action->calls, value);
+	//c_printf_at(0, 0, "ISR vector=0x%x code=0x%x calls=%d value=0x%x\n", vector, code, action->calls, value);
 
 
 
 	while(action != NULL && _terminate_isr == false){
 		if(action->handler != NULL){
 			if(vector != 0x6){
-				c_printf("calling 0x%x @action=0x%x\n", action->handler, action);
+				//c_printf("calling 0x%x @action=0x%x\n", action->handler, action);
 			}
 
 			//Call handler

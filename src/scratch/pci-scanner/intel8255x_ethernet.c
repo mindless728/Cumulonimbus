@@ -1,5 +1,6 @@
 #include "c_io.h"
 #include "pci.h"
+#include "net.h"
 #include "kalloc.h"
 #include "types.h"
 #include "utils.h"
@@ -94,6 +95,16 @@ status_t i8255x_driver_init(pci_device_list_t* list){
 		return E_TIMEOUT;
 	}
 
+
+	i8255x_setup_rfa();
+
+	c_printf("Command: 0x%x\n", _i8255x_device.csr_bar->command);
+	c_printf("Status:  0x%x\n", _i8255x_device.csr_bar->status);
+
+	__delay_ms(150);
+
+	c_clearscreen();
+
 	c_printf("MAC Address = ");
 	for(j=0; j<6; j++){
 
@@ -103,13 +114,12 @@ status_t i8255x_driver_init(pci_device_list_t* list){
 		}
 		c_printf("%x:", _i8255x_device.mac_addr[j]);
 	}
+	c_printf("Receiving frames now... \n");
 
-	i8255x_setup_rfa();
+	i8255x_write_ru_cmd(SCB_CMD_RUC_START, (uint32_t)_i8255x_device.rx_buffer_base);
 
-	c_printf("Command: 0x%x\n", _i8255x_device.csr_bar->command);
-	c_printf("Status:  0x%x\n", _i8255x_device.csr_bar->status);
-
-
+	uint32_t buffer_size = sizeof(intel_tx_buffer_t)+(ETH_DATA_LEN+ETH_HLEN);
+	_i8255x_device.tx_buffer_base = kalloc_aligned(buffer_size, Align_DWord);
 
 	//Allocate Recieve frame area(RFA)
 
@@ -122,6 +132,32 @@ status_t i8255x_driver_init(pci_device_list_t* list){
 	return E_SUCCESS;
 }
 
+status_t i8255x_driver_transmit(uint8_t* frame, uint16_t size, boolean_t blocking){
+	uint8_t* data = (uint8_t*) &(_i8255x_device.tx_buffer_base[1]);
+
+	int i=0;
+	for(; i<size; i++){
+		data[i] = frame[i];
+	}
+
+	memset(_i8255x_device.tx_buffer_base, 0x00, sizeof(intel_tx_buffer_t));
+	//_i8255x_device.tx_buffer_base->tbd_addr = 0xffffffff;
+	_i8255x_device.tx_buffer_base->tbd_addr = 0x0;
+	_i8255x_device.tx_buffer_base->header.command = ACTION_HDR_CMD_EL | ACTION_HDR_CMD_I | ACTION_HDR_CMD_S | CU_ACTION_TRANSMIT;
+
+	_i8255x_device.tx_buffer_base->tcb_byte_count = size;
+
+	i8255x_write_cu_cmd(SCB_CMD_CUC_START, (uint32_t)_i8255x_device.tx_buffer_base);
+
+	return E_SUCCESS;
+}
+
+void i8255x_init_rxb(struct intel_rx_buffer* rx_buf){
+	rx_buf->header.status = 0x0;
+	rx_buf->header.command = 0x0;
+	rx_buf->size = ETH_DATA_LEN;
+	rx_buf->header.command = ACTION_HDR_CMD_EL | ACTION_HDR_CMD_S;
+}
 
 status_t i8255x_setup_rfa(void){
 	int i = 0;
@@ -157,9 +193,6 @@ status_t i8255x_setup_rfa(void){
 	_i8255x_device.rx_buffer_end = prev_buf;
 
 	c_printf("i8255x_setup_rfa - Allocated %d RFDs totalling %d bytes\n", i, I8255X_RX_BUFFER_SIZE);
-	__delay_ms(15000);
-
-	i8255x_write_ru_cmd(SCB_CMD_RUC_START, (uint32_t)first_buf);
 
 	return status;
 }
@@ -199,6 +232,7 @@ void i8255x_driver_isr(int vector, int code){
 		boolean_t handled = false;
 
 		if((_i8255x_device.csr_bar->status & INTEL_ETH_SCB_STATUS_SWI) != 0){
+			//Software Interrupt
 			c_printf("INFO: _i8255x_driver_isr - SWI\n");
 			if(_i8255x_device.irq_vector == -1){
 				_i8255x_device.irq_vector = vector;
@@ -207,32 +241,63 @@ void i8255x_driver_isr(int vector, int code){
 		}
 
 		if((_i8255x_device.csr_bar->status & INTEL_ETH_SCB_STATUS_CX) != 0){
-			c_printf("INFO: _i8255x_driver_isr - CX\n");
+			//Command Unit Execution finished
+			//c_printf("INFO: _i8255x_driver_isr - CX\n");
 			_i8255x_device.cu_transition = true;
 			handled=true;
 		}
 
 		if((_i8255x_device.csr_bar->status & INTEL_ETH_SCB_STATUS_FR) != 0){
-			c_printf("INFO: _i8255x_driver_isr - FR\n");
+			//Recieve unit finished recieving frame
+			//c_printf("INFO: _i8255x_driver_isr - FR\n");
+
 			//TODO: Wake up sleeping process thats waiting for packet info
 
 			intel_rx_buffer_t* rx_buf = _i8255x_device.rx_buffer_ptr;
-			while(rx_buf->header.status != 0x00){
-				c_printf("PACKET - status=0x%x EOF=%d F=%d actual_count=0x%x\n",
-							rx_buf->header.status,
-							((rx_buf->actual_count>>15) & 1),
-							((rx_buf->actual_count>>14) & 1),
-							((~(1<<15) & ~(1<<14)) & rx_buf->actual_count));
-				int i=0;
-				for(; i<ETH_HLEN; i++){
-					c_printf("%x ", rx_buf->frame[i]);
-				}
-				c_printf("\n");
 
+			if(rx_buf->header.status == 0x00){
+				c_printf("INFO: _i8255x_driver_isr - FR Nothing to do\n");
+			}
+
+			while(rx_buf->header.status != 0x00){
+
+				//Did we get back to the start?
 				if(rx_buf->header.link_addr == (uint32_t)_i8255x_device.rx_buffer_ptr){
 					break;
 				}
 
+				_i8255x_device.rx_count++;
+
+				//DELIVER FRAME HERE
+				struct ethframe* frame = (ethframe_t*) &rx_buf->frame[0];
+				if(frame->header.proto == htons(0xcafe)){
+					c_printf("MSG: %s\n", frame->data);
+				}
+
+
+				/*c_printf("PACKET - status=0x%x EOF=%d F=%d actual_count=0x%x rx_count=%d\n",
+							rx_buf->header.status,
+							((rx_buf->actual_count>>15) & 1),
+							((rx_buf->actual_count>>14) & 1),
+							((~(1<<15) & ~(1<<14)) & rx_buf->actual_count),
+							_i8255x_device.rx_count); */
+
+				//Print ethernet header
+				int i=0;
+				for(; i<ETH_HLEN; i++){
+					//c_printf("%x ", rx_buf->frame[i]);
+				}
+				//c_printf("\n");
+
+
+				if((rx_buf->header.command & ACTION_HDR_CMD_EL) != 0x0){
+					//RU stopped here
+					i8255x_init_rxb(rx_buf);
+					rx_buf = (intel_rx_buffer_t*) rx_buf->header.link_addr;
+					break;
+				}
+
+				i8255x_init_rxb(rx_buf);
 				rx_buf = (intel_rx_buffer_t*) rx_buf->header.link_addr;
 			}
 
@@ -242,23 +307,29 @@ void i8255x_driver_isr(int vector, int code){
 		}
 
 		if((_i8255x_device.csr_bar->status & INTEL_ETH_SCB_STATUS_CNA) != 0){
-			c_printf("INFO: _i8255x_driver_isr - CNA\n");
+			//CU not Active
+			//c_printf("INFO: _i8255x_driver_isr - CNA\n");
 			_i8255x_device.cu_transition = true;
 			handled=true;
 		}
 
 		if((_i8255x_device.csr_bar->status & INTEL_ETH_SCB_STATUS_RNR) != 0){
-			c_printf("INFO: _i8255x_driver_isr - RNR\n");
+			//Receive unit Not Ready
+			//c_printf("INFO: _i8255x_driver_isr - RNR\n");
 			_i8255x_device.ru_transition = true;
 			handled=true;
+			_i8255x_device.rx_buffer_base = (intel_rx_buffer_t*) _i8255x_device.rx_buffer_base->header.link_addr;
+			i8255x_write_ru_cmd(SCB_CMD_RUC_START, (uint32_t)_i8255x_device.rx_buffer_base);
 		}
 
 		if((_i8255x_device.csr_bar->status & INTEL_ETH_SCB_STATUS_MDI) != 0){
+			//MDI Write complete
 			c_printf("INFO: _i8255x_driver_isr - MDI\n");
 			handled=true;
 		}
 
 		if((_i8255x_device.csr_bar->status & INTEL_ETH_SCB_STATUS_FCP) != 0){
+			//Flow Control Pause
 			c_printf("INFO: _i8255x_driver_isr - FCP\n");
 			handled=true;
 			//TODO: Punish last sending process
@@ -272,8 +343,8 @@ void i8255x_driver_isr(int vector, int code){
 		//Acknowledge all interrupts
 		_i8255x_device.csr_bar->status |= INTEL_ETH_SCB_STATUS_ACK_MASK;
 
-		c_printf("_i8255x_driver_isr - Command: 0x%x\n", _i8255x_device.csr_bar->command);
-		c_printf("_i8255x_driver_isr - Status:  0x%x\n", _i8255x_device.csr_bar->status);
+		//c_printf("_i8255x_driver_isr - Command: 0x%x\n", _i8255x_device.csr_bar->command);
+		//c_printf("_i8255x_driver_isr - Status:  0x%x\n", _i8255x_device.csr_bar->status);
 	}
 }
 

@@ -9,31 +9,29 @@
 #define I8255X_DEFAULT_IRQ	0x2b
 
 #define I8255X_TX_BUFFER_COUNT	5
-#define I8255X_TX_BUFFER_SIZE	(sizeof(struct intel_tx_buffer)*I8255X_tX_BUFFER_COUNT)
+#define I8255X_TX_BUFFER_SIZE	(sizeof(struct intel_tx_buffer)*I8255X_TX_BUFFER_COUNT)
 
 #define I8255X_RX_BUFFER_COUNT	5
 #define I8255X_RX_BUFFER_SIZE	(sizeof(struct intel_rx_buffer)*I8255X_RX_BUFFER_COUNT)
 
-struct intel_action_hdr{
+typedef struct intel_action_hdr{
 	uint16_t status;
 	uint16_t command;
 
 	uint32_t link_addr;
-} __attribute__((__packed__));
+} __attribute__((__packed__)) intel_action_hdr_t;
 
-typedef struct intel_action_hdr intel_action_hdr_t;
 
-struct intel_action_dump{
+typedef struct intel_action_dump{
 	intel_action_hdr_t header;
 
 	uint32_t offset;
 	uint8_t buffer[596];
-} __attribute__((__packed__));
-
-typedef struct intel_action_dump intel_action_dump_t;
+} __attribute__((__packed__)) intel_action_dump_t;
 
 
-struct intel_rx_buffer{
+
+typedef struct intel_rx_buffer{
 	intel_action_hdr_t header;
 
 	uint32_t reserved;
@@ -41,22 +39,22 @@ struct intel_rx_buffer{
 	uint16_t actual_count;
 	uint16_t size;
 
-	uint8_t frame[ETH_DATA_LEN];
-} __attribute__((__packed__));
-
-typedef struct intel_rx_buffer intel_rx_buffer_t;
+	uint8_t frame[ETH_DATA_LEN + ETH_HLEN];
+} __attribute__((__packed__)) intel_rx_buffer_t;
 
 
-struct intel_tx_buffer{
+typedef struct intel_tx_buffer{
 	intel_action_hdr_t header;
 
 	uint32_t tbd_addr;
-} __attribute__((__packed__));
+	uint16_t tcb_byte_count;
+	uint8_t tx_threshold;
+	uint8_t tbd_num;
+} __attribute__((__packed__)) intel_tx_buffer_t;
 
-typedef struct intel_tx_buffer intel_tx_buffer_t;
 
 
-struct intel_csr{
+typedef struct intel_csr{
 	uint16_t status;
 	uint16_t command;
 
@@ -85,9 +83,7 @@ struct intel_csr{
 	uint32_t func_event_mask;
 	uint32_t func_present_state;
 	uint32_t force_event;
-} __attribute__((__packed__));
-
-typedef struct intel_csr intel_csr_t ;
+} __attribute__((__packed__))  intel_csr_t;
 
 typedef struct intel_ethernet{
 	pci_device_t* pci;
@@ -109,13 +105,14 @@ typedef struct intel_ethernet{
 	intel_rx_buffer_t* rx_buffer_end;
 
 	intel_tx_buffer_t* tx_buffer_base;
+	uint32_t rx_count;
 } intel_ethernet_t;
 
 status_t i8255x_driver_init(pci_device_list_t* list);
 
 status_t i8255x_driver_setup_irq(void);
 
-status_t i8255x_driver_transmit(void* frame, uint16_t size, boolean_t blocking);
+status_t i8255x_driver_transmit(uint8_t* frame, uint16_t size, boolean_t blocking);
 
 status_t i8225x_driver_rx_wait(void);
 
@@ -130,6 +127,8 @@ void i8255x_write_ru_cmd(uint8_t cmd, uint32_t generel_ptr);
 void i8255x_write_cu_cmd(uint8_t cmd, uint32_t generel_ptr);
 
 status_t i8255x_setup_rfa(void);
+
+void i8255x_init_rxb(struct intel_rx_buffer*);
 
 //status_t i8255x_tx_insert(int32_t handle, ethframe* data);
 
@@ -221,10 +220,14 @@ status_t i8255x_setup_rfa(void);
 #define ACTION_HDR_STATUS_C		(1<<15)
 
 #define ACTION_HDR_CMD_ID_MASK	(0x3)
+#define ACTION_HDR_CMD_SF		(1<<3)
+#define ACTION_HDR_CMD_NC		(1<<4)
+#define ACTION_HDR_CMD_CID		(0x1f<<7)
 #define ACTION_HDR_CMD_I		(1<<13)
 #define ACTION_HDR_CMD_S		(1<<14)
 #define ACTION_HDR_CMD_EL		(1<<15)
 
+#define TCB_EOF					(1<<15)
 
 
 #endif	//INTEL_8255X_ETHERNET_H

@@ -29,7 +29,7 @@
 //void dummy_isr(int vector, int code);
 
 int animOverride=0;
-
+void readline(char* str);
 
 
 pci_device_list_t* pciDevices = NULL;
@@ -69,6 +69,16 @@ int main( void ) {
 
 	pci_device_t* dev = pciDevices->first;
 
+	struct ethframe frame;
+	frame.header.proto = htons(0xcafe);
+	int j=0;
+	for(; j<ETH_ALEN; j++){
+		frame.header.dest[j] = 0xff;
+		frame.header.source[j] = j;
+	}
+
+
+
 	while(dev!=NULL){
 		char scan = c_getchar();
 
@@ -81,7 +91,7 @@ int main( void ) {
 					dev = dev->prev;
 				}
 				c_clearscreen();
-				c_moveto(0,0);
+				c_moveto(0,1);
 				_pci_print_config(dev);
 				break;
 			case 0x36:		//Right arrow
@@ -92,17 +102,28 @@ int main( void ) {
 					dev = dev->next;
 				}
 				c_clearscreen();
-				c_moveto(0,0);
+				c_moveto(0,1);
 				_pci_print_config(dev);
 				break;
 			case 0x0A:		//Enter key
 				//Mask device's interrupt
-				_pci_mask_inta(dev);
+				//_pci_mask_inta(dev);
 				c_clearscreen();
-				_pci_read_config(dev->address, &dev->config);
-				c_moveto(0,0);
-				_pci_print_config(dev);
-				c_printf("MASKED");
+				//_pci_read_config(dev->address, &dev->config);
+				c_moveto(0, 24);
+				c_printf("> ");
+				readline((char*)frame.data);
+
+				c_moveto(0,24);
+				c_printf("> Sending...                                                 ");
+				c_moveto(0,24);
+				i8255x_driver_transmit((uint8_t*)&frame, sizeof(struct ethframe), 0);
+				c_moveto(0,1);
+				c_moveto(0,24);
+				c_printf(">                                                 ");
+
+				//_pci_print_config(dev);
+				//c_printf("MASKED");
 				break;
 			default:
 				c_printf_at(78, 0, "%x", (int)scan);
@@ -114,6 +135,19 @@ int main( void ) {
 
 
 	return( 0 );
+}
+
+void readline(char* str){
+	char scan = c_getchar();
+	int i=0;
+
+	while(scan != '\n'){
+		str[i] = scan;
+		c_printf("%c", scan);
+		i++;
+		scan = c_getchar();
+	}
+	str[i]=0x0;
 }
 
 

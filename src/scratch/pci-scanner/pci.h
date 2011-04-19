@@ -1,3 +1,12 @@
+/**
+  *	@file	pci.h
+  *	@author	Alan Meekins
+  *
+  *	Description:	Declarations for functions implemented in pci.c
+  *
+  *
+  */
+
 #ifndef PCI_H
 #define PCI_H
 

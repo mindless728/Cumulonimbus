@@ -23,18 +23,25 @@ typedef struct ethhdr{
 	uint8_t dest[ETH_ALEN];		//! Destination ethernet address
 	uint8_t source[ETH_ALEN];	//! Source ethernet address
 	uint16_t proto;				//! Packet type ID field
-} ethhdr_t;
+} __attribute__((__packed__)) ethhdr_t;
 
 
 typedef struct ethframe{
 	ethhdr_t header;
 	uint8_t data[ETH_DATA_LEN];
-} ethframe_t;
+} __attribute__((__packed__)) ethframe_t;
 
+
+typedef struct ctp_header{
+	uint16_t length;
+	uint32_t type;
+	uint32_t dest_handle;
+	uint32_t src_handle;
+} __attribute__((__packed__)) ctp_header_t;
 
 typedef struct ipv4_header{
 	//TODO
-} ipv4_header_t;
+} __attribute__((__packed__)) ipv4_header_t;
 
 
 typedef struct udp_header{
@@ -45,7 +52,7 @@ typedef struct udp_header{
 	uint16_t checksum;
 	uint16_t length;
 
-} udp_header_t;
+} __attribute__((__packed__)) udp_header_t;
 
 
 uint32_t htonl(uint32_t hostlong);
