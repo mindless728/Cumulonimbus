@@ -77,5 +77,7 @@ status_t ide_read_ident_space(ide_device_t * device, uint8_t * buf);
 
 status_t ide_pio_lba_read(ide_device_t * device, uint32_t sector, uint8_t * buf);
 status_t ide_pio_lba_write(ide_device_t * device, uint32_t sector, uint8_t * buf);
+status_t ide_pio_lba_reads(ide_device_t * device, uint32_t sector, uint8_t * buf, uint32_t num_sectors);
+status_t ide_pio_lba_writes(ide_device_t * device, uint32_t sector, uint8_t * buf, uint32_t num_sectors);
 
 #endif

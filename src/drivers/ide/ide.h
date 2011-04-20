@@ -2,8 +2,8 @@
 #define IDE_H
 
 //@TODO change these
-#include "../pci-scanner/types.h"
-#include "../pci-scanner/pci.h"
+#include "../../include/types.h"
+#include "../pci/pci.h"
 
 #include "ide_defines.h"
 

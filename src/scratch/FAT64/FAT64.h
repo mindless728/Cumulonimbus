@@ -82,7 +82,7 @@ struct _FAT64_config {
 	/** size of the volume in bytes */
 	uint64_t size;
 	
-	/** size of the clusters in bytes */
+	/** size of the clusters in sectors */
 	uint64_t cluster_size;
 	
 	/** location of the root_directory */
