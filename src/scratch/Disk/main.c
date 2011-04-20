@@ -15,10 +15,8 @@ void dummy(int vector, int code);
 
 int main(void) {
 	status_t status;
-	int i = 0, j = 0;
+	uint32_t i = 0;
 	uint8_t buf[512] = {0};
-	ide_device_t * device;
-	MBR_t * mbr = (MBR_t *)buf;
 	
 	asm("cli");
 	__init_interrupts();
@@ -47,6 +45,12 @@ int main(void) {
 	c_printf("IDE Initialized!\n");
 
 	c_printf("Controllers: %d, Channels: %d, Devices: %d\n",ide_num_controllers, ide_num_channels, ide_num_devices);
+	for(i = 0; i < ide_devices[0].size; ++i) {
+		if(!(i % 2048))
+			c_printf_at(0,2,"Copying Sector: %d MiB",i/2048);
+		ide_pio_lba_read(&(ide_devices[0]), i, buf);
+		ide_pio_lba_write(&(ide_devices[1]), i, buf);
+	}
 		
 	while(1) {}
 	

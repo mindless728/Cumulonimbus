@@ -28,7 +28,6 @@ typedef struct _screen_queue_t {
 // the screen data structure itself
 typedef struct _screen_t {
     gs_framebuffer_t fb;
-    gs_textbuffer_t tb;
     gs_draw_mode_t draw_mode;
     pid_t owner;
     uint8_t in_buffer[512];// a circular buffer used for storing input

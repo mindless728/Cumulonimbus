@@ -249,7 +249,7 @@ status_t ide_pio_lba_read(ide_device_t * device, uint32_t sector, uint8_t * buf)
 	ide_register_write(device, ATA_REG_COMMAND, ATA_CMD_READ_PIO_EXT);
 
 	//read in the data
-	if(status = ide_polling(device, 1))
+	if((status = ide_polling(device, 1)))
 		return status;
 
 	for(i = 0; i < 256; ++i)
@@ -286,13 +286,35 @@ status_t ide_pio_lba_write(ide_device_t * device, uint32_t sector, uint8_t * buf
 	ide_register_write(device, ATA_REG_COMMAND, ATA_CMD_WRITE_PIO_EXT);
 
 	//read in the data
-	if(status = ide_polling(device, 0))
+	if((status = ide_polling(device, 0)))
 		return status;
 
 	for(i = 0; i < 256; ++i)
 		__outw(device->ide_channel->base_io_register, _buf[i]);
 
 	return E_SUCCESS;
+}
+
+status_t ide_pio_lba_reads(ide_device_t * device, uint32_t sector, uint8_t * buf, uint32_t num_sectors) {
+	status_t status = E_SUCCESS;
+	uint32_t i;
+
+	for(i = 0; i < num_sectors; ++i)
+		if((status = ide_pio_lba_read(device, sector+i, buf+512*i)))
+			break;
+
+	return status;
+}
+
+status_t ide_pio_lba_writes(ide_device_t * device, uint32_t sector, uint8_t * buf, uint32_t num_sectors) {
+	status_t status = E_SUCCESS;
+	uint32_t i;
+
+	for(i = 0; i < num_sectors; ++i)
+		if((status = ide_pio_lba_write(device, sector+i, buf+512*i)))
+			break;
+
+	return status;
 }
 
 void copy_device_to_controller(ide_controller_t * controller, pci_device_t * device) {

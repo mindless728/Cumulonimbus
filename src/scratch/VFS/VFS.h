@@ -1,7 +1,8 @@
 #ifndef VFS_H
 #define VFS_H
 
-#include "../../include/types.h"
+#include "../pci-scanner/types.h"
+#include "../Disk/ide.h"
 
 #define VFS_FILE 0x1
 #define VFS_DIRECTORY 0x2
@@ -54,6 +55,7 @@ struct _VFS_node_t {
 	uint32_t flags;
 	VFS_node_t * link;
 	VFS_functions_t * functions;
+	ide_device_t * device;
 };
 
 #endif
