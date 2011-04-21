@@ -951,7 +951,6 @@ void init( void ) {
         exit( X_FAILURE );
     }
 #endif
-
 #ifndef NO_VESA
     pid = fork();
     if( pid < 0 ) {
