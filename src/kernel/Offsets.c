@@ -40,6 +40,10 @@ int main( void ) {
     printf( "   fs:\t\t%d\n", (char *)&context.fs - (char *)&context );
     printf( "   es:\t\t%d\n", (char *)&context.es - (char *)&context );
     printf( "   ds:\t\t%d\n", (char *)&context.ds - (char *)&context );
+    printf( "   cr0:\t\t%d\n", (char *)&context.cr0 - (char *)&context );
+    printf( "   cr2:\t\t%d\n", (char *)&context.cr2 - (char *)&context );
+    printf( "   cr3:\t\t%d\n", (char *)&context.cr3 - (char *)&context );
+    printf( "   cr4:\t\t%d\n", (char *)&context.cr4 - (char *)&context );
     printf( "   edi:\t\t%d\n", (char *)&context.edi - (char *)&context );
     printf( "   esi:\t\t%d\n", (char *)&context.esi - (char *)&context );
     printf( "   ebp:\t\t%d\n", (char *)&context.ebp - (char *)&context );
@@ -48,6 +52,7 @@ int main( void ) {
     printf( "   edx:\t\t%d\n", (char *)&context.edx - (char *)&context );
     printf( "   ecx:\t\t%d\n", (char *)&context.ecx - (char *)&context );
     printf( "   eax:\t\t%d\n", (char *)&context.eax - (char *)&context );
+    printf( "   fpu:\t\t%d\n", (char *)&context.fpu - (char *)&context );
     printf( "   vector:\t%d\n",(char *)&context.vector - (char *)&context);
     printf( "   code:\t%d\n", (char *)&context.code - (char *)&context );
     printf( "   eip:\t\t%d\n", (char *)&context.eip - (char *)&context );
