@@ -1,4 +1,4 @@
-
+int * phys_mem_table = 0; //TODO change this to right after the first gig of mem
 
 void init_phys_alloc(int * start) {
 
