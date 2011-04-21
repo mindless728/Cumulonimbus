@@ -250,7 +250,7 @@ fmt:	.ascii	" ss=%08x  gs=%08x  fs=%08x  es=%08x  ds=%08x\n"
 	.ascii	"edx=%08x ecx=%08x eax=%08x vec=%08x cod=%08x\n"
 	.string	"eip=%08x  cs=%08x efl=%08x\n"
     #else
-	.string	"edx=%08x ecx=%08x eax=%08x fcw=%08x fsw=%08x\n"
+	.string	"edx=%08x ecx=%08x eax=%08x fcw=    %04x fsw=    %04x\n"
     #endif
 
 fmtfpu:

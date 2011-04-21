@@ -12,7 +12,7 @@
 // Screen user defines, comment these out to not spawn that screen user
 
 // opens and closes a screen
-#define SPAWN_SCREEN_USER_A 
+/*#define SPAWN_SCREEN_USER_A 
 
 // gets its screen, sets its screen, gets it again, then sets back to default
 #define SPAWN_SCREEN_USER_B 
@@ -22,7 +22,7 @@
 #define SPAWN_SCREEN_USER_C
 
 // opens a screen, writes to it, switches screen in for 1 second intervals every 10 seconds
-#define SPAWN_SCREEN_USER_D 
+#define SPAWN_SCREEN_USER_D*/ 
 
 // function called in the init routine to spawn the screen users
 extern void spawn_screen_users(void);

@@ -82,14 +82,12 @@ static void _clear_screen( screen_t* screen ) {
 // _screen_init
 void _screen_init() {
     int i;
-    c_printf( "====== BEGIN SCREEN INIT ======\n" );
-    c_printf( "Initalizing screens...\n" );
+    c_printf( " screen" );
     for( i = 0; i < NUM_SCREENS; ++i ) {
         _screen_nodes[i].descriptor = i;
         _screens[i].owner = 0;
     }
 
-    c_printf( "Initializing screen queues...\n" );
     // initialize the queues
     _unused_screens.first = &_screen_nodes[0];
     _unused_screens.last = &_screen_nodes[NUM_SCREENS-1];
@@ -98,13 +96,11 @@ void _screen_init() {
     _active_screens.last = 0;
     _active_screens.length = 0;
 
-    c_printf( "connecting consecutive elements in queue...\n" );
     // form the connections in the queue and initialize the qnodes
     for( i = 0; i < NUM_SCREENS - 1; ++i ) {
         _screen_nodes[i].descriptor = i;
         _screen_nodes[i].next = &_screen_nodes[i+1];
     }
-    c_printf( "======= END SCREEN INIT =======\n" );
 }
 
 // _screen_dequeue

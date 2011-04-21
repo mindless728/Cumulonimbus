@@ -22,6 +22,7 @@
 #include "sio.h"
 #include "scheduler.h"
 #include "screen.h"
+#include "mouse.h"
 
 // need init() address
 #include "user.h"
@@ -273,9 +274,13 @@ void _init( void ) {
 	** Console I/O system.
 	*/
 
+
 	c_io_init();
 	c_setscroll( 0, 8, 99, 99 );
 	c_puts_at( 0, 7, "================================================================================" );
+
+    // intialize the mouse
+    _mouse_init();
 
 	/*
 	** 20103-SPECIFIC CODE STARTS HERE
@@ -317,11 +322,9 @@ void _init( void ) {
 	/*
 	** Install the ISRs
 	*/
-
 	__install_isr( INT_VEC_TIMER, _isr_clock );
 	__install_isr( INT_VEC_SYSCALL, _isr_syscall );
 	__install_isr( INT_VEC_SERIAL_PORT_1, _isr_sio );
-
 	/*
 	** Create the initial process
 	**
