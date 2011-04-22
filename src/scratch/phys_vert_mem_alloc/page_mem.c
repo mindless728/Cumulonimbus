@@ -15,7 +15,7 @@ void init_paging(void) {
 
 }
 
-int * get_phys_address(void * vert_address) {
+uint32_t * get_phys_address(void * vert_address) {
 
 /*
 US RW  P - Description
@@ -30,24 +30,32 @@ US RW  P - Description
 */
 
 	unsigned long page_dir_offset = (unsigned long)vert_address >> 22;	  
-	unsigned long page_table_offset = ((unsigned long)vert_address >> 11) & 0x000003FF;
+	unsigned long page_table_offset = ((unsigned long)vert_address >> 12) & 0x00000FFF;
 
 	uint32_t var;
 
 	asm volitie( "movl %%cr3, %0\n\t":"=r"(var));
 
 	uint32_t page_dir_entry = ((uint32_t *) var)[page_dir_offset];
-	page_dir_entry = page_dir_entry >> 11;
+	page_dir_entry = (page_dir_entry >> 12) << 12;
 
-	if( (page_dir_entry) == NULL) {
+	if( page_dir_entry & ~(0x00000FFF) == NULL || page_dir_entry & 0x00000001 == 0) {
 		//TODO do something!
 		return NULL;
 	}
 
 	uint32_t phys_mem_address = (uint32_t * page_dir_entry)[page_table_offset];
-	if(0x000000
-	
+
+	if(phys_mem_address & ~(0x00000FFF) == NULL || phys_mem_address & 0x00000001 == 0) {
+		//TODO do something
+		return NULL;
+	}
+
+	return (uint32_t) ( (phys_mem_address & ~(0x00000FFF) ) | (vert_address & 0x00000FFF) );
+ 	
 }
+
+
 
 int * init_page_table(int * table_start, int * pages_start ) {
 
