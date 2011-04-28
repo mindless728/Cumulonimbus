@@ -1,3 +1,9 @@
+/**
+ * File: screen.h
+ * Author: Benjamin David Mayes
+ * Description: Declarations of screen routines for the screen subsystem 
+ */
+
 #ifndef SCREEN_H_
 #define SCREEN_H_
 #include "gs_io.h"
@@ -6,15 +12,15 @@
 
 // the currently active screen (needed to know when to draw to video memory or
 // normal memory
-extern screen_descriptor_t active_screen;
+extern handle_t active_screen;
 // the current PCB
 extern pcb_t* _current;
 
 typedef struct _screen_qnode_t screen_qnode_t;
 
-// a node that holds a screen descriptor
+// a node that holds a screen handle
 struct _screen_qnode_t {
-    screen_descriptor_t descriptor;
+    handle_t handle;
     screen_qnode_t* next;
 };
 
@@ -43,18 +49,18 @@ extern screen_t _screens[NUM_SCREENS];
 void _screen_init( void );
 
 /**
- * Obtains a screen descriptor from the pool of available descriptors.
+ * Obtains a screen handle from the pool of available handle.
  *
- * @return A screen descriptor that is not in use of a negative number that
+ * @return A screen handle that is not in use of a negative number that
  * corresponds to a number whose absolute value is a status_t status.
  */
-screen_descriptor_t _screen_dequeue(void);
+handle_t _screen_dequeue(void);
 
 /**
- * Adds an unused screen descriptor to the pool of available descriptors.
+ * Adds an unused screen handle to the pool of available handles.
  *
- * @param sd The screen descriptor to add to the pool.
+ * @param sd The screen handle to add to the pool.
  * @return E_SUCCESS if successful, a descriptive status otherwise.
  */
-status_t _screen_enqueue( screen_descriptor_t sd ); 
+status_t _screen_enqueue( handle_t sd ); 
 #endif

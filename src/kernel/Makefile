@@ -225,9 +225,9 @@ sio.o: headers.h sio.h queue.h process.h clock.h stack.h scheduler.h
 sio.o: startup.h uart.h x86arch.h
 stack.o: headers.h stack.h queue.h
 syscall.o: headers.h syscall.h x86arch.h process.h
-syscall.o: clock.h queue.h stack.h scheduler.h sio.h system.h types.h
+syscall.o: clock.h queue.h stack.h scheduler.h sio.h system.h 
 syscall.o: startup.h ulib.h
-system.o: headers.h system.h types.h process.h clock.h queue.h stack.h
+system.o: headers.h system.h process.h clock.h queue.h stack.h
 system.o: bootstrap.h syscall.h x86arch.h sio.h
 system.o: scheduler.h user.h ulib.h
 ulibc.o: headers.h

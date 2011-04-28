@@ -635,10 +635,10 @@ static void _sys_exit( context_t *context ) {
 ** _sys_setscreen - sets the screen of the calling process
 */
 static void _sys_setscreen( context_t *context ) {
-    screen_descriptor_t sd = ARG(context,1);
-    if( sd >= 0 && sd < NUM_SCREENS && _screens[sd].owner ) {
+    handle_t sh = ARG(context,1);
+    if( sh >= 0 && sh < NUM_SCREENS && _screens[sh].owner ) {
         context->eax = _current->screen;
-        _current->screen = sd;
+        _current->screen = sh;
     } else {
         context->eax = E_BAD_PARAM;
     }
@@ -655,18 +655,18 @@ static void _sys_getscreen( context_t *context ) {
 ** _sys_switchscreen - switches the current screen with the given screen
 */
 static void _sys_switchscreen( context_t *context ) {
-    screen_descriptor_t sd = ARG(context,1);
-    if( sd >= 0 && sd < NUM_SCREENS && sd != active_screen ) {
-        screen_descriptor_t old = active_screen; 
+    handle_t sh = ARG(context,1);
+    if( sh >= 0 && sh < NUM_SCREENS && sh != active_screen ) {
+        handle_t old = active_screen; 
         #ifndef NO_VESA
-        // copy the buffer from video memory to the old sd's buffer in main memory
+        // copy the buffer from video memory to the old sh's buffer in main memory
         _memcpy( &_screens[old].fb, vesa_video_memory, sizeof(gs_framebuffer_t)); 
-        // copy the new sd's buffer into video memory
-        _memcpy( vesa_video_memory, &_screens[sd].fb, sizeof(gs_framebuffer_t));
+        // copy the new sh's buffer into video memory
+        _memcpy( vesa_video_memory, &_screens[sh].fb, sizeof(gs_framebuffer_t));
         #endif
 
         // set the active screen and return the old screen's descriptor
-        active_screen = sd;
+        active_screen = sh;
         context->eax = old;
     } else {
         // an invalid screen descriptor was given
@@ -678,27 +678,27 @@ static void _sys_switchscreen( context_t *context ) {
 ** _sys_openscreen - opens a new screen
 */
 static void _sys_openscreen( context_t *context ) {
-    screen_descriptor_t sd = _screen_dequeue();
-    if( sd >= 0 ) {
-        screen_t* scr = &_screens[sd];
+    handle_t sh = _screen_dequeue();
+    if( sh >= 0 ) {
+        screen_t* scr = &_screens[sh];
         
         // set the owner to the current process
         scr->owner = _current->pid;
     }
     // return the initialized screen's descriptor or the error code.
-    context->eax = sd;
+    context->eax = sh;
 }
 
 /*
 ** _sys_closescreen - closes the given screen
 */
 static void _sys_closescreen( context_t *context ) {
-    screen_descriptor_t sd = ARG(context,1);
+    handle_t sh = ARG(context,1);
     // if the screen is a valid screen descriptor and is open
-    if( sd >= 0 && sd < NUM_SCREENS && _screens[sd].owner ) {
+    if( sh >= 0 && sh < NUM_SCREENS && _screens[sh].owner ) {
         //set the owner to 0 to mark the screen as unused
-        _screens[sd].owner = 0;
-        context->eax = _screen_enqueue(sd);
+        _screens[sh].owner = 0;
+        context->eax = _screen_enqueue(sh);
     } else {
         context->eax = E_BAD_PARAM;
     }

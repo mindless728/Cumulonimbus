@@ -24,7 +24,7 @@
 
 #ifndef __ASM__20103__
 
-#include "types.h"
+#include <types.h>
 #include "process.h"
 
 /*
@@ -207,11 +207,53 @@ int setprio( int prio );
 
 time_t settime( time_t time );
 
-screen_descriptor_t getscreen( void );
-screen_descriptor_t setscreen( screen_descriptor_t sd );
-screen_descriptor_t switchscreen( screen_descriptor_t sd );
-screen_descriptor_t openscreen( void );
-status_t closescreen( screen_descriptor_t sd );
+/*
+** getscreen - get the process' screen handle
+**
+** usage:       handle_t h = getscreen();
+**
+** returns current screen handle of the process
+*/
+
+handle_t getscreen( void );
+
+/*
+** setscreen - get the process' screen handle
+**
+** usage:       handle_t old = setscreen(new);
+**
+** returns old screen handle of the process
+*/
+
+handle_t setscreen( handle_t sh );
+
+/*
+** switchscreen - switch the active screen to the given screen handle
+**
+** usage:       handle_t old = switchscreen(new);
+**
+** returns screen handle of the old screen
+*/
+
+handle_t switchscreen( handle_t sh );
+
+/*
+** openscreen - opens a new screen handle
+** usage:       handle_t new = openscreen();
+**
+** returns a newly allocated screen handle or an error status
+*/
+
+handle_t openscreen( void );
+
+/*
+** closescreen - closes an open screen handle
+** usage:       status_t s = closescreen( handle );
+**
+** returns an error if the given screen was not open
+*/
+
+status_t closescreen( handle_t sh );
 
 /*
 ** bogus - a bogus system call, for testing our syscall ISR

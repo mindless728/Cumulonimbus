@@ -16,7 +16,7 @@
  */
 static void screen_user_a(void) {
     // open a screen and check if it was successful
-    screen_descriptor_t screen = openscreen(); 
+    handle_t screen = openscreen(); 
     if( screen >= 0 ) {
         c_printf( "screen_user_a: opened screen %d\n" );
         // close the screen and check if it was successful
@@ -37,11 +37,11 @@ static void screen_user_a(void) {
  */
 static void screen_user_b(void) {
     // open a screen, check for success
-    screen_descriptor_t screen = openscreen();
+    handle_t screen = openscreen();
     if( screen >= 0 ) { 
         // sets the screen and does a sanity check
-        screen_descriptor_t old_screen = setscreen(screen);
-        screen_descriptor_t curr_screen = getscreen();
+        handle_t old_screen = setscreen(screen);
+        handle_t curr_screen = getscreen();
         if( screen == curr_screen ) {
             c_printf( "screen_user_b: screen successfully set to %d (was: %d)\n", curr_screen, old_screen );
             // check to see if return value for setscreen is correct
@@ -74,8 +74,8 @@ static void screen_user_c(void) {
     int i = 0;
 
     // lets test queues by opening all the screens
-    screen_descriptor_t sds[32];
-    screen_descriptor_t s = openscreen();
+    handle_t sds[32];
+    handle_t s = openscreen();
     c_printf( "screen_user_c: opening screens -" );
     while( s >= 0 ) {
         c_printf( " %d", s );
@@ -108,7 +108,7 @@ static void screen_user_c(void) {
  * Switches a screen in and out with the main screen.
  */
 static void screen_user_d(void) {
-    screen_descriptor_t s = openscreen();
+    handle_t s = openscreen();
     if( s >= 0 ) {
         c_printf( "screen_user_d: sucessfully opened screen %d\n", s );
         setscreen(s);
@@ -126,9 +126,9 @@ static void screen_user_d(void) {
 
 void user_vesa_demo( void ) {
     c_getchar();
-    screen_descriptor_t s = openscreen();
-    screen_descriptor_t sold = setscreen(s);
-    c_printf( "VESA DEMO SCREEN_DESCRIPTOR: %d, formerly: %d\n", s, sold );
+    handle_t s = openscreen();
+    handle_t sold = setscreen(s);
+    c_printf( "VESA DEMO handle: %d, formerly: %d\n", s, sold );
     c_getchar();
     switchscreen(s);
     print_hue_test();
