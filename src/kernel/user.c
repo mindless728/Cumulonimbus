@@ -14,7 +14,6 @@
 
 #include "user.h"
 #include "screen_users.h"
-#include "vesa_demo.h"
 #include "gs_io.h"
 
 /*
@@ -661,18 +660,6 @@ void user_z( void ) {
 
 }
 
-void user_vesa_demo( void ) {
-    //c_getchar();
-    screen_descriptor_t s = openscreen();
-    screen_descriptor_t sold = setscreen(s);
-    c_printf( "VESA DEMO SCREEN_DESCRIPTOR: %d, formerly: %d\n", s, sold );
-    c_getchar();
-    switchscreen(s);
-    _print_hue_test();
-    c_getchar();
-    _print_mandelbrot( 1.0 );
-    exit(X_SUCCESS);
-}
 void user_draw_console( void ) {
     while( 1 ) {
         gs_draw_console();
@@ -941,16 +928,6 @@ void init( void ) {
 		exit( X_FAILURE );
 	}
 #endif
-
-#ifdef SPAWN_VESA_DEMO
-    pid = fork();
-    if( pid < 0 ) {
-        //error
-    } else if( pid == 0 ) {
-        exec( PRIO_STANDARD, user_vesa_demo );
-        exit( X_FAILURE );
-    }
-#endif
 #ifndef NO_VESA
     pid = fork();
     if( pid < 0 ) {
@@ -959,9 +936,9 @@ void init( void ) {
         exit( X_FAILURE );
     }
 #endif
-	writec( '!' );
 
     spawn_screen_users();
+	writec( '!' );
 
 	/*
 	** At this point, we go into an infinite loop
@@ -974,7 +951,6 @@ void init( void ) {
 		wait( &info );
 		c_printf( "Init: process %d exited, status %d\n",
 			  info.pid, info.status );
-		// sleep( SECONDS_TO_TICKS(5) );
 	}
 
 	/*

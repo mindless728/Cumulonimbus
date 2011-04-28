@@ -7,6 +7,7 @@
 #include "headers.h"
 #include "c_io.h"
 #include "screen_users.h"
+#include "vesa_demo.h"
 
 /**
  * Represents a sample user that opens a new screen then closes it immediately
@@ -122,6 +123,19 @@ static void screen_user_d(void) {
     }
 }
 
+void user_vesa_demo( void ) {
+    c_getchar();
+    screen_descriptor_t s = openscreen();
+    screen_descriptor_t sold = setscreen(s);
+    c_printf( "VESA DEMO SCREEN_DESCRIPTOR: %d, formerly: %d\n", s, sold );
+    c_getchar();
+    switchscreen(s);
+    _print_hue_test();
+    c_getchar();
+    _print_julia( .25, .25 );
+    exit(X_SUCCESS);
+}
+
 /**
  * Spawns the actual screen user functions. To be called by the init routine in
  * user.c.
@@ -165,6 +179,16 @@ void spawn_screen_users() {
     } else if( pid == 0 ) {
         exec( PRIO_STANDARD, screen_user_d );
         c_printf( "spawn_screen_users: error executing screen_user_d" );
+        exit( X_FAILURE );
+    }
+    #endif
+    
+    #ifdef SPAWN_VESA_DEMO
+    pid = fork();
+    if( pid < 0 ) {
+        //error
+    } else if( pid == 0 ) {
+        exec( PRIO_STANDARD, user_vesa_demo );
         exit( X_FAILURE );
     }
     #endif

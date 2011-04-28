@@ -5,50 +5,54 @@
 
 #define NUM_ITERS 2000
 pixel_t hues[NUM_ITERS+1];
+
+static void _generate_hues(double parameter) {
+    int i = 0;
+    for(; i < NUM_ITERS; ++i ) {
+        double num = (double)i / NUM_ITERS;
+        double x = pow(num, parameter);
+        x *= 6;
+        int s = (int)x;
+        while( x > 2.0 ) x -= 2.0;
+        x -= 1.0;
+        if( x < 0.0 ) x = -x;
+        x = 1 - x;
+        if( x > 1.0 ) s = 6; 
+        if( x < 0.0 ) s = 0;
+        switch(s) {
+            case 0: 
+                hues[i] = CREATE_PIXEL(31,(int)(63*x),0); 
+                break;
+            case 1: 
+                hues[i] = CREATE_PIXEL((int)(31*x),63,0); 
+                break;
+            case 2: 
+                hues[i] = CREATE_PIXEL(0,63,(int)(31*x)); 
+                break;
+            case 3: 
+                hues[i] = CREATE_PIXEL(0,(int)(63*x),31); 
+                break;
+            case 4: 
+                hues[i] = CREATE_PIXEL((int)(31*x),0,31); 
+                break;
+            case 5: 
+                hues[i] = CREATE_PIXEL(31,0,(int)(31*x)); 
+                break;
+            default: 
+                hues[i] = 0xFFFF;
+                break;
+        }
+    }
+}
+
 void _print_mandelbrot( double parameter ) {
     double zoom = 128.0;
     double xoffset = 0;
     double yoffset = 0;
-    int cycle = 0;
     int done = 0;
     hues[NUM_ITERS] = 0.0;
     while( 1 ) {
-        int i = 0;
-        for(; i < NUM_ITERS; ++i ) {
-            double num = (double)i / NUM_ITERS;
-            double x = pow(num, parameter);
-            x *= 6;
-            int s = (int)x;
-            while( x > 2.0 ) x -= 2.0;
-            x -= 1.0;
-            if( x < 0.0 ) x = -x;
-            x = 1 - x;
-            if( x > 1.0 ) s = 6; 
-            if( x < 0.0 ) s = 0;
-            switch((s+cycle) % 6) {
-                case 0: 
-                    hues[i] = CREATE_PIXEL(31,(int)(63*x),0); 
-                    break;
-                case 1: 
-                    hues[i] = CREATE_PIXEL((int)(31*x),63,0); 
-                    break;
-                case 2: 
-                    hues[i] = CREATE_PIXEL(0,63,(int)(31*x)); 
-                    break;
-                case 3: 
-                    hues[i] = CREATE_PIXEL(0,(int)(63*x),31); 
-                    break;
-                case 4: 
-                    hues[i] = CREATE_PIXEL((int)(31*x),0,31); 
-                    break;
-                case 5: 
-                    hues[i] = CREATE_PIXEL(31,0,(int)(31*x)); 
-                    break;
-                default: 
-                    hues[i] = 0xFFFF;
-                    break;
-            }
-        }
+        _generate_hues(parameter);
         done = 0;
         while( !done ) {
             int r,c;
@@ -110,12 +114,95 @@ void _print_mandelbrot( double parameter ) {
                     parameter *= 1.1;
                     done = 1;
                     break;
-                case '{':
-                    ++cycle;
+                case 'x':
+                    switchscreen(0);
+                    exit(X_SUCCESS);
+                    return;
+                    break;
+            }
+        }
+    }
+}
+
+void _print_julia( double parameter, double cx, double cy ) {
+    double zoom = 128.0;
+    double xoffset = 0;
+    double yoffset = 0;
+    int done = 0;
+    hues[NUM_ITERS] = 0.0;
+    while( 1 ) {
+        _generate_hues(parameter);
+        done = 0;
+        while( !done ) {
+            int r,c;
+            for( r = 0; r < 1024; ++r ) {
+                if( c_input_queue() ) break;
+                for( c = 0; c < 1280; ++c ) {
+                    int iter = 0;
+                    double x = (c - 640 + xoffset)/zoom;
+                    double y = (r - 512 + yoffset)/zoom;
+                    double a = 0;
+                    double b = 0;
+                    double aold = x;
+                    double bold = y;
+                    while( iter < NUM_ITERS && (a*a+b*b) <= 4.0 ) {
+                        a = aold*aold - bold*bold + cx; 
+                        b = 2*aold*bold + cy;
+                        ++iter;
+                        aold = a;
+                        bold = b;
+                    }
+                    gs_draw_pixel(c,r,hues[iter]);
+                }
+            }
+            char key = c_getchar();
+            switch(key) {
+                case '+':
+                    zoom *= 2.0;
+                    xoffset *= 2.0;
+                    yoffset *= 2.0;
+                    break;
+                case '-':
+                    zoom *= 0.5;
+                    xoffset *= 0.5;  
+                    yoffset *= 0.5;  
+                    break;
+
+                case 'w':
+                    yoffset -= 100.0;
+                    break;
+                case 's':
+                    yoffset += 100.0;
+                    break;
+                case 'a':
+                    xoffset -= 100.0;
+                    break;
+                case 'd':
+                    xoffset += 100.0;
+                    break;
+                case '1':
+                    cx += 0.01;
+                    break;
+                case '2':
+                    cx -= 0.01;
+                    break;
+                case '3':
+                    cy += 0.01;
+                    break;
+                case '4':
+                    cy -= 0.01;
+                    break;
+                case 'r':
+                    xoffset = 0;
+                    yoffset = 0;
+                    zoom = 128.0; 
+                    break;
+                case '[':
+                    parameter /= 1.1;
                     done = 1;
                     break;
-                case '}':
-                    --cycle;
+                case ']':
+                    parameter *= 1.1;
                     done = 1;
                     break;
                 case 'x':

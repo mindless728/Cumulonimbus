@@ -24,6 +24,10 @@
 // opens a screen, writes to it, switches screen in for 1 second intervals every 10 seconds
 #define SPAWN_SCREEN_USER_D*/ 
 
+// starts a vesa demo if vesa in enabled
+#ifndef NO_VESA
+#define SPAWN_VESA_DEMO
+#endif
 // function called in the init routine to spawn the screen users
 extern void spawn_screen_users(void);
 #endif
