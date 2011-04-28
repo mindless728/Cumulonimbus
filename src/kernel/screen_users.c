@@ -8,6 +8,7 @@
 #include "c_io.h"
 #include "screen_users.h"
 #include "vesa_demo.h"
+#include "gs_io.h"
 
 /**
  * Represents a sample user that opens a new screen then closes it immediately
