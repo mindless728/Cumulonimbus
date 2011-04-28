@@ -130,9 +130,9 @@ void user_vesa_demo( void ) {
     c_printf( "VESA DEMO SCREEN_DESCRIPTOR: %d, formerly: %d\n", s, sold );
     c_getchar();
     switchscreen(s);
-    _print_hue_test();
+    print_hue_test();
     c_getchar();
-    _print_julia( 1.5, .25, .25 );
+    print_julia( 1.5, .25, .25 );
     exit(X_SUCCESS);
 }
 

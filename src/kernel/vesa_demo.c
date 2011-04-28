@@ -1,24 +1,45 @@
+/**
+ * file: vesa_demo.c
+ * @author Benjamin Mayes
+ * @description Some user functions to test the VESA driver.
+ */
+
 #include "gs_io.h"
 #include "fpu.h"
 #include "vesa_demo.h"
 #include "user.h"
 
+// an array containing hues to color the fractals
 #define NUM_ITERS 2000
 pixel_t hues[NUM_ITERS+1];
 
-static void _generate_hues(double parameter) {
+/**
+ * Generates the hues based on the given parameter.
+ *
+ * @param The power that the percentage given by n/NUM_ITERS is raised to.
+ */
+static void generate_hues(double parameter) {
     int i = 0;
+    // calculate the color for every iteration
     for(; i < NUM_ITERS; ++i ) {
         double num = (double)i / NUM_ITERS;
+
+        // caclulate the "percentage" based on the number and the parameter
         double x = pow(num, parameter);
+        // convert the percentage into an angle
         x *= 6;
         int s = (int)x;
         while( x > 2.0 ) x -= 2.0;
         x -= 1.0;
         if( x < 0.0 ) x = -x;
         x = 1 - x;
+
+        // sanity checks
         if( x > 1.0 ) s = 6; 
         if( x < 0.0 ) s = 0;
+
+        // based on the sixth that the angle resides in, we use different
+        // coloring rules
         switch(s) {
             case 0: 
                 hues[i] = CREATE_PIXEL(31,(int)(63*x),0); 
@@ -45,14 +66,19 @@ static void _generate_hues(double parameter) {
     }
 }
 
-void _print_mandelbrot( double parameter ) {
+/**
+ * Prints a mandelbrot set coloring it with parameter.
+ *
+ * @param parameter The hue generation parameter.
+ */
+void print_mandelbrot( double parameter ) {
     double zoom = 128.0;
     double xoffset = 0;
     double yoffset = 0;
     int done = 0;
     hues[NUM_ITERS] = 0.0;
     while( 1 ) {
-        _generate_hues(parameter);
+        generate_hues(parameter);
         done = 0;
         while( !done ) {
             int r,c;
@@ -124,14 +150,22 @@ void _print_mandelbrot( double parameter ) {
     }
 }
 
-void _print_julia( double parameter, double cx, double cy ) {
+/**
+ * Prints a julia set of power 2 using the complex parameter cx + cy*i and colored
+ * with the parameter.
+ *
+ * @param parameter The hue coloring parameter.
+ * @param cx The real part of the complex parameter.
+ * @param cy The imaginary part of the complex parameter.
+ */
+void print_julia( double parameter, double cx, double cy ) {
     double zoom = 128.0;
     double xoffset = 0;
     double yoffset = 0;
     int done = 0;
     hues[NUM_ITERS] = 0.0;
     while( 1 ) {
-        _generate_hues(parameter);
+        generate_hues(parameter);
         done = 0;
         while( !done ) {
             int r,c;
@@ -215,7 +249,10 @@ void _print_julia( double parameter, double cx, double cy ) {
     }
 }
 
-void _print_hue_test() {
+/**
+ * Prints hues smoothly on the screen.
+ */
+void print_hue_test() {
     int x = 0;
     int y = 0;
     for( y = 0; y < 1024; ++y ) {
@@ -254,58 +291,3 @@ void _print_hue_test() {
         }
     }
 }
-
-
-
-    /*void _print_vesa_demo() {
-      vbe_mode_info_t* c = (vbe_mode_info_t*)VBE_MODE_INFO_LOCATION;
-      uint32_t iter = 0;
-      uint32_t x_res = c->x_res;
-      uint32_t y_res = c->y_res;
-      uint32_t x_res_over2 = c->x_res >> 1;
-      uint32_t max_offset = c->x_res;
-
-    // Here's an overoptimized demo!
-    while( 1 ) {
-    gs_puts_at_buf(0,10,"HELLO WORLD", &framebuffer );
-    gs_puts_at_buf(0,84, "0123456789", &framebuffer );
-    gs_puts_at_buf(0,100,"ABCDEFGHIJKLMNOPQRSTUVWXYZ", &framebuffer );
-    gs_puts_at_buf(0,116,"abcdefghijklmnopqrstuvwxyz", &framebuffer );
-    gs_puts_at_buf(0,132,"Timer ticks: ", &framebuffer);
-    gs_puts_at_buf(156,132,itoa(_get_time()), &framebuffer);
-
-    gs_draw_buf( &framebuffer );
-    double_pixel_t* lol = (double_pixel_t*)&framebuffer;
-
-    // draw the first line of the scene
-    uint32_t offset = 0;
-    do {   
-    uint32_t grey_intensity = (((offset+iter) % x_res) << 7) / (x_res_over2);
-
-    if( grey_intensity > 128 ){
-    grey_intensity = ~grey_intensity;
-    grey_intensity &= 0xFF;
-    } else if( grey_intensity == 128 ) {
-    grey_intensity = 127;
-    }
-    uint32_t frac = grey_intensity >> 2;
-    pixel_t write = CREATE_PIXEL(frac,frac<<1,frac);
-
-     *lol = CREATE_DOUBLE_PIXEL(write,write);
-     ++lol;
-     offset += 2;
-     } while( offset < max_offset );
-    // copy the first line to the rest of the scene
-    int i,j;
-    double_pixel_t* begin = lol;
-    for( i = 1; i < y_res; ++i ) {
-    lol = (double_pixel_t*)&framebuffer;
-    for( j = 0; j < x_res; ++j ) {
-     *begin = *lol;
-     ++lol; ++begin;
-     }
-
-     }
-     iter += 10;
-     }
-     }*/
