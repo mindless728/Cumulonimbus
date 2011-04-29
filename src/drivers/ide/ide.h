@@ -1,7 +1,8 @@
 #ifndef IDE_H
 #define IDE_H
 
-#include "../../include/types.h"
+
+#include <types.h>
 #include "../pci/pci.h"
 
 #include "ide_defines.h"

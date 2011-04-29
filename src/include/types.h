@@ -10,8 +10,11 @@
 ** Description:	Basic system-wide data types
 */
 
+
 #ifndef _TYPES_H
 #define _TYPES_H
+
+#include <status.h>
 
 #ifndef __ASM__20103__
 
@@ -53,6 +56,16 @@ typedef uint64_t	qword_t;
 typedef uint8_t		boolean_t;
 
 typedef int32_t		status_t;
+
+
+typedef int32_t screen_descriptor_t;
+
+typedef int32_t	handle_t;
+
+#define NULL	(0x0)
+#define TRUE	0
+#define FALSE	1
+
 
 #endif
 
