@@ -1,8 +1,8 @@
-#include "c_io.h"
-#include "x86arch.h"
-#include "support.h"
-#include "startup.h"
-#include "types.h"
+#include <x86arch.h>
+#include <types.h>
+#include "../kernel/support.h"
+#include "../kernel/startup.h"
+#include "../kernel/c_io.h"
 #include "mouse.h"
 
 /**
@@ -70,7 +70,6 @@ static uint8_t mouse_read(void) {
 
 // _mouse_init
 void _mouse_init() {
-    c_printf( "Installing Mouse ISR\n" );
     __install_isr( INT_VEC_MOUSE, _isr_mouse );
     // Enable the mouse port
     mouse_wait(WAIT_WRITE);

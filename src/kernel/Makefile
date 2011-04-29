@@ -9,7 +9,7 @@
 #
 # User supplied files
 #
-U_USER_C_SRC = deadspace.o fpu.c gs_io.c gs_font.c vesa_framebuffer.c vbe_info.c screen.c vesa_demo.c screen_users.c atomic.c mutex.c mouse.c
+U_USER_C_SRC = deadspace.o fpu.c gs_io.c gs_font.c vesa_framebuffer.c vbe_info.c screen.c vesa_demo.c screen_users.c atomic.c mutex.c
 U_C_SRC = kalloc.c irqs.c clock.c klibc.c queue.c process.c scheduler.c sio.c \
 	  stack.c syscall.c system.c ulibc.c user.c 
 
@@ -21,8 +21,8 @@ U_C_OBJ = ${U_C_SRC:%.c=%.o}
 #	  stack.o syscall.o system.o ulibc.o user.o
 
 U_S_SRC = klibs.S ulibs.S
-U_S_OBJ = klibs.o ulibs.o ../drivers/drivers.a
-U_LIBS	=
+U_S_OBJ = klibs.o ulibs.o
+U_LIBS = ../drivers/drivers.a
 
 #
 # User compilation/assembly definable options
@@ -62,7 +62,7 @@ AS = gas
 ASFLAGS = --32
 
 LD = gld
-LDFLAGS = -melf_i386
+LDFLAGS = -melf_i386 
 
 RM = rm
 
@@ -210,25 +210,25 @@ depend:
 bootstrap.o: bootstrap.h
 startup.o: bootstrap.h
 isr_stubs.o: bootstrap.h
-ulibs.o: syscall.h headers.h x86arch.h
-c_io.o: c_io.h startup.h support.h x86arch.h
-support.o: startup.h support.h c_io.h x86arch.h
+ulibs.o: syscall.h headers.h ../include/x86arch.h
+c_io.o: c_io.h startup.h support.h ../include/x86arch.h
+support.o: startup.h support.h c_io.h ../include/x86arch.h
 support.o: bootstrap.h
-kalloc.o: headers.h kalloc.h x86arch.h
+kalloc.o: headers.h kalloc.h ../include/x86arch.h
 clock.o: headers.h clock.h process.h queue.h stack.h scheduler.h sio.h
-clock.o: startup.h x86arch.h
+clock.o: startup.h ../include/x86arch.h
 klibc.o: headers.h
 queue.o: headers.h queue.h process.h clock.h stack.h
 process.o: headers.h process.h clock.h queue.h stack.h
 scheduler.o: headers.h scheduler.h process.h clock.h queue.h stack.h
 sio.o: headers.h sio.h queue.h process.h clock.h stack.h scheduler.h
-sio.o: startup.h uart.h x86arch.h
+sio.o: startup.h uart.h ../include/x86arch.h
 stack.o: headers.h stack.h queue.h
-syscall.o: headers.h syscall.h x86arch.h process.h
+syscall.o: headers.h syscall.h ../include/x86arch.h process.h
 syscall.o: clock.h queue.h stack.h scheduler.h sio.h system.h 
 syscall.o: startup.h ulib.h
 system.o: headers.h system.h process.h clock.h queue.h stack.h
-system.o: bootstrap.h syscall.h x86arch.h sio.h
+system.o: bootstrap.h syscall.h ../include/x86arch.h sio.h
 system.o: scheduler.h user.h ulib.h
 ulibc.o: headers.h
 user.o: headers.h user.h

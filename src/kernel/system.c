@@ -22,7 +22,7 @@
 #include "sio.h"
 #include "scheduler.h"
 #include "screen.h"
-#include "mouse.h"
+#include "../drivers/mouse/mouse.h"
 
 // need init() address
 #include "user.h"

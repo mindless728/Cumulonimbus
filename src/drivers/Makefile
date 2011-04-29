@@ -1,18 +1,21 @@
-SUB_DIRS = ide pci
-DRIVER_OBJS = ide/ide.o pci/pci.o
+SUB_DIRS = ide pci mouse
+DRIVER_OBJS = ide/ide.o pci/pci.o mouse/mouse.o
 
-all: drivers.a
+all: drivers.a drivers.nl
 
 
 drivers.a:
 	for d in $(SUB_DIRS); do \
 	echo "make in $$d with flags [$(MAKEFLAGS)]..."; \
 	($(MAKE) -C $$d); done
-	ar q $@ ${DRIVER_OBJS} 
+	ar rcs $@ ${DRIVER_OBJS} 
 
+drivers.nl:
+	nm -Bng drivers.a > drivers.nl
 
 clean:
 	@rm -f *.o
 	@rm -f *.a
+	@rm -f *.nl
 	@for d in $(SUB_DIRS); do ($(ECHO) Cleaning $$d; cd $$d; $(MAKE) $(MFLAGS) clean); done
 

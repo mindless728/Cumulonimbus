@@ -15,7 +15,7 @@
 #include "startup.h"
 #include "support.h"
 #include "c_io.h"
-#include "x86arch.h"
+#include <x86arch.h>
 #include "bootstrap.h"
 
 /*

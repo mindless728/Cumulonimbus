@@ -1,4 +1,4 @@
-#include "x86arch.h"
+#include <x86arch.h>
 #include "gs_io.h"
 #include "vbe_info.h"
 #include "headers.h"

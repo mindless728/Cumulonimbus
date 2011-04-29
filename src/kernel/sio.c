@@ -63,7 +63,7 @@
 
 #include "startup.h"
 #include "uart.h"
-#include "x86arch.h"
+#include <x86arch.h>
 
 /*
 ** PRIVATE DEFINITIONS

@@ -21,7 +21,7 @@
 #include "sio.h"
 #include "startup.h"
 
-#include "x86arch.h"
+#include <x86arch.h>
 
 /*
 ** PRIVATE GLOBAL VARIABLES

@@ -1,7 +1,7 @@
 #include <types.h>
+#include <x86arch.h>
 #include "support.h"
 #include "kalloc.h"
-#include "x86arch.h"
 #include "irqs.h"
 
 //! Indicates if we are currently executing ISRs

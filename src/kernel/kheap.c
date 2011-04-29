@@ -16,7 +16,7 @@
 #include "headers.h"
 
 #include "kalloc.h"
-#include "x86arch.h"
+#include <x86arch.h>
 
 /*
 ** PRIVATE DEFINITIONS
