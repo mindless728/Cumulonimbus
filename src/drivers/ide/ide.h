@@ -3,7 +3,7 @@
 
 
 #include <types.h>
-#include "../pci/pci.h"
+#include <drivers/pci/pci.h>
 
 #include "ide_defines.h"
 
@@ -71,7 +71,7 @@ extern ide_controller_t ide_controllers[ATA_MAX_IDE_CONTROLLERS];
 extern ide_channel_t ide_channels[ATA_MAX_IDE_CHANNELS];
 extern ide_device_t ide_devices[ATA_MAX_IDE_DEVICES];
 
-status_t ide_init(pci_device_list_t * list); //initializes the ide driver
+status_t _ide_init(); //initializes the ide driver
 status_t ide_register_read(ide_device_t * device, unsigned char reg, unsigned char * ret); //reads an ide register
 status_t ide_register_write(ide_device_t * device, unsigned char reg, unsigned char out); //writes an ide register
 status_t ide_read_ident_space(ide_device_t * device, uint8_t * buf);

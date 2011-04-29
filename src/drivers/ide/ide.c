@@ -19,7 +19,8 @@ void set_base_control_register(pci_device_t * device, uint8_t channel, uint16_t 
 void set_bus_master_base(pci_device_t * device, uint16_t base_port);
 status_t ide_polling(ide_device_t * device, uint32_t advanced_check);
 
-status_t ide_init(pci_device_list_t * list) {
+status_t _ide_init() {
+	pci_device_list_t * list = &_pci_devices;
 	//@TODO panic here!!!!!
 	if(!list)
 		return E_SUCCESS;

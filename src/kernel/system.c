@@ -33,6 +33,10 @@
 //Include driver implementations
 #include <drivers/pci/pci.h>
 
+//include ide and fat64
+#include <drivers/ide/ide.h>
+#include <drivers/fat64/fat64.h>
+
 /*
 ** PUBLIC FUNCTIONS
 */
@@ -317,6 +321,10 @@ void _init( void ) {
 	//Initialize PCI subsystem
 	_pci_init();
 
+	//initialize IDE subsystem
+	_ide_init();
+	//initialize FAT64 subsystem
+	_fat64_init();
 
 	/*
 	** Create the initial system ESP

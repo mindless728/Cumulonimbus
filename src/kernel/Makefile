@@ -11,7 +11,7 @@
 #
 U_USER_C_SRC = deadspace.o fpu.c gs_io.c gs_font.c vesa_framebuffer.c vbe_info.c screen.c vesa_demo.c screen_users.c atomic.c mutex.c
 U_C_SRC = kalloc.c irqs.c clock.c klibc.c queue.c process.c scheduler.c sio.c \
-	  stack.c syscall.c system.c ulibc.c user.c utils.c
+	  stack.c syscall.c system.c ulibc.c user.c utils.c ioports.c
 
 U_USER_C_OBJ = ${U_USER_C_SRC:%.c=%.o}
 U_C_OBJ = ${U_C_SRC:%.c=%.o}
