@@ -20,7 +20,7 @@
 */
 
 // null pointer
-
+/*
 #define	NULL		0
 
 // status values
@@ -32,6 +32,8 @@
 #define	E_NOT_FOUND	(-4)
 #define	E_UNIMPLEMENTED	(-5)
 
+*/
+
 #define N_STATUS	6
 
 // maximum number of simultaneous user processes
@@ -41,8 +43,8 @@
 
 // Boolean constants
 
-#define	FALSE		0
-#define	TRUE		1
+//#define	FALSE		0
+//#define	TRUE		1
 
 #ifndef __ASM__20103__
 
