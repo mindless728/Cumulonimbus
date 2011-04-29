@@ -63,8 +63,8 @@ typedef int32_t screen_descriptor_t;
 typedef int32_t	handle_t;
 
 #define NULL	(0x0)
-#define TRUE	0
-#define FALSE	1
+#define TRUE	1
+#define FALSE	0
 
 
 #endif
