@@ -2,7 +2,7 @@
 #define IDE_H
 
 //@TODO change these
-#include "../../include/types.h"
+#include <types.h>
 #include "../pci/pci.h"
 
 #include "ide_defines.h"

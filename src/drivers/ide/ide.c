@@ -1,7 +1,5 @@
 #include "ide.h"
-#include "../../kernel/c_io.h"
-#include "../../kernel/startup.h"
-#include "../../kernel/ioports.h"
+#include <kernel/includes.h>
 
 unsigned int ide_num_devices;
 unsigned int ide_num_channels;

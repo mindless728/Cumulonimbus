@@ -1,0 +1,136 @@
+#ifndef DRIVERS_PCI_DEFINES_H
+#define DRIVERS_PCI_DEFINES_H
+
+
+#define PCI_VENDOR_ID_INTEL		0x8086
+#define PCI_VENDOR_ID_BROADCOM		0x14e4
+
+
+#define PCI_MAX_BUS_COUNT	0x100
+#define PCI_MAX_SLOT_COUNT	0x20
+#define PCI_MAX_FUNC_COUNT	0x08
+
+#define PCI_REG_ADDR(x)		(x >> 2)
+#define PCI_REG_OFFSET(x)	(x & 0x02)
+
+#define PCI_CONFIG_ADDRESS	0xCF8
+#define PCI_CONFIG_DATA		0xCFC
+
+#define PCI_TYPE0_MAX_OFFSET	0x3c
+#define PCI_TYPE1_MAX_OFFSET 	0x3c
+#define PCI_TYPE2_MAX_OFFSET	0x44
+
+#define PCI_HEADER_1_BAR_START	4
+
+#define PCI_HEADER_1_BAR_COUNT	6
+
+#define PCI_BAR_INFO_MASK	0x0000000f
+#define PCI_BAR_ADDR_MASK	0xfffffff0
+#define PCI_BAR_IOSPACE_MASK	0xFFFFFFFC
+
+
+
+//Register definitions
+
+//The following are all 16 bit registers
+#define PCI_VENDOR_ID_REG		PCI_REG_ADDR(0x00)
+#define PCI_DEVICE_ID_REG		PCI_REG_ADDR(0x02)
+
+#define PCI_VENDOR_ID_REG_OFFSET	PCI_REG_OFFSET(0x00)
+#define PCI_DEVICE_ID_REG_OFFSET	PCI_REG_OFFSET(0x02)
+
+
+#define PCI_COMMAND_REG			PCI_REG_ADDR(0x04)
+#define PCI_STATUS_REG			PCI_REG_ADDR(0x06)
+
+#define PCI_COMMAND_REG_OFFSET		PCI_REG_OFFSET(0x04)
+#define PCI_STATUS_REG_OFFSET		PCI_REG_OFFSET(0x06)
+
+
+//The following are all 8 bit registers
+#define PCI_CLASS_CODE_REG		PCI_REG_ADDR(0x0b)
+#define PCI_SUBCLASS_REG		PCI_REG_ADDR(0x0a)
+#define PCI_PROG_IF_REG			PCI_REG_ADDR(0x09)
+#define PCI_REV_ID_REG			PCI_REG_ADDR(0x08)
+
+#define PCI_CLASS_CODE_REG_OFFSET	PCI_REG_OFFSET(0x0b)
+#define PCI_SUBCLASS_REG_OFFSET		PCI_REG_OFFSET(0x0a)
+#define PCI_PROG_IF_REG_OFFSET		PCI_REG_OFFSET(0x09)
+#define PCI_REV_ID_REG_OFFSET		PCI_REG_OFFSET(0x08)
+
+
+#define PCI_BIST_REG			PCI_REG_ADDR(0x0f)
+#define PCI_HEADER_TYPE_REG		PCI_REG_ADDR(0x0e)
+#define PCI_LATENCY_TIMER_REG		PCI_REG_ADDR(0x0d)
+#define PCI_CACHE_LINE_SIZE_REG		PCI_REG_ADDR(0x0c)
+
+#define PCI_BIST_REG_OFFSET		PCI_REG_OFFSET(0x0f)
+#define PCI_HEADER_TYPE_REG_OFFSET	PCI_REG_OFFSET(0x0e)
+#define PCI_LATENCY_TIMER_REG_OFFSET	PCI_REG_OFFSET(0x0d)
+#define PCI_CACHE_LINE_SIZE_REG_OFFSET	PCI_REG_OFFSET(0x0c)
+
+
+#define PCI_INT_PIN_REG			PCI_REG_ADDR(0x3d)
+#define PCI_INT_LINE_REG		PCI_REG_ADDR(0x3c)
+
+#define PCI_INT_PIN_REG_OFFSET		PCI_REG_OFFSET(0x3d)
+#define PCI_INT_LINE_REG_OFFSET		PCI_REG_OFFSET(0x3c)
+
+/*
+ *	Register bit masks and useful values
+ */
+
+//Command register bit masks
+//Bits 11 through 15 are reserved
+#define PCI_CMD_INTERRUPT_DISABLE		(1<<10)
+#define PCI_CMD_FAST_BACK_TO_BACK_EN		(1<<9)
+#define PCI_CMD_SERR_EN				(1<<8)
+//Reserved bit 7
+#define PCI_CMD_PARITY_ERROR_EN			(1<<6)
+#define PCI_CMD_VGA_PALETTE_SNOOP		(1<<5)
+#define PCI_CMD_MWI_EN				(1<<4)
+#define PCI_CMD_SPECIAL_CYCLES			(1<<3)
+#define PCI_CMD_BUS_MASTER			(1<<2)
+#define PCI_CMD_MEMORY_SPACE			(1<<1)
+#define PCI_CMD_IO_SPACE			(0x01)
+
+
+//Status register bit masks
+#define PCI_STATUS_PARITY_ERROR			(1<<15)
+#define PCI_STATUS_SIGNALED_SYS_ERROR		(1<<14)
+#define PCI_STATUS_RX_MASTER_ABORT		(1<<13)
+#define PCI_STATUS_RX_TARGET_ABORT		(1<<12)
+#define PCI_STATUS_SIGNALED_TARGET_ABORT	(1<<11)
+#define PCI_STATUS_DEVSEL_TIMING		((1<<10) | (1<<9))
+#define PCI_STATUS_MASTER_DATA_PARITY_ERROR	(1<<8)
+#define PCI_STATUS_FAST_BACK_TO_BACK_CAPABLE	(1<<7)
+//Bit six is reserved
+#define PCI_STATUS_66MHZ_CAPABLE		(1<<5)
+#define PCI_STATUS_CAPABILITIES_LIST		(1<<4)
+#define PCI_STATUS_INTERRUPT_STATUS		(1<<3)
+//Bits 0 through 2 are reserved
+
+
+//Header type bit Masks
+#define PCI_HDR_TYPE_MULTI_FUNC_MASK		0x80
+#define PCI_HDR_TYPE_MASK			0x7f
+//Header Type Values
+#define PCI_HDR_TYPE_STD			0x00
+#define PCI_HDR_TYPE_PCI_BRIDGE			0x01
+#define PCI_HDR_TYPE_CARD_BRIDGE		0x02
+
+//BIST bit masks
+#define PCI_BIST_CAPABLE_MASK			(1<<7)
+#define PCI_BIST_START_MASK			(1<<6)
+//Bits 4 and 5 are reserved
+#define PCI_BIST_COMPLETE_CODE_MASK		(0x0f)
+
+
+#define PCI_IS_IOBARR(x) 	(x&0x1)
+#define PCI_GET_BAR_TYPE(x)	((x>>1)&0x3)
+
+#define PCI_32b_WIDE_BAR	0x00
+#define PCI_16b_WIDE_BAR	0x01
+#define PCI_64b_WIDE_BAR	0x02
+
+#endif	//DRIVERS_PCI_DEFINES_H
