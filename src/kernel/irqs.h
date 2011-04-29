@@ -1,7 +1,7 @@
 #ifndef DRIVERS_INTERRUPTS_H
 #define DRIVERS_INTERRUPTS_H
 
-#include <cumulonimbus/types.h>
+#include <types.h>
 
 #define INT_VECTOR_COUNT 256
 #define MAX_IRQ_FIND_TRIES 3
