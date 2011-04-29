@@ -1,6 +1,6 @@
 #include "c_io.h"
 #include "pci.h"
-#include "net.h"
+//#include "net.h"
 #include "kalloc.h"
 #include "types.h"
 #include "utils.h"

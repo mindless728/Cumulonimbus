@@ -18,7 +18,7 @@
 // only pull these in if we're not in assembly language
 
 #include "defs.h"
-#include "types.h"
+#include <types.h>
 
 #include "c_io.h"
 #include "support.h"

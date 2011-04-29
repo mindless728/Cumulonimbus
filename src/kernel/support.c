@@ -246,3 +246,12 @@ void __delay( int tenths ){
 			;
 	}
 }
+
+
+void __delay_ms(int milli){
+	int	i;
+
+	while( --milli >= 0 ){
+		for( i = 0; i < 48000; i += 1 );
+	}
+}

@@ -379,7 +379,7 @@ static void _sys_reads( context_t *context ) {
 	buffer = (char *) ARG(context,1);
 	length = ARG(context,2);
 
-	context->eax = E_UNIMPLEMENTED;
+	context->eax = E_NOT_IMPLEMENTED;
 
 }
 
@@ -396,7 +396,7 @@ static void _sys_writes( context_t *context ) {
 	buffer = (char *) ARG(context,1);
 	length = ARG(context,2);
 
-	context->eax = E_UNIMPLEMENTED;
+	context->eax = E_NOT_IMPLEMENTED;
 }
 
 /*
