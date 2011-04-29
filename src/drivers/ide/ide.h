@@ -1,7 +1,6 @@
 #ifndef IDE_H
 #define IDE_H
 
-//@TODO change these
 #include "../../include/types.h"
 #include "../pci/pci.h"
 

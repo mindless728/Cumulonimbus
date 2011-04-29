@@ -48,14 +48,31 @@ struct _VFS_functions_t {
 	finddir_t finddir;
 };
 
+struct _VFS_superblock_t {
+	ide_device_t * device;
+	VFS_node_t * root;
+	uint32_t block_size;
+	VFS_functions_t * functions;
+	uint32_t filesystem_type;
+	void * filesystem_data;
+};
+
 struct _VFS_node_t {
-	char file_name[256];
+	ide_device_t * device;
 	uint64_t inode;
-	uint64_t length;
 	uint32_t flags;
+	uint64_t date_created;
+	uint64_t date_modified;
+	uint64_t date_accessed;
+
+	char file_name[256];
+	
+	uint64_t length;
+	
+	
 	VFS_node_t * link;
 	VFS_functions_t * functions;
-	ide_device_t * device;
+	
 };
 
 #endif
