@@ -27,10 +27,13 @@ SUB_DIRS=drivers services userland kernel
 all: BuildImage.o
 	@for d in $(SUB_DIRS); do \
 	echo "make all in $$d..."; \
-	($(MAKE) $(MAKEFLAGS) -C $$d); done
+	($(MAKE) $(MAKEFLAGS) -C $$d) || exit 1; done
 
 BuildImage.o: BuildImage.c
 	gcc -o BuildImage.o BuildImage.c
+
+qemu: all
+	(cd kernel; $(MAKE) qemu)
 
 clean:
 	@rm -f *.o
