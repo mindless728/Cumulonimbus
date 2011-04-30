@@ -36,6 +36,8 @@ status_t _ide_init() {
 				  			channel_added = 0,
 				  			register_read = 1,
 				  			ide_type = 0;
+
+	//__asm__("cli");
 	
 	while(device) {
 		//@TODO break up into separate init functions
@@ -175,6 +177,9 @@ status_t _ide_init() {
 		//debug output @TODO remove
 		//c_printf("\n");
 	}
+	//c_printf("before\n");
+	//__asm__("sti");
+	//c_printf("after\n");
 	
 	return E_SUCCESS;
 }

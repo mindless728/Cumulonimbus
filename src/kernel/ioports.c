@@ -3,7 +3,7 @@
 uint16_t current_port;
 const uint16_t last_port = 0xF000;
 
-void ioports_init() {
+void _ioports_init() {
 	current_port = 0x1000;
 }
 

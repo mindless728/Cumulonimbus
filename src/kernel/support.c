@@ -59,8 +59,14 @@ typedef struct	{
 **		to ever occur.  It handles them by calling panic.
 */
 static void __default_unexpected_handler( int vector, int code ){
-	c_printf( "\nVector=0x%02x, code=%d\n", vector, code );
-	__panic( "Unexpected interrupt" );
+	//c_printf( "\nVector=0x%02x, code=%d\n", vector, code );
+	//__panic( "Unexpected interrupt" );
+	if( vector >= 0x20 && vector < 0x30 ){
+		__outb( PIC_MASTER_CMD_PORT, PIC_EOI );
+		if( vector > 0x28 ){
+			__outb( PIC_SLAVE_CMD_PORT, PIC_EOI );
+		}
+	}
 }
 
 /*

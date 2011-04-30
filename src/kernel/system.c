@@ -22,6 +22,7 @@
 #include "sio.h"
 #include "scheduler.h"
 #include "screen.h"
+#include "ioports.h"
 #include "../drivers/mouse/mouse.h"
 
 // need init() address
@@ -321,6 +322,8 @@ void _init( void ) {
 	//Initialize PCI subsystem
 	_pci_init();
 
+	//initialize ioports allocation
+	_ioports_init();
 	//initialize IDE subsystem
 	_ide_init();
 	//initialize FAT64 subsystem
