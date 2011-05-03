@@ -5,6 +5,7 @@
 #include <kernel/kalloc.h>
 #include <kernel/utils.h>
 
+pci_device_list_t _pci_devices;
 
 status_t _pci_alloc_device(pci_device_t** dev){
 	*dev = (pci_device_t*) kalloc(sizeof(pci_device_t));
@@ -24,6 +25,19 @@ status_t _pci_alloc_device_list(pci_device_list_t** list){
 	memset(*list, 0x00, sizeof(pci_device_list_t));
 
 	return E_SUCCESS;
+}
+
+status_t _pci_init(void){
+        status_t status = _pci_scan(&_pci_devices);
+
+        if(status != E_SUCCESS){
+                c_printf("PCI bus scan failed with error 0x%x\n", status);
+                return status;
+        }
+
+        c_printf("Detected %d PCI devices\n", _pci_devices.size);
+
+	return status;
 }
 
 status_t _pci_scan(pci_device_list_t* list){

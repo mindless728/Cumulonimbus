@@ -30,6 +30,9 @@
 // need the exit() prototype
 #include "ulib.h"
 
+//Include driver implementations
+#include <drivers/pci/pci.h>
+
 /*
 ** PUBLIC FUNCTIONS
 */
@@ -282,6 +285,7 @@ void _init( void ) {
     // intialize the mouse
     _mouse_init();
 
+
 	/*
 	** 20103-SPECIFIC CODE STARTS HERE
 	*/
@@ -309,6 +313,10 @@ void _init( void ) {
 	_sched_init();
     //c_puts("Initializng clock...\n");
 	_clock_init();
+
+	//Initialize PCI subsystem
+	_pci_init();
+
 
 	/*
 	** Create the initial system ESP

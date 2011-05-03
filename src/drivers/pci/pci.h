@@ -15,6 +15,7 @@
 
 
 
+
 typedef struct pci_addr{
 	uint8_t bus;		//8 bits
 	uint8_t slot;		//5 bits
@@ -82,6 +83,14 @@ typedef struct pci_device_list{
 } pci_device_list_t;
 
 
+extern pci_device_list_t _pci_devices;
+
+
+/**
+ *	Initialize pci subsystem
+ */
+
+status_t _pci_init(void);
 
 status_t _pci_alloc_device(pci_device_t** dev);
 

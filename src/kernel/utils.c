@@ -4,31 +4,6 @@
 #include <x86arch.h>
 
 /**
-*	@return	Absolute value of num
-*/
-int abs(int num){
-	if(num < 0){
-		num *= -1;
-	}
-	return num;
-}
-
-/**
-*
-*	@param	x	Values to raise to y
-*	@param	y	Power to raise x
-*
-*	@return	Returns x raised to the power of y
-*/
-int pow(int x, int y){
-	if(y==0){
-		return 1;
-	}
-
-	return x*pow(x, --y);
-}
-
-/**
 *	Counts the number of characters in the null-terminated string
 *
 *	@param	str	String to count characters in
