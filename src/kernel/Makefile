@@ -56,7 +56,7 @@ CPP = cpp ${BUILD_TYPE}
 
 # WARNING: -fno-stack-protector should (probably) be removed if compiled on the Solaris machines
 CC = gcc ${BUILD_TYPE}
-CFLAGS = -fno-builtin -fno-stack-protector -march=i686 -m32 -Wall -Wstrict-prototypes $(CPPFLAGS)
+CFLAGS = -I../include -fno-builtin -fno-stack-protector -march=i686 -m32 -Wall -Wstrict-prototypes $(CPPFLAGS)
 
 AS = gas
 ASFLAGS = --32

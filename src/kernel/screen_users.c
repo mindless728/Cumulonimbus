@@ -127,9 +127,10 @@ static void screen_user_d(void) {
 void user_vesa_demo( void ) {
     c_getchar();
     handle_t s = openscreen();
-    handle_t sold = setscreen(s);
+    handle_t sold = getscreen();
     c_printf( "VESA DEMO handle: %d, formerly: %d\n", s, sold );
     c_getchar();
+    setscreen(s);
     switchscreen(s);
     print_hue_test();
     c_getchar();

@@ -72,6 +72,7 @@
 // user X:  write, getpid, exit
 // user Y:  write, sleep, exit
 // user Z:  write, exit
+#define SPAWN_C_INPUT_TEST
 
 
 /*

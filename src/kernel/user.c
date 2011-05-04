@@ -63,7 +63,7 @@ void user_m( void ); void user_n( void ); void user_o( void );
 void user_p( void ); void user_q( void ); void user_r( void );
 void user_s( void ); void user_t( void ); void user_u( void );
 void user_v( void ); void user_w( void ); void user_x( void );
-void user_y( void ); void user_z( void ); void user_vesa_demo( void );
+void user_y( void ); void user_z( void ); void user_c_input_test( void );
 void user_draw_console( void );
 
 /*
@@ -660,6 +660,13 @@ void user_z( void ) {
 
 }
 
+void user_c_input_test( void ) {
+    while( 1 ) {
+        c_printf( "Input Tester: %c\n", c_getchar() );
+        sleep(10);
+    }
+}
+
 void user_draw_console( void ) {
     while( 1 ) {
         gs_draw_console();
@@ -928,6 +935,18 @@ void init( void ) {
 		exit( X_FAILURE );
 	}
 #endif
+
+#ifdef SPAWN_C_INPUT_TEST
+	pid = fork();
+	if( pid < 0 ) {
+		c_puts( "init: can't fork() user CIT\n" );
+	} else if( pid == 0 ) {
+		exec( PRIO_STANDARD, user_c_input_test );
+		c_puts( "init: can't exec user CIT\n" );
+		exit( X_FAILURE );
+	}
+#endif
+
 #ifndef NO_VESA
     pid = fork();
     if( pid < 0 ) {

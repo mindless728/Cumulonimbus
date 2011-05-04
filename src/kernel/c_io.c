@@ -19,6 +19,7 @@
 #include "startup.h"
 #include "support.h"
 #include <x86arch.h>
+#include "screen.h"
 
 /*
 ** Video parameters, and state variables
@@ -559,14 +560,14 @@ unsigned char scan_code[ 2 ][ 128 ] = {
 ** __c_next_space, and are removed at __c_next_char.  Buffer is empty if
 ** these are equal.
 */
-static	char	__c_input_buffer[ C_BUFSIZE ];
-static	volatile char	*__c_next_char = __c_input_buffer;
-static	volatile char	*__c_next_space = __c_input_buffer;
+//static	char	__c_input_buffer[ C_BUFSIZE ];
+//static	volatile char	*__c_next_char = __c_input_buffer;
+//static	volatile char	*__c_next_space = __c_input_buffer;
 
-static	volatile char *__c_increment( volatile char *pointer ){
-	if( ++pointer >= __c_input_buffer + C_BUFSIZE ){
-		pointer = __c_input_buffer;
-	}
+static	volatile char *__c_increment( volatile screen_input_buffer_t* buf, volatile char *pointer ){
+    if( ++pointer >= buf->input_buffer + C_BUFSIZE ) {
+        pointer = buf->input_buffer;
+    }
 	return pointer;
 }
 
@@ -606,14 +607,15 @@ static void __c_input_scan_code( int code ){
 		if( ( code & 0x80 ) == 0 ){
 			code = scan_code[ shift ][ (int)code ];
 			if( code != '\377' ){
-				volatile char	*next = __c_increment( __c_next_space );
+                screen_input_buffer_t* buf = &_screens[active_screen].buf;
+				volatile char	*next = __c_increment( buf, buf->next_space );
 
 				/*
 				** Store character only if there's room
 				*/
-				if( next != __c_next_char ){
-					*__c_next_space = code & ctrl_mask;
-					__c_next_space = next;
+				if( next != buf->next_char ) {
+					*(buf->next_space) = code & ctrl_mask;
+					buf->next_space = next;
 				}
 			}
 		}
@@ -627,22 +629,12 @@ static void __c_keyboard_isr( int vector, int code ){
 
 int c_getchar( void ){
 	char	c;
-	int	interrupts_enabled = __get_flags() & EFLAGS_IF;
+    screen_input_buffer_t* buf = &(_screens[_current->screen].buf);
+    while( buf->next_char == buf->next_space ) {
+    }
+	c = *buf->next_char & 0xff;
+	buf->next_char = __c_increment( buf, buf->next_char );
 
-	while( __c_next_char == __c_next_space ){
-		if( !interrupts_enabled ){
-			/*
-			** Must read the next keystroke ourselves.
-			*/
-			while( ( __inb( KEYBOARD_STATUS ) & READY ) == 0 ){
-				sleep(10);
-			}
-			__c_input_scan_code( __inb( KEYBOARD_DATA ) );
-		}
-	}
-
-	c = *__c_next_char & 0xff;
-	__c_next_char = __c_increment( __c_next_char );
 	if( c != EOT ){
 		c_putchar( c );
 	}
@@ -670,7 +662,8 @@ int c_gets( char *buffer, unsigned int size ){
 }
 
 int c_input_queue( void ){
-	int	n_chars = __c_next_space - __c_next_char;
+    screen_input_buffer_t* buf = &_screens[_current->screen].buf;
+	int	n_chars = buf->next_space - buf->next_char;
 
 	if( n_chars < 0 ){
 		n_chars += C_BUFSIZE;

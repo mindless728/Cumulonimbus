@@ -9,6 +9,7 @@
 #include "gs_io.h"
 #include "headers.h"
 #define NUM_SCREENS 32
+#define BUFSIZE 200
 
 // the currently active screen (needed to know when to draw to video memory or
 // normal memory
@@ -31,14 +32,18 @@ typedef struct _screen_queue_t {
     uint_t length;
 } screen_queue_t;
 
+typedef struct _screen_input_buffer_t {
+    int8_t input_buffer[BUFSIZE]; // a circular buffer used for storing input
+    volatile int8_t* next_char;     //start of the circular buffer
+    volatile int8_t* next_space;    //end of the circular buffer
+} screen_input_buffer_t;
+
 // the screen data structure itself
 typedef struct _screen_t {
     gs_framebuffer_t fb;
     gs_draw_mode_t draw_mode;
     pid_t owner;
-    uint8_t in_buffer[512];// a circular buffer used for storing input
-    uint32_t buffer_start; //start of the circular buffer
-    uint32_t buffer_end;   //end of the circular buffer
+    screen_input_buffer_t buf;
 } screen_t;
 
 extern screen_t _screens[NUM_SCREENS];
