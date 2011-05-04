@@ -1,6 +1,12 @@
-int * phys_mem_table = 0; //TODO change this to right after the first gig of mem
 
-void init_phys_alloc(int * start) {
+
+void init_phys_alloc(void) {
+
+	//TODO find out if we want to start at the end of the first or 2nd gig
+
+	//TODO find out where this shit starts
+	phys_mem_table = (int *)1073741824;  //This should be the start of the 2nd gig in ram
+
 
 	int page;
 	int page_entry; //Page enties are 32 bit
@@ -8,10 +14,11 @@ void init_phys_alloc(int * start) {
 	//It takes 24576 pages to store the physcial memmory allocator
 	//Zero out the next 24576 pages
 	//pages have 4096 bytes or 1024 32 bit entries
+	// 
 
 	for(page = 0; page < 24576; page++) {
 
-		start[page] = 0;
+		phys_mem_table[page] = 0;
 	}
 
 	// since the physcial memmory allocater itself takes up 24576 pages,
@@ -20,7 +27,7 @@ void init_phys_alloc(int * start) {
 	int x;
 
 	for(x = 0; x < (24576 / 32); x++) {
-		start[x] = 0xFFFFFFFF;
+		phys_mem_table[x] = 0xFFFFFFFF;
 	}
 
 	return;	
