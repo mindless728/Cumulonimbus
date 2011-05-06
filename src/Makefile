@@ -18,6 +18,13 @@ else
 	BUILD_FLAGS=
 endif
 
+ifeq (no_vesa, $(findstring no_vesa, $(MAKECMDGOALS)))
+	BUILD_TYPE += -D NO_VESA
+	BUILD_STRING += no_vesa
+endif
+
+BUILD_FLAGS+= -DBUILD_STRING="\"${BUILD_STRING}\""	
+
 export BUILD_TYPE BUILD_STRING BUILD_FLAGS
 
 include Makefile.inc
@@ -31,6 +38,18 @@ all: BuildImage.o
 
 BuildImage.o: BuildImage.c
 	gcc -o BuildImage.o BuildImage.c
+
+release: all
+	echo ${BUILD_STRING}
+
+test: all
+	echo ${BUILD_STRING}
+
+debug: all
+	echo ${BUILD_STRING}
+
+no_vesa:
+	echo ${BUILD_STRING}
 
 qemu: all
 	(cd kernel; $(MAKE) qemu)
