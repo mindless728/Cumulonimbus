@@ -6,12 +6,13 @@
 
 #include "fat64_defines.h"
 
+typedef struct _fat64_partition_t fat64_partition_t;
 typedef struct _fat64_cluster_tags_t fat64_cluster_tags_t;
 typedef struct _fat64_dir_entry_t fat64_dir_entry_t;
 typedef struct _fat64_file_t fat64_file_t;
 typedef struct _fat64_file_t FILE;
 
-struct fat64_partition {
+struct _fat64_partition_t {
 	uint64_t root_dir; //location of the root directory
 	uint64_t cluster_tags; //location of the cluster tag table
 	uint64_t size; //size of the partition in clusters
@@ -49,25 +50,26 @@ struct _fat64_file_t {
 
 //generic functions
 status_t _fat64_init(void);
-status_t open(handle_t * file, char * path);
-status_t close(handle_t file);
-status_t is_directory(handle_t file);
+status_t _fat64_mkfs(uint64_t size);
+status_t _fat64_open(handle_t * file, char * path);
+status_t _fat64_close(handle_t file);
+status_t _fat64_is_directory(handle_t file);
 
 //file functions
-status_t rm(handle_t file);
-status_t mv(handle_t file, handle_t dir);
-status_t getc(handle_t file, uint8_t * data);
-status_t putc(handle_t file, uint8_t data);
-status_t read(handle_t file, uint64_t amount, uint8_t * buf);
-status_t write(handle_t file, uint64_t amount, uint8_t * buf);
-status_t seek(handle_t file, int64_t offset, uint8_t type);
-status_t tell(handle_t file, uint64_t * offset);
-status_t flush(handle_t file);
+status_t _fat64_rm(handle_t file);
+status_t _fat64_mv(handle_t file, handle_t dir);
+status_t _fat64_getc(handle_t file, uint8_t * data);
+status_t _fat64_putc(handle_t file, uint8_t data);
+status_t _fat64_read(handle_t file, uint64_t amount, uint8_t * buf);
+status_t _fat64_write(handle_t file, uint64_t amount, uint8_t * buf);
+status_t _fat64_seek(handle_t file, int64_t offset, uint8_t type);
+status_t _fat64_tell(handle_t file, uint64_t * offset);
+status_t _fat64_flush(handle_t file);
 
 //directory functions
-status_t dir_entry(handle_t dir, uint64_t index, handle_t * file);
-status_t mkdir(handle_t dir, char * name);
-status_t touch(handle_t dir, char * name);
-status_t rmdir(handle_t dir);
+status_t _fat64_dir_entry(handle_t dir, uint64_t index, handle_t * file);
+status_t _fat64_mkdir(handle_t dir, char * name);
+status_t _fat64_touch(handle_t dir, char * name);
+status_t _fat64_rmdir(handle_t dir);
 
 #endif
