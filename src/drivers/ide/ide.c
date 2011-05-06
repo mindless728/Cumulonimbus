@@ -19,7 +19,8 @@ void set_base_control_register(pci_device_t * device, uint8_t channel, uint16_t 
 void set_bus_master_base(pci_device_t * device, uint16_t base_port);
 status_t ide_polling(ide_device_t * device, uint32_t advanced_check);
 
-status_t ide_init(pci_device_list_t * list) {
+status_t _ide_init() {
+	pci_device_list_t * list = &_pci_devices;
 	//@TODO panic here!!!!!
 	if(!list)
 		return E_SUCCESS;
@@ -35,6 +36,8 @@ status_t ide_init(pci_device_list_t * list) {
 				  			channel_added = 0,
 				  			register_read = 1,
 				  			ide_type = 0;
+
+	//__asm__("cli");
 	
 	while(device) {
 		//@TODO break up into separate init functions
@@ -174,6 +177,9 @@ status_t ide_init(pci_device_list_t * list) {
 		//debug output @TODO remove
 		//c_printf("\n");
 	}
+	//c_printf("before\n");
+	//__asm__("sti");
+	//c_printf("after\n");
 	
 	return E_SUCCESS;
 }
