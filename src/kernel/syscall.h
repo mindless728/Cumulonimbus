@@ -14,6 +14,8 @@
 #define _SYSCALLS_H
 
 #include "headers.h"
+#include <types.h>
+#include <status.h>
 
 /*
 ** General (C and/or assembly) definitions
@@ -49,7 +51,7 @@
 
 // number of "real" system calls
 
-#define	N_SYSCALLS	21
+#define	N_SYSCALLS	256
 
 // dummy system call code to test the syscall ISR
 
@@ -64,6 +66,10 @@
 #define	DEFAULT_EFLAGS	(EFLAGS_MB1 | EFLAGS_IF)
 
 #ifndef __ASM__20103__
+
+// system call prototype
+
+typedef void(*syscall_t)(context_t *);
 
 /*
 ** Start of C-only definitions
@@ -91,7 +97,11 @@ void _isr_syscall( int vector, int code );
 ** initializes all syscall-related data structures
 */
 
-void _syscall_init( void );
+status_t _syscall_init( void );
+
+status_t _syscall_install(syscall_t func, uint8_t num);
+
+status_t _syscall_clear(uint8_t num);
 
 #endif
 

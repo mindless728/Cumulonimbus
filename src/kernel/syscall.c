@@ -27,6 +27,9 @@
 
 #include "x86arch.h"
 
+#include <types.h>
+#include <status.h>
+
 /*
 ** PRIVATE DEFINITIONS
 */
@@ -37,7 +40,7 @@
 
 // system call prototype 
 
-typedef void(*syscall_t)(context_t *);
+//typedef void(*syscall_t)(context_t *);
 
 /*
 ** PRIVATE GLOBAL VARIABLES
@@ -67,8 +70,11 @@ static syscall_t _syscalls[N_SYSCALLS];
 
 static void _sys_getpid( context_t *context ) {
 
-	context->eax = _current->pid;
+	//context->eax = _current->pid;
 
+	pid_t* pid_ptr = (pid_t*) ARG(context, 1);
+	//TODO: Make sure pid_ptr is within a valid page owned by _current
+	memcpy(pid_ptr, &_current->pid, sizeof(pid_t));
 }
 
 /*
@@ -79,8 +85,11 @@ static void _sys_getpid( context_t *context ) {
 
 static void _sys_getppid( context_t *context ) {
 
-	context->eax = _current->ppid;
+	//context->eax = _current->ppid;
 
+	pid_t* pid_ptr = (pid_t*) ARG(context, 1);
+	//TODO: Make sure pid_ptr is within a valid page owned by _current
+	memcpy(pid_ptr, &_current->ppid, sizeof(pid_t));
 }
 
 /*
@@ -201,11 +210,12 @@ static void _sys_fork( context_t *context ) {
 
 	// Next, set up the child's PCB.
 
-	pcb->pid = _next_pid++;
+	//pcb->pid = _next_pid++;
+	_pid_next(&pcb->next);
 	pcb->ppid = _current->pid;
 	pcb->prio = _current->prio;
 	pcb->stack = stack;
-    pcb->screen = _current->screen;
+	pcb->screen = _current->screen;
 
 	// Duplicate the parent's stack for the child.
 
@@ -766,7 +776,14 @@ void _isr_syscall( int vector, int code ) {
 ** initializes all syscall-related data structures
 */
 
-void _syscall_init( void ) {
+status_t _syscall_init( void ) {
+
+	// Clear syscall table
+	int i=0;
+	for(i; i<N_SYSCALLS; i+){
+		_syscalls[i] = (syscall_t) 0x0;
+	}
+
 
 	/*
 	** Set up the syscall jump table (this ensures that we
@@ -789,12 +806,12 @@ void _syscall_init( void ) {
 	_syscalls[ SYS_gettime ]  =  _sys_gettime;
 	_syscalls[ SYS_setprio ]  =  _sys_setprio;
 	_syscalls[ SYS_settime ]  =  _sys_settime;
-    // screen system calls
-    _syscalls[ SYS_setscreen ] = _sys_setscreen;
-    _syscalls[ SYS_getscreen ] = _sys_getscreen;
-    _syscalls[ SYS_switchscreen ] = _sys_switchscreen;
-    _syscalls[ SYS_openscreen ] = _sys_openscreen;
-    _syscalls[ SYS_closescreen ] = _sys_closescreen;
+	// screen system calls
+	_syscalls[ SYS_setscreen ] = _sys_setscreen;
+	_syscalls[ SYS_getscreen ] = _sys_getscreen;
+	_syscalls[ SYS_switchscreen ] = _sys_switchscreen;
+	_syscalls[ SYS_openscreen ] = _sys_openscreen;
+	_syscalls[ SYS_closescreen ] = _sys_closescreen;
 
 	/*
 	** Report that we've initialized this module.
@@ -802,4 +819,30 @@ void _syscall_init( void ) {
 
 	c_puts( " syscalls" );
 
+	return E_SUCCESS;
+}
+
+
+status_t _syscall_install(syscall_t func, uint8_t num){
+	if(num > N_SYSCALLS){
+		return E_BAD_PARAM;
+	}
+
+	if(_syscalls[num] != 0x0){
+		return E_INSUFFICIENT_RESOURCES;
+	}
+
+	_syscalls[num] = func;
+
+	return E_SUCCESS;
+}
+
+status_t _syscall_clear(uint8_t num){
+	if(num > N_SYSCALLS){
+		return E_BAD_PARAM;
+	}
+
+	_syscalls[num] = (syscall_t) 0x0;
+
+	return E_SUCCESS;
 }
