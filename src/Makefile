@@ -18,6 +18,11 @@ else
 	BUILD_FLAGS=
 endif
 
+ifeq (no_vesa, $(findstring no_vesa, $(MAKECMDGOALS)))
+    BUILD_TYPE += -D NO_VESA
+    BUILD_STRING += no_vesa
+endif
+
 export BUILD_TYPE BUILD_STRING BUILD_FLAGS
 
 include Makefile.inc
