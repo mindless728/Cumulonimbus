@@ -244,6 +244,8 @@ void print_julia( double parameter, double cx, double cy ) {
                     exit(X_SUCCESS);
                     return;
                     break;
+                case 'z':
+                    _draw_screen_manager();
             }
         }
     }

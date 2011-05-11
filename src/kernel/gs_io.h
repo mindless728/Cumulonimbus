@@ -18,7 +18,7 @@ typedef struct _gs_text_buffer_t {
 } gs_textbuffer_t;
 
 typedef union _gs_frame_buffer_t {
-    pixel_t buffer[1280][1024];
+    pixel_t buffer[1024][1280];
     double_pixel_t dpbuffer[640][1024];
 } gs_framebuffer_t;
 
