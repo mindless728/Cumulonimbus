@@ -292,7 +292,9 @@ void _init( void ) {
 
 	c_moveto(0, 0);
 	c_printf(VERSION_STRING);
+#ifdef NO_VESA
 	__delay(100);
+#endif
 
 	c_puts_at( 0, 7, "================================================================================" );
 
