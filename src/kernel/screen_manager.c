@@ -27,16 +27,16 @@ void _draw_screen_manager(void) {
                     int avgR = 0;
                     int avgG = 0;
                     int avgB = 0;
-                    //for( b = 0; b < 1; ++b ) {
-                    //    for( a = 0; a < 1; ++a ) {
+                    for( b = 0; b < 1; ++b ) {
+                        for( a = 0; a < 1; ++a ) {
                            avgR += EXTRACT_RED(s->fb.buffer[a+4*y][b+4*x]);
                            avgG += EXTRACT_GREEN(s->fb.buffer[a+4*y][b+4*x]);
                            avgB += EXTRACT_BLUE(s->fb.buffer[a+4*y][b+4*x]);
-                    //    }
-                    //}
-                    /*avgR /= 4;
-                    avgG /= 4;
-                    avgB /= 4;*/
+                        }
+                    }
+                    avgR >> 4;
+                    avgG >> 4;
+                    avgB >> 4;
                     gs_draw_pixel( c*320 + x, r*256 + y, CREATE_PIXEL( avgR, avgG, avgB ) ); 
                     //gs_draw_pixel( x, y, CREATE_PIXEL( avgR, avgG, avgB ) ); 
                 }
