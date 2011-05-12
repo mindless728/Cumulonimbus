@@ -10,7 +10,7 @@
 #include <kernel/startup.h>
 #include <kernel/support.h>
 #include <kernel/ioports.h>
-
+#include <kernel/ethernet.h>
 
 #endif	//_KERNEL_INCLUDES_H
 

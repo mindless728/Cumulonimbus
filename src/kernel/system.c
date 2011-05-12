@@ -203,11 +203,11 @@ void _zombify( pcb_t *pcb ) {
 		// if the parent was waiting for another child,
 		// turn this process into a zombie.
 
-		if( pid == 0 || pid == _current->pid ) {
+		if( pid.id == 0 || _pid_cmp(&pid, &_current->pid) == 0){
 
 			// pull the parent off the waiting queue
 
-			key.u = parent->pid;
+			key.u = parent->pid.id;
 			stat = _q_remove_by_key(&_waiting,(void **)&parent,key);
 			if( stat != E_SUCCESS ) {
 				_kpanic( "_zombify", "wait remove status %s",
@@ -249,7 +249,7 @@ void _zombify( pcb_t *pcb ) {
 	// wants us.
 	//
 
-	key.u = _current->pid;
+	key.u = _current->pid.id;
 	_current->state = ZOMBIE;
 
 	stat = _q_insert( &_zombie, (void *)_current, key );
@@ -384,10 +384,10 @@ void _init( void ) {
 	** Next, set up various PCB fields
 	*/
 
-	pcb->pid  = PID_INIT;
-	pcb->ppid = PID_INIT;
+	pcb->pid.id  = PID_INIT;
+	pcb->ppid.id = PID_INIT;
 	pcb->prio = PRIO_MAXIMUM;
-	pcb->screen = 0; //TODO: properly initialize 
+	pcb->screen = 0; //TODO: properly initialize
 
 	/*
 	** Set up the initial process context.

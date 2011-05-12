@@ -32,6 +32,9 @@
 
 #define	ARG(c,n)	(((uint32_t *)((c)+1))[n])
 
+
+extern mac_address_t _local_mac;
+
 /*
 ** Prototypes
 */

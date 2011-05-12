@@ -13,7 +13,7 @@
 #define	__KERNEL__20103__
 
 #include "headers.h"
-
+#include "utils.h"
 #include "process.h"
 
 /*
@@ -54,6 +54,31 @@ queue_t _zombie;	// terminated processes
 /*
 ** PUBLIC FUNCTIONS
 */
+
+void _pid_clear(pid_t* p){
+	memset(p, 0x0, sizeof(pid_t));
+}
+
+void _pid_cpy(pid_t* dest, pid_t* src){
+	memcpy(dest, src, sizeof(pid_t));
+}
+
+int _pid_cmp(pid_t* p1, pid_t* p2){
+	int ret = memcmp(&p1->host, &p2->host, sizeof(mac_address_t));
+	if(ret == 0){
+		ret = memcmp(&p1->id, &p2->id, sizeof(uint32_t));
+	}
+	return ret;
+}
+
+status_t _pid_next(pid_t* pid){
+
+	memcpy((void*) &pid->host, (void*) &_local_mac, sizeof(mac_address_t));
+	pid->id = _next_pid.id++;
+
+	return E_SUCCESS;
+}
+
 
 /*
 ** status = _pcb_alloc( &pcb )
@@ -98,7 +123,7 @@ pcb_t *_pcb_find( pid_t pid ) {
 	int i;
 
 	for( i = 0, pcb = &_pcbs[0]; i < N_PCBS; ++i, ++pcb ) {
-		if( pcb->state != FREE && pcb->pid == pid ) {
+		if( pcb->state != FREE && _pid_cmp(&pcb->pid, &pid) == 0 ) {
 			return( pcb );
 		}
 	}
@@ -118,7 +143,9 @@ void _pcb_init( void ) {
 	key_t key;
 	int i;
 
-	_next_pid = PID_INIT + 1;
+	memset(&_next_pid, 0x0, sizeof(pid_t));
+	memcpy(&_next_pid.host, &_local_mac, sizeof(mac_address_t));
+	_next_pid.id = PID_INIT + 1;
 
 	_q_reset( &_pcb_avail, NULL, NULL );
 	_q_reset( &_sleep, _compare_uint_asc, _remove_if_le_u );
