@@ -1,6 +1,5 @@
 #include "ide.h"
 #include <kernel/includes.h>
-#include
 
 unsigned int ide_num_devices;
 unsigned int ide_num_channels;
@@ -183,10 +182,10 @@ status_t _ide_init(void) {
 	//c_printf("after\n");
 
 	//loop through the drives found and print information
-	c_printf("**** IDE INIT ****\n");
+	c_printf("IDE Initialized\n");
 	for(i = 0; i < ide_num_devices; ++i) {
 		c_printf("Device: %d - %s\n", i, ide_devices[i].model);
-		c_printf("  - Size: %d Sectors\n\n", ide_devices[i].size);
+		c_printf("  - Size: %d Sectors\n", ide_devices[i].size);
 	}
 	
 	return E_SUCCESS;
@@ -261,7 +260,7 @@ status_t ide_pio_lba_read(ide_device_t * device, uint32_t sector, uint8_t * buf)
 	ide_register_write(device, ATA_REG_COMMAND, ATA_CMD_READ_PIO_EXT);
 
 	//read in the data
-	if(status = ide_polling(device, 1))
+	if((status = ide_polling(device, 1)))
 		return status;
 
 	for(i = 0; i < 256; ++i)
@@ -298,11 +297,14 @@ status_t ide_pio_lba_write(ide_device_t * device, uint32_t sector, uint8_t * buf
 	ide_register_write(device, ATA_REG_COMMAND, ATA_CMD_WRITE_PIO_EXT);
 
 	//read in the data
-	if(status = ide_polling(device, 0))
+	if((status = ide_polling(device, 0)))
 		return status;
 
 	for(i = 0; i < 256; ++i)
 		__outw(device->ide_channel->base_io_register, _buf[i]);
+
+	//flush the cache
+	ide_register_write(device, ATA_REG_COMMAND, ATA_CMD_CACHE_FLUSH_EXT);
 
 	return E_SUCCESS;
 }
@@ -395,4 +397,18 @@ status_t ide_polling(ide_device_t * device, uint32_t advanced_check) {
 	}
 
 	return E_SUCCESS;
+}
+
+status_t ide_read(uint32_t sector, uint8_t * buf) {
+	//system call
+}
+
+status_t ide_write(uint32_t sector, uint8_t * buf) {
+	//system call
+}
+
+static void _ide_pio_lba_read(context_t * context) {
+}
+
+static void _ide_pio_lba_write(context_t * context) {
 }

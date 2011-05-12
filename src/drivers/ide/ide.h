@@ -4,6 +4,8 @@
 
 #include <types.h>
 #include <drivers/pci/pci.h>
+#include <kernel/syscall.h>
+#include <kernel/process.h>
 
 #include "ide_defines.h"
 
@@ -76,7 +78,14 @@ status_t ide_register_read(ide_device_t * device, unsigned char reg, unsigned ch
 status_t ide_register_write(ide_device_t * device, unsigned char reg, unsigned char out); //writes an ide register
 status_t ide_read_ident_space(ide_device_t * device, uint8_t * buf);
 
+//functions for reading an writing
 status_t ide_pio_lba_read(ide_device_t * device, uint32_t sector, uint8_t * buf);
 status_t ide_pio_lba_write(ide_device_t * device, uint32_t sector, uint8_t * buf);
+
+//system call functions
+status_t ide_read(uint32_t sector, uint8_t * buf);
+status_t ide_write(uint32_t sector, uint8_t * buf);
+static void _ide_pio_lba_read(context_t * context);
+static void _ide_pio_lba_write(context_t * context);
 
 #endif
