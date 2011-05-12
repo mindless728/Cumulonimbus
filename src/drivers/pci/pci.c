@@ -11,7 +11,7 @@ status_t _pci_alloc_device(pci_device_t** dev){
 	*dev = (pci_device_t*) kalloc(sizeof(pci_device_t));
 	memset(*dev, 0x00, sizeof(pci_device_t));
 
-	c_printf("_pci_alloc_device 0x%x\n", *dev);
+	//c_printf("_pci_alloc_device 0x%x\n", *dev);
 
 	return E_SUCCESS;
 }
@@ -20,7 +20,7 @@ status_t _pci_alloc_device(pci_device_t** dev){
 status_t _pci_alloc_device_list(pci_device_list_t** list){
 	*list = (pci_device_list_t*) kalloc(sizeof(pci_device_list_t));
 
-	c_printf("_pci_alloc_device_list 0x%x\n", *list);
+	//c_printf("_pci_alloc_device_list 0x%x\n", *list);
 
 	memset(*list, 0x00, sizeof(pci_device_list_t));
 

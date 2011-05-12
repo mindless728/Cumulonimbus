@@ -81,7 +81,7 @@ static void _enqueue( screen_queue_t* q, screen_qnode_t* n ) {
 // clear a screen
 static void _clear_screen( screen_t* screen ) {
     _memclr( (void*)screen,sizeof(screen_t) );
-    screen->owner = 0;
+    _pid_clear(&screen->owner);
     screen->draw_mode = GS_DRAW_MODE_FLAT;
 }
 
@@ -91,7 +91,7 @@ void _screen_init() {
     c_printf( " screen" );
     for( i = 0; i < NUM_SCREENS; ++i ) {
         _screen_nodes[i].handle = i;
-        _screens[i].owner = 0;
+        _pid_clear(&_screens[i].owner);
     }
 
     // initialize the queues

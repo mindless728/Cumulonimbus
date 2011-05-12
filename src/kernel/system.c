@@ -13,6 +13,7 @@
 #define	__KERNEL__20103__
 
 #include "headers.h"
+#include "version.h"
 
 #include "system.h"
 #include "clock.h"
@@ -202,11 +203,11 @@ void _zombify( pcb_t *pcb ) {
 		// if the parent was waiting for another child,
 		// turn this process into a zombie.
 
-		if( pid == 0 || pid == _current->pid ) {
+		if( pid.id == 0 || _pid_cmp(&pid, &_current->pid) == 0){
 
 			// pull the parent off the waiting queue
 
-			key.u = parent->pid;
+			key.u = parent->pid.id;
 			stat = _q_remove_by_key(&_waiting,(void **)&parent,key);
 			if( stat != E_SUCCESS ) {
 				_kpanic( "_zombify", "wait remove status %s",
@@ -248,7 +249,7 @@ void _zombify( pcb_t *pcb ) {
 	// wants us.
 	//
 
-	key.u = _current->pid;
+	key.u = _current->pid.id;
 	_current->state = ZOMBIE;
 
 	stat = _q_insert( &_zombie, (void *)_current, key );
@@ -278,17 +279,25 @@ void _init( void ) {
 
 	__init_interrupts();	// IDT and PIC initialization
 
+	_interrupt_init();	//Initialize interrupt subsystem
+
 	/*
 	** Console I/O system.
 	*/
 
 
 	c_io_init();
+	c_clearscreen();
 	c_setscroll( 0, 8, 99, 99 );
+
+	c_moveto(0, 0);
+	c_printf(VERSION_STRING);
+	__delay(100);
+
 	c_puts_at( 0, 7, "================================================================================" );
 
-    // intialize the mouse
-    _mouse_init();
+	// intialize the mouse
+ 	_mouse_init();
 
 
 	/*
@@ -300,23 +309,23 @@ void _init( void ) {
 	*/
 
 	c_puts( "Starting module init:\n " );
-    //c_puts("Intializing queues...\n");
+	c_puts("Intializing queues...\n");
 	_q_init();		// must be first
-    //c_puts("Initializing pcbs...\n");
+	c_puts("Initializing pcbs...\n");
 	_pcb_init();
-    //c_puts("Initializing stacks...\n");
+	c_puts("Initializing stacks...\n");
 	_stack_init();
-    //c_puts("Initializing UART/SIO...\n");
+	c_puts("Initializing UART/SIO...\n");
 	_sio_init();
-    //c_puts("Initializing syscalls...\n");
+	c_puts("Initializing syscalls...\n");
 	_syscall_init();
-    //c_puts("Initializing screens...\n");
-    _screen_init(); // init screens
-    //c_puts("Initializing VESA...\n");
-    _vesa_init();
-    //c_puts("Initializing scheduler...\n");
+	c_puts("Initializing screens...\n");
+	_screen_init(); // init screens
+	c_puts("Initializing VESA...\n");
+	_vesa_init();
+	c_puts("Initializing scheduler...\n");
 	_sched_init();
-    //c_puts("Initializng clock...\n");
+	c_puts("Initializng clock...\n");
 	_clock_init();
 
 	//Initialize PCI subsystem
@@ -341,9 +350,17 @@ void _init( void ) {
 	/*
 	** Install the ISRs
 	*/
-	__install_isr( INT_VEC_TIMER, _isr_clock );
+
+	c_puts("Setting up IRQ handlers...");
+	_interrupt_add_isr(&_isr_clock, INT_VEC_TIMER);
+	_interrupt_add_isr(&_isr_syscall, INT_VEC_SYSCALL);
+	_interrupt_add_isr(&_isr_sio, INT_VEC_SERIAL_PORT_1);
+	c_puts("DONE\n");
+
+
+	/*__install_isr( INT_VEC_TIMER, _isr_clock );
 	__install_isr( INT_VEC_SYSCALL, _isr_syscall );
-	__install_isr( INT_VEC_SERIAL_PORT_1, _isr_sio );
+	__install_isr( INT_VEC_SERIAL_PORT_1, _isr_sio );*/
 	/*
 	** Create the initial process
 	**
@@ -367,10 +384,10 @@ void _init( void ) {
 	** Next, set up various PCB fields
 	*/
 
-	pcb->pid  = PID_INIT;
-	pcb->ppid = PID_INIT;
+	pcb->pid.id  = PID_INIT;
+	pcb->ppid.id = PID_INIT;
 	pcb->prio = PRIO_MAXIMUM;
-    pcb->screen = 0; //TODO: properly initialize 
+	pcb->screen = 0; //TODO: properly initialize
 
 	/*
 	** Set up the initial process context.

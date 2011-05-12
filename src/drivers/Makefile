@@ -1,5 +1,5 @@
-SUB_DIRS = ide pci mouse fat64
-DRIVER_OBJS = ide/ide.o pci/pci.o mouse/mouse.o fat64/fat64.o
+SUB_DIRS = ide pci mouse fat64 net
+DRIVER_OBJS = ide/ide.o pci/pci.o mouse/mouse.o fat64/fat64.o net/net.o
 
 all: drivers.a drivers.nl
 

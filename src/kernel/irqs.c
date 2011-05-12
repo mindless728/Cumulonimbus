@@ -20,7 +20,7 @@ _isr_action_t* _isr_vector_table[INT_VECTOR_COUNT];
 
 status_t _interrupt_init(void){
 	//Disable interrupts
-	asm( "cli" );
+	//asm( "cli" );
 
 	//Initialize interrupt vector lists
 	int i = 0;
@@ -38,7 +38,7 @@ status_t _interrupt_init(void){
 	}
 
 	//Enable interrupts
-	asm( "sti" );
+	//asm( "sti" );
 	return E_SUCCESS;
 }
 
@@ -116,7 +116,7 @@ void _interrupt_wait_handler(int vector, int code){
 
 
 void _interrupt_global_handler(int vector, int code){
-	asm( "cli" );
+	//asm( "cli" );
 	//Validate vector
 	if(vector >= INT_VECTOR_COUNT || vector < 0){
 		__panic("_interrupt_global_handler - Invalid interrupt vector!\n");
@@ -154,7 +154,7 @@ void _interrupt_global_handler(int vector, int code){
 	//Indicate that we are no longer executing ISRs
 	_handling_int = FALSE;
 	_interrupt_clear(vector);
-	asm( "sti" );
+	//asm( "sti" );
 }
 
 
@@ -169,7 +169,7 @@ status_t _interrupt_add_isr(_isr_handler_t handler, int vector){
 
 	if(action == NULL){
 		//NOTE: Maybe we should panic here?
-		return E__INSUFFICIENT_RESOURCES;
+		return E_INSUFFICIENT_RESOURCES;
 	}
 
 	action->calls = 0;
@@ -177,7 +177,7 @@ status_t _interrupt_add_isr(_isr_handler_t handler, int vector){
 	action->handler = handler;
 
 	//Protect against race conditions
-	asm( "cli" );
+	//asm( "cli" );
 	_isr_action_t* actionTemp = _isr_vector_table[vector];
 
 	while(actionTemp->next != NULL){
@@ -185,7 +185,7 @@ status_t _interrupt_add_isr(_isr_handler_t handler, int vector){
 	}
 
 	actionTemp->next = action;
-	asm( "sti" );
+	//asm( "sti" );
 
 	return E_SUCCESS;
 }

@@ -11,7 +11,7 @@ else ifeq (release, $(findstring release, $(MAKECMDGOALS)))
 else ifeq (test, $(findstring test, $(MAKECMDGOALS)))
 	BUILD_TYPE=-D BUILD_TEST
 	BUILD_STRING=test
-	BUILD_FLAGS=-O1
+	BUILD_FLAGS=-O1 -Wfatal-errors
 else
 	BUILD_TYPE=-D BUILD_DEBUG
 	BUILD_STRING=debug
@@ -19,9 +19,15 @@ else
 endif
 
 ifeq (no_vesa, $(findstring no_vesa, $(MAKECMDGOALS)))
-    BUILD_TYPE += -D NO_VESA
-    BUILD_STRING += no_vesa
+	BUILD_TYPE += -D NO_VESA
+	BUILD_STRING += no_vesa
 endif
+
+ifeq (wall, $(findstring wall, $(MAKECMDGOALS)))
+	BUILD_FLAGS += -Wall
+endif
+
+BUILD_FLAGS+= -DBUILD_STRING="\"${BUILD_STRING}\""	
 
 export BUILD_TYPE BUILD_STRING BUILD_FLAGS
 
@@ -36,6 +42,21 @@ all: BuildImage.o
 
 BuildImage.o: BuildImage.c
 	gcc -o BuildImage.o BuildImage.c
+
+release: all
+	echo ${BUILD_STRING}
+
+test: all
+	echo ${BUILD_STRING}
+
+debug: all
+	echo ${BUILD_STRING}
+
+no_vesa:
+	echo ${BUILD_STRING}
+
+wall: all
+	echo ${BUILD_STRING}
 
 qemu: all
 	(cd kernel; $(MAKE) qemu)

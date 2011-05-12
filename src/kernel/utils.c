@@ -44,12 +44,69 @@ void* memset(void* buf, uint8_t value, int size){
 			((uint32_t*) buf)[i] = val;
 		}
 
-		loops = size &0x3;
+		//loops = size & 0x3;
+		i = loops << 2;		//Multiply by for to get current index
 
-		for(i=0; i<loops; i++){
+		for(; i<size; i++){
 			((uint8_t*)buf)[i] = value;
 		}
 	}
 	return buf;
+}
+
+int memcmp(const void *s1, const void *s2, int size){
+	int i=0;
+
+	if(size < 0x4){
+		for(i=0; i<size; i++){
+			if(((int8_t*)s1)[i] != ((int8_t*)s2)[i]){
+				return (((int8_t*)s1)[i] - ((int8_t*)s2)[i]);
+			}
+		}
+	}
+	else{
+		int loops = size>>2;	//Divide by four
+
+		for(i=0; i<loops; i++){
+			if(((int32_t*)s1)[i] != ((int32_t*)s2)[i]){
+				return (((int32_t*)s1)[i] - ((int32_t*)s2)[i]);
+			}
+
+		}
+
+		i = loops << 2;		//Multiply by four to get current index
+		for(i=0; i<size; i++){
+			if(((int8_t*)s1)[i] != ((int8_t*)s2)[i]){
+				return (((int8_t*)s1)[i] - ((int8_t*)s2)[i]);
+			}
+
+		}
+	}
+
+	return 0;
+}
+
+void *memcpy(void *dest, const void *src, int size){
+	int i=0;
+
+	if(size < 0x4){
+		for(i=0; i<size; i++){
+			((uint8_t*) dest)[i] = ((uint8_t*) src)[i];
+		}
+	}
+	else{
+		int loops = size>>2;	//Divide by four
+
+		for(i=0; i<loops; i++){
+			((uint32_t*) dest)[i] = ((uint32_t*) src)[i];
+		}
+
+		i = loops << 2;
+
+		for(; i<size; i++){
+			((uint8_t*) dest)[i] = ((uint8_t*) src)[i];
+		}
+	}
+	return dest;
 }
 

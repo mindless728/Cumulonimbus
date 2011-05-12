@@ -292,6 +292,9 @@ status_t ide_pio_lba_write(ide_device_t * device, uint32_t sector, uint8_t * buf
 	for(i = 0; i < 256; ++i)
 		__outw(device->ide_channel->base_io_register, _buf[i]);
 
+	//flush the cache
+	ide_register_write(device, ATA_REG_COMMAND, ATA_CMD_CACHE_FLUSH_EXT);
+
 	return E_SUCCESS;
 }
 
