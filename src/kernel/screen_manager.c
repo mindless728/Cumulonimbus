@@ -3,7 +3,7 @@
 #include "vesa_framebuffer.h"
 
 // The screen the manager uses
-static handle_t manager_screen;
+static handle_t manager_screen = -1;
 
 /**
  * Initializes the scree manager by allocating a screen.
@@ -16,11 +16,16 @@ void _manager_init(void) {
  * Draws the manager's screen.
  */
 void _draw_screen_manager(void) {
+    //if( manager_screen == -1 ) _manager_init();
+    handle_t newscreen = openscreen();
+    handle_t oldscreen = getscreen();
+    setscreen(newscreen);
+    switchscreen(newscreen);
     //TODO: Make this adaptive and display ceil(sqrt(NUM_SCREENS))^2 screen spaces
 
     // There is no reason to draw the screen manager if the manager is not the
     // active screen
-    if( active_screen == manager_screen ) {
+    //if( active_screen == manager_screen ) {
         screen_t* s = _screens;
         int r, c;
         int x, y;
@@ -53,6 +58,9 @@ void _draw_screen_manager(void) {
                 s++;
             }    
         }
-    }
+    //}
     c_getchar();
+    setscreen(oldscreen);
+    switchscreen(oldscreen);
+    closescreen(newscreen);
 }
