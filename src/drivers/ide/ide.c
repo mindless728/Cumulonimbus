@@ -1,5 +1,8 @@
 #include "ide.h"
 #include <kernel/includes.h>
+#include <kernel/irqs.h>
+
+//#define IDE_DEBUG_MSG
 
 unsigned int ide_num_devices;
 unsigned int ide_num_channels;
@@ -18,6 +21,8 @@ void set_base_io_register(pci_device_t * device, uint8_t channel, uint16_t base_
 void set_base_control_register(pci_device_t * device, uint8_t channel, uint16_t base_port);
 void set_bus_master_base(pci_device_t * device, uint16_t base_port);
 status_t ide_polling(ide_device_t * device, uint32_t advanced_check);
+
+void _ide_isr(int vector, int code);
 
 status_t _ide_init(void) {
 	pci_device_list_t * list = &_pci_devices;
@@ -44,19 +49,20 @@ status_t _ide_init(void) {
 		if(device->config.classCode == 1 && device->config.subClass == 1) {
 			//get controller pointer
 			ide_controller = &(ide_controllers[ide_num_controllers]);
-			
+
 			//check the bus master base register for the device, allocate if needed
 			if(device->config.headers.type0.bar[4] & 0x1) {
 				set_bus_master_base(device, allocate_ports_align(16,16));
 			}
-			
+
 			//copy over the data from the pci device config to the ide controller struct
 			copy_device_to_controller(ide_controller, device);
 			
 			//debug output @TODO remove
-			//c_printf("- IDE Device, VEN: 0x%x, DEV: 0x%x\n", ide_controller->VID, ide_controller->DID);
-			
-			
+#ifdef IDE_DEBUG_MSG
+			c_printf("- IDE Device, VEN: 0x%x, DEV: 0x%x\n", ide_controller->VID, ide_controller->DID);
+#endif
+
 			//set type to not assumed
 			ide_type = 0;
 			for(i = 0; i < 2; ++i) { //cycle through the channels on the device
@@ -98,12 +104,11 @@ status_t _ide_init(void) {
 					ide_channel->base_control_register = 0x3f4-i*0x80;
 					ide_channel->bus_master_base = device->config.headers.type0.bar[4]+i*8;
 				}
-
-				//turn off interrupts on the channel
-				ide_register_write(ide_device, ATA_REG_CONTROL, 2);
 				
 				//debug output @TODO remove
-				//c_printf(" - Channel: %d, CMD_BAR: 0x%x, CNL_BAR: 0x%x, BM_BASE: 0x%x\n",i,ide_channel->base_io_register,ide_channel->base_control_register,ide_channel->bus_master_base);
+#ifdef IDE_DEBUG_MSG
+				c_printf(" - Channel: %d, CMD_BAR: 0x%x, CNL_BAR: 0x%x, BM_BASE: 0x%x\n",i,ide_channel->base_io_register,ide_channel->base_control_register,ide_channel->bus_master_base);
+#endif
 				
 				for(j = 0; j < 2; ++j) { //cycle through the possible ide devices on the channel
 					//get the device pointer
@@ -119,6 +124,7 @@ status_t _ide_init(void) {
 					__delay(1);
 					
 					//send the identify command over
+					ide_register_write(ide_device, ATA_REG_CONTROL, 2);
 					ide_register_write(ide_device, ATA_REG_COMMAND, ATA_CMD_IDENTIFY);
 					__delay(1);
 					
@@ -130,8 +136,9 @@ status_t _ide_init(void) {
 					}
 
 					//debug output @TODO remove
-					//c_printf("  - Drive: %d, Status: 0x%x\n", ide_device->drive, register_read);
-
+#ifdef IDE_DEBUG_MSG
+					c_printf("  - Drive: %d, Status: 0x%x\n", ide_device->drive, register_read);
+#endif
 					//if not a valid driver, don't do any more
 					if(!register_read || register_read == 0xff || register_read == 0x6c)
 						continue;
@@ -186,7 +193,12 @@ status_t _ide_init(void) {
 	for(i = 0; i < ide_num_devices; ++i) {
 		c_printf("Device: %d - %s\n", i, ide_devices[i].model);
 		c_printf("  - Size: %d Sectors\n", ide_devices[i].size);
+#ifdef IDE_DEBUG_MSG
+		c_printf("  - Device on Channel: %x\n", ide_devices[i].drive);
+#endif
 	}
+
+	//_interrupt_add_isr(_ide_isr, 0x23);
 	
 	return E_SUCCESS;
 }
@@ -238,6 +250,9 @@ status_t ide_pio_lba_read(ide_device_t * device, uint32_t sector, uint8_t * buf)
 	uint32_t i;
 	status_t status;
 
+	//tell device not to use interrupts for this
+	ide_register_write(device, ATA_REG_CONTROL, 0x2);
+
 	//while the drive is busy, wait
 	ide_register_read(device, ATA_REG_STATUS, &drive_status);
 	while(drive_status & ATA_SR_BSY) ide_register_read(device, ATA_REG_STATUS, &drive_status);
@@ -263,8 +278,9 @@ status_t ide_pio_lba_read(ide_device_t * device, uint32_t sector, uint8_t * buf)
 	if((status = ide_polling(device, 1)))
 		return status;
 
-	for(i = 0; i < 256; ++i)
+	for(i = 0; i < 256; ++i) {
 		_buf[i] = __inw(device->ide_channel->base_io_register);
+	}
 
 	return E_SUCCESS;
 }
@@ -274,6 +290,9 @@ status_t ide_pio_lba_write(ide_device_t * device, uint32_t sector, uint8_t * buf
 	uint16_t * _buf = (uint16_t *)buf;
 	uint32_t i;
 	status_t status;
+
+	//tell device not to use interrupts for this
+	ide_register_write(device, ATA_REG_CONTROL, 0x2);
 
 	//while the drive is busy, wait
 	ide_register_read(device, ATA_REG_STATUS, &drive_status);
@@ -407,8 +426,39 @@ status_t ide_write(uint32_t sector, uint8_t * buf) {
 	//system call
 }
 
-static void _ide_pio_lba_read(context_t * context) {
+void _ide_pio_lba_read(context_t * context) {
+	uint32_t sector = 0;
+	uint8_t * buf = 0;
+
+	ide_pio_lba_read(&(ide_devices[1]), sector, buf);
 }
 
-static void _ide_pio_lba_write(context_t * context) {
+void _ide_pio_lba_write(context_t * context) {
+	uint32_t sector = 0;
+	uint8_t * buf = 0;
+
+	ide_pio_lba_write(&(ide_devices[1]), sector, buf);
+}
+
+void _ide_isr(int vector, int code) {
+	uint32_t i = 0;
+	uint8_t ret = 0;
+	ide_device_t * ide_device = 0;
+	
+	//loop through all devices
+	for(i = 0; i < ide_num_devices; ++i) {
+		//grab the pointer to the device
+		ide_device = &(ide_devices[i]);
+
+		//read in teh status register
+		ide_register_read(ide_device, ATA_REG_STATUS, &ret);
+
+		if(ret & ATA_SR_ERR) { //if there is an error
+			//read in error register
+			ide_register_read(ide_device, ATA_REG_ERROR, &ret);
+#ifdef IDE_DEBUG_MSG
+			c_printf_at(0,7+i,"ide_device[%x] error: %x",i, ret);
+#endif
+		}
+	}
 }

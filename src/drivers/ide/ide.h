@@ -85,7 +85,7 @@ status_t ide_pio_lba_write(ide_device_t * device, uint32_t sector, uint8_t * buf
 //system call functions
 status_t ide_read(uint32_t sector, uint8_t * buf);
 status_t ide_write(uint32_t sector, uint8_t * buf);
-static void _ide_pio_lba_read(context_t * context);
-static void _ide_pio_lba_write(context_t * context);
+void _ide_pio_lba_read(context_t * context);
+void _ide_pio_lba_write(context_t * context);
 
 #endif
