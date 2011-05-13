@@ -21,5 +21,6 @@
 #define E_TIMEOUT			(0x06)
 #define E_INSUFFICIENT_RESOURCES	(0x07)
 #define E_NO_QNODES			(0x08)
+#define E_TOO_MANY_TRIES		(0x09)
 
 #endif	//_CUMULONIMUBS_STATUS_H
