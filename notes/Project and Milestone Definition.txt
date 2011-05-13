@@ -2,7 +2,7 @@ Cumulonimbus
 
 Projects by person (due date):
 
-Colin:
+Colin (Fail BOAT quarter):
   - Hard disk driver (week 6)
   - Shell (week 6)
   - FAT64 filesystem (week 7)
