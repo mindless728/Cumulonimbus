@@ -14,6 +14,12 @@
 #define _SYSCALLS_H
 
 #include "headers.h"
+
+#ifndef __ASM__20103__
+#include "includes.h"
+#include "process.h"
+#endif
+
 #include <types.h>
 #include <status.h>
 
@@ -69,7 +75,7 @@
 
 // system call prototype
 
-typedef void(*syscall_t)(context_t *);
+typedef void (*syscall_t)(context_t *);
 
 /*
 ** Start of C-only definitions

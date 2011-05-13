@@ -62,7 +62,7 @@ uint_t sleep( uint_t ticks );
 /*
 ** fork - create a new process at a specific priority
 **
-** usage:       pid = fork( prio );
+** usage:       fork( &pid );
 **
 ** returns:
 **      -1 if the creation failed
@@ -70,7 +70,7 @@ uint_t sleep( uint_t ticks );
 **      else, the PID of the new child
 */
 
-int fork( void );
+int fork( pid_t* pid );
 
 /*
 ** exec - replace a process with a different program running at a
@@ -150,22 +150,22 @@ int kill( int pid );
 /*
 ** getpid - retrieve pid of the current process
 **
-** usage:       n = getpid();
+** usage:       getpid(&pid);
 **
 ** returns the current process' pid
 */
 
-int getpid( void );
+int getpid(pid_t* p);
 
 /*
 ** getppid - retrieve parent pid of the current process
 **
-** usage:       pid = getppid();
+** usage:       getppid(&pid);
 **
 ** returns PID of the parent of the current process
 */
 
-int getppid( void );
+int getppid(pid_t* p);
 
 /*
 ** getprio - retrieve priority of the current process

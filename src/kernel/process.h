@@ -14,6 +14,7 @@
 #define _PROCESS_H
 
 #include "headers.h"
+#include "includes.h"
 
 /*
 ** General (C and/or assembly) definitions
@@ -88,10 +89,10 @@ typedef struct context {
 	uint32_t fs;
 	uint32_t es;
 	uint32_t ds;
-    uint32_t cr0;
-    uint32_t cr2;
-    uint32_t cr3;
-    uint32_t cr4;
+ 	uint32_t cr0;
+ 	uint32_t cr2;
+	uint32_t cr3;
+	uint32_t cr4;
 	uint32_t edi;
 	uint32_t esi;
 	uint32_t ebp;
@@ -100,9 +101,9 @@ typedef struct context {
 	uint32_t edx;
 	uint32_t ecx;
 	uint32_t eax;
-    #ifndef DISABLE_FPU
-    fpu_context_t fpu;
-    #endif
+	#ifndef DISABLE_FPU
+	fpu_context_t fpu;
+	#endif
 	uint32_t vector;
 	uint32_t code;
 	uint32_t eip;
@@ -114,7 +115,15 @@ typedef struct context {
 
 // process id
 
-typedef uint32_t	pid_t;
+//typedef uint32_t	pid_t;
+
+//12 bytes long
+typedef struct process_id {
+	uint32_t id;
+	mac_address_t host;
+	uint16_t reserved;
+} __attribute((__packed__)) pid_t;
+
 
 // process control block
 //
@@ -129,7 +138,7 @@ typedef struct pcb {
 	time_t		sleeptime;	// when the process started sleeping
 	int8_t		state;		// current process state
 	uint8_t		prio;		// current process priority
-    uint32_t    screen;     // current process' screen
+	uint32_t	screen;	// current process' screen
 } pcb_t;
 
 /*
@@ -150,6 +159,14 @@ extern queue_t _zombie;		// terminated processes
 /*
 ** Prototypes
 */
+
+void _pid_clear(pid_t* p);
+
+void _pid_cpy(pid_t* dest, pid_t* src);
+
+int _pid_cmp(pid_t* p1, pid_t* p2);
+
+status_t _pid_next(pid_t *pid);
 
 /*
 ** _pcb_alloc(pcb)
