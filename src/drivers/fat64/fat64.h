@@ -18,6 +18,7 @@ struct _fat64_partition_t {
 	uint64_t cluster_tags; //location of the cluster tag table starting cluster
 	uint64_t size; //size of the partition in clusters
 	uint64_t cluster_size; //size of a cluster, always 4k
+	uint64_t partition_location; //location of this superblock
 	uint8_t reserver[480];
 };
 
@@ -63,7 +64,7 @@ static void _fat64_user_init(context_t * context); //fills in the partition info
 status_t fat64_user_init(void);
 status_t fat64_open(handle_t file, char * path);
 status_t fat64_close(handle_t file);
-status_t fat64_is_directory(handle_t file);
+status_t fat64_is_directory(handle_t file, uint8_t * ret);
 
 //file functions
 status_t fat64_rm(handle_t file);

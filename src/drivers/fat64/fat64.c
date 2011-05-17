@@ -18,6 +18,10 @@ void move_to_prev_cluster(fat64_file_t * f);
 void load_cluster(int64_t cluster, uint8_t * buf);
 void save_cluster(int64_t cluster, uint8_t * buf);
 void update_dir_entry(fat64_file_t * f);
+uint64_t get_free_dir_entry(fat64_file_t * d);
+
+//note does not fill in f->entry information!!!
+void open_by_cluster(fat64_file_t * f, uint64_t cluster);
 
 //kernel functions
 status_t _fat64_init(void) {
@@ -46,7 +50,7 @@ status_t _fat64_init(void) {
 }
 
 status_t _fat64_mkfs(uint64_t size, mbr_t * mbr) {
-	uint32_t start_lba = 1;
+	uint32_t start_lba = 8;
 	uint32_t number_sectors = size/SECTOR_SIZE;
 	uint32_t i = 0;
 	//size of cluster tag table in clusters
@@ -71,7 +75,8 @@ status_t _fat64_mkfs(uint64_t size, mbr_t * mbr) {
 	//initialize the FS super block
 	memset(&fat64_partition,0,sizeof(fat64_partition_t));
 
-	fat64_partition.cluster_tags = 0;
+	fat64_partition.partition_location = start_lba;
+	fat64_partition.cluster_tags = 1;
 	fat64_partition.root_dir = cluster_tag_size+fat64_partition.cluster_tags;
 	fat64_partition.size = mbr->partition[0].num_sectors*SECTOR_SIZE/FAT64_CLUSTER_SIZE;
 	fat64_partition.cluster_size = FAT64_CLUSTER_SIZE;
@@ -84,6 +89,9 @@ status_t _fat64_mkfs(uint64_t size, mbr_t * mbr) {
 	
 	ide_pio_lba_write(ide_device,start_lba,(uint8_t*)&fat64_partition);
 
+	//mark the superblock cluster as used
+	_mark_cluster(0,FAT64_CLUSTER_TAG_EOF,FAT64_CLUSTER_TAG_EOF);
+
 	//create cluster tag table
 	for(i = 0; i < cluster_tag_size; ++i) {
 		//mark cluster as allocated with prev and next set
@@ -93,7 +101,7 @@ status_t _fat64_mkfs(uint64_t size, mbr_t * mbr) {
 		next = i + 1;
 		if(i == (cluster_tag_size - 1))
 			next = FAT64_CLUSTER_TAG_EOF;
-		_mark_cluster(i,prev,next);
+		_mark_cluster(i+fat64_partition.cluster_tags,prev,next);
 	}
 
 	//create the root directory table
@@ -145,11 +153,38 @@ status_t fat64_close(handle_t file) {
 	f->cluster = FAT64_CLUSTER_TAG_EOF;
 }
 
-status_t fat64_is_directory(handle_t file) {
+status_t fat64_is_directory(handle_t file, uint8_t * ret) {
+	//change the handle to a pointer
+	fat64_file_t * f = (fat64_file_t*)file;
+
+	//test to see if it is a directory
+	*ret = f->entry.flags & FAT64_DIRECTORY_FLAG;
+
+	return E_SUCCESS;
 }
 
 //file functions
 status_t fat64_rm(handle_t file) {
+	//change the handle to a pointer
+	fat64_file_t * f = (fat64_file_t*)file;
+	uint64_t cluster = 0;
+	fat64_cluster_tags_t tags;
+
+	//change the flags for the entry
+	f->entry.flags &= ~FAT64_VALID_FLAG;
+
+	//update the entry
+	update_dir_entry(f);
+
+	//free clusters for file
+	cluster = f->entry.file;
+	while(cluster != FAT64_CLUSTER_TAG_EOF) {
+		get_cluster_tag(cluster, &tags);
+		mark_cluster(cluster, FAT64_CLUSTER_TAG_FREE, FAT64_CLUSTER_TAG_FREE);
+		cluster = tags.next;
+	}
+
+	return E_SUCCESS;
 }
 
 status_t fat64_mv(handle_t file, handle_t dir) {
@@ -189,6 +224,7 @@ status_t fat64_getc(handle_t file, uint8_t * data) {
 status_t fat64_putc(handle_t file, uint8_t data) {
 	//change the handle to a pointer
 	fat64_file_t * f = (fat64_file_t*)file;
+	uint64_t new_cluster;
 
 	//check for bad handle
 	if(f->cluster == FAT64_CLUSTER_TAG_EOF)
@@ -197,11 +233,23 @@ status_t fat64_putc(handle_t file, uint8_t data) {
 	//check to see if EOF
 	if(f->location == FAT64_CLUSTER_SIZE) {
 		//try to obtain a new cluster for the file
+		new_cluster = get_free_cluster();
+
 		//if successful
-		//move to the next cluster in the file
-		//@TODO
-		//if unsuccessful, return EOF
-		return FAT64_EOF;
+		if(new_cluster != FAT64_CLUSTER_TAG_EOF) {
+			//mark the clusters accordingly
+			mark_cluster(f->cluster, f->current_tags.prev, new_cluster);
+			mark_cluster(new_cluster, f->cluster, FAT64_CLUSTER_TAG_EOF);
+			f->current_tags.next = new_cluster;
+
+			//move to the next cluster in the file
+			move_to_next_cluster(f);
+			memset(f->buf, 0, FAT64_CLUSTER_SIZE);
+			f->dirty = 1;
+		} else {
+			//if unsuccessful, return EOF
+			return FAT64_EOF;
+		}
 	}
 
 	//set the data
@@ -221,9 +269,12 @@ status_t fat64_putc(handle_t file, uint8_t data) {
 	}
 
 	//check to see if file size increased
+	if(f->abs_location > f->entry.size) {
 		//if so increase size by one
+		++(f->entry.size);
 		//write out the changed entry
-	//@TODO
+		update_dir_entry(f);
+	}
 
 	return E_SUCCESS;
 }
@@ -256,6 +307,19 @@ status_t fat64_write(handle_t file, uint64_t amount, uint8_t * buf) {
 }
 
 status_t fat64_seek(handle_t file, int64_t offset, uint8_t type) {
+	//change the handle to a pointer
+	fat64_file_t * f = (fat64_file_t*)file;
+
+	//if seeking from the current position
+	if(type == FAT64_SEEK_CUR) {
+		
+	//if seeking to a position into a file
+	} else if(type == FAT64_SEEK_BEG) {
+		open_by_cluster(f, f->entry.file);
+		fat64_seek(file, offset, FAT64_SEEK_CUR);
+	//if seeking from the end of a file
+	} else if(type == FAT64_SEEK_END) {
+	}
 }
 
 status_t fat64_tell(handle_t file, uint64_t * offset) {
@@ -280,11 +344,13 @@ status_t fat64_flush(handle_t file) {
 
 	uint32_t i = 0;
 	for(i = 0; i < 8; ++i)
-		ide_write(8*(f->cluster+1)+i,((uint8_t*)f->buf)+512*i);
+		ide_write(8*(f->cluster)+fat64_partition.partition_location+i,((uint8_t*)f->buf)+512*i);
 
-	//update the modify time
+	//@TODO update the modify time
+	f->entry.time_modified = f->entry.time_modified;
+
 	//write the entry to disk
-	//@TODO
+	update_dir_entry(f);
 }
 
 
@@ -309,17 +375,79 @@ status_t fat64_dir_entry(handle_t dir, uint64_t index, handle_t file) {
 	//set the current cluster tags
 	get_cluster_tag(f->cluster, &(f->current_tags));
 
+	//load in the initial cluster
+	load_cluster(f->entry.file, f->buf);
+
 	//set other initial values
 	f->abs_location = 0;
 	f->location = 0;
-	memset(f->buf, 0, 4096);
 	f->dirty = 0;
 }
 
 status_t fat64_mkdir(handle_t dir, char * name) {
+	//change the handle to a pointer
+	fat64_file_t * d = (fat64_file_t*)dir;
+	fat64_file_t file;
+	uint64_t cluster = get_free_cluster(); //get the first free cluster
+
+	//get the first free directory entry
+	uint64_t free_entry = get_free_dir_entry(d);
+
+	//test to see if either are bad allocations
+	if(cluster == FAT64_CLUSTER_TAG_EOF || free_entry == FAT64_CLUSTER_TAG_EOF)
+		return FAT64_CLUSTER_TAG_EOF;
+
+	//null out the file handle to the new file
+	memset(&file,0,sizeof(fat64_file_t));
+
+	//set up the entry info to be written to disk
+	//@TODO copy name over
+	file.entry.file = cluster;
+	file.entry.parent = d->entry.file;
+	file.entry.size = 0;
+	//@TODO use real time here
+	file.entry.time_created = file.entry.time_accessed = file.entry.time_modified = 0;
+	file.entry.flags = FAT64_VALID_FLAG | FAT64_DIRECTORY_FLAG;
+	file.entry.dir_entry_num = free_entry;
+
+	//mark cluster as used
+	mark_cluster(cluster, FAT64_CLUSTER_TAG_EOF, FAT64_CLUSTER_TAG_EOF);
+
+	//save entry info to disk
+	update_dir_entry(&file);
 }
 
 status_t fat64_touch(handle_t dir, char * name) {
+	//change the handle to a pointer
+	fat64_file_t * d = (fat64_file_t*)dir;
+	fat64_file_t file;
+	uint64_t cluster = get_free_cluster(); //get the first free cluster
+
+	//get the first free directory entry
+	uint64_t free_entry = get_free_dir_entry(d);
+
+	//test to see if either are bad allocations
+	if(cluster == FAT64_CLUSTER_TAG_EOF || free_entry == FAT64_CLUSTER_TAG_EOF)
+		return FAT64_CLUSTER_TAG_EOF;
+
+	//null out the file handle to the new file
+	memset(&file,0,sizeof(fat64_file_t));
+
+	//set up the entry info to be written to disk
+	//@TODO copy name over
+	file.entry.file = cluster;
+	file.entry.parent = d->entry.file;
+	file.entry.size = 0;
+	//@TODO use real time here
+	file.entry.time_created = file.entry.time_accessed = file.entry.time_modified = 0;
+	file.entry.flags = FAT64_VALID_FLAG;
+	file.entry.dir_entry_num = free_entry;
+
+	//mark cluster as used
+	mark_cluster(cluster, FAT64_CLUSTER_TAG_EOF, FAT64_CLUSTER_TAG_EOF);
+
+	//save entry info to disk
+	update_dir_entry(&file);
 }
 
 status_t fat64_rmdir(handle_t dir) {
@@ -334,7 +462,7 @@ uint64_t get_free_cluster(void) {
 	fat64_cluster_tags_t * tags = (fat64_cluster_tags_t*)buf;
 
 	for(i = 0; i < sectors_to_read; ++i) {
-		ide_read(i+8, buf);
+		ide_read(i+8*fat64_partition.cluster_tags+fat64_partition.partition_location, buf);
 		for(j = 0; j < cluster_tags_per_sector; ++j) {
 			if((tags[j].prev == FAT64_CLUSTER_TAG_FREE) &&
 			   (tags[j].next == FAT64_CLUSTER_TAG_FREE))
@@ -366,7 +494,9 @@ void mark_cluster(uint64_t cluster, uint64_t prev, uint64_t next) {
 
 void get_cluster_tag(uint64_t cluster, fat64_cluster_tags_t * tag) {
 	uint32_t cluster_tags_per_sector = SECTOR_SIZE/sizeof(fat64_cluster_tags_t);
-	uint32_t sector_to_use = ((uint32_t)cluster)/cluster_tags_per_sector+8;
+	uint32_t sector_to_use = ((uint32_t)cluster)/cluster_tags_per_sector+
+							 8*fat64_partition.cluster_tags+
+							 fat64_partition.partition_location;
 	uint32_t tag_number = ((uint32_t)cluster)%cluster_tags_per_sector;
 	uint8_t buf[512] = {0};
 	fat64_cluster_tags_t * tags = (fat64_cluster_tags_t*)buf;
@@ -430,9 +560,91 @@ void load_cluster(int64_t cluster, uint8_t * buf) {
 	//loop through the sectors in the cluster
 	for(i = 0; i < sectors_per_cluster; ++i) {
 		//for each sector load it from disk
-		ide_read(8*(cluster+1)+i, &(buf[SECTOR_SIZE*i]));
+		ide_read(8*(cluster+fat64_partition.cluster_tags)+fat64_partition.partition_location+i, &(buf[SECTOR_SIZE*i]));
 	}
 }
 
 void update_dir_entry(fat64_file_t * f) {
+	fat64_file_t d;
+	handle_t dir = (handle_t)(&d);
+
+	//open directory by cluster number
+	open_by_cluster(&d, f->entry.parent);
+
+	//seek to the correct position of the file
+	fat64_seek(dir, sizeof(fat64_dir_entry_t)*f->entry.dir_entry_num, FAT64_SEEK_BEG);
+
+	//write out the entry information
+	fat64_write(dir, sizeof(fat64_dir_entry), (uint8_t *)&(f->entry));
+}
+
+void open_by_cluster(fat64_file_t * f, uint64_t cluster) {
+	//get the cluster tags
+	get_cluster_tag(cluster, &(f->current_tags));
+
+	//null out entry num as we don't know it here
+	f->entry_num = 0;
+
+	//set current cluster
+	f->cluster = cluster;
+
+	//set current file position
+	f->abs_location = 0;
+
+	//set location into current cluster
+	f->location = 0;
+
+	//set dirty to false
+	f->dirty = 0;
+
+	//load in cluster
+	load_cluster(cluster, f->buf);
+}
+
+uint64_t get_free_dir_entry(fat64_file_t * d) {
+	fat64_dir_entry_t dir_entry;
+	uint64_t free_entry = 0;
+	uint64_t new_cluster = 0;
+
+	//seek to the beginning of the file
+	fat64_seek((handle_t)d, 0, FAT64_SEEK_BEG);
+
+	//loop through until you find one
+	while(1) {
+		//read in a directory entry
+		fat64_read((handle_t)d, sizeof(fat64_dir_entry_t), (uint8_t*)&dir_entry);
+
+		//test to see if it is free
+		if(!(dir_entry.flags & FAT64_VALID_FLAG))
+			break;
+
+		//it isn't free, move on to the next
+		++free_entry;
+
+		//test to see if you are at the end of the directory file
+		if(d->abs_location == d->entry.size) {
+			//try to obtain new cluster
+			new_cluster = get_free_cluster();
+
+			//test to see if it is valid
+			if(new_cluster != FAT64_CLUSTER_TAG_EOF) {
+				//mark the clusters accordingly
+				mark_cluster(d->cluster, d->current_tags.prev, new_cluster);
+				mark_cluster(new_cluster, d->cluster, FAT64_CLUSTER_TAG_EOF);
+				d->current_tags.next = new_cluster;
+
+				//move to the next cluster in the file
+				move_to_next_cluster(d);
+
+				//set the cluster to null and dirty
+				memset(d->buf, 0, FAT64_CLUSTER_SIZE);
+				d->dirty = 1;
+			} else {
+				//no free dir_entry
+				return FAT64_CLUSTER_TAG_EOF;
+			}
+		}
+	}
+
+	return free_entry;
 }
