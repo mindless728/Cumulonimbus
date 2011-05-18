@@ -24,11 +24,9 @@
 
 // need the info_t structure
 #include "ulib.h"
+#include "utils.h"
 
 #include "x86arch.h"
-
-#include <types.h>
-#include <status.h>
 
 /*
 ** PRIVATE DEFINITIONS
@@ -38,7 +36,7 @@
 ** PRIVATE DATA TYPES
 */
 
-// system call prototype 
+// system call prototype
 
 //typedef void(*syscall_t)(context_t *);
 
@@ -70,11 +68,14 @@ static syscall_t _syscalls[N_SYSCALLS];
 
 static void _sys_getpid( context_t *context ) {
 
-	//context->eax = _current->pid;
+	//Return process's local ID in eax
+	context->eax = _current->pid.id;
 
 	pid_t* pid_ptr = (pid_t*) ARG(context, 1);
 	//TODO: Make sure pid_ptr is within a valid page owned by _current
-	memcpy(pid_ptr, &_current->pid, sizeof(pid_t));
+	if(pid_ptr != NULL){
+		memcpy(pid_ptr, &_current->pid, sizeof(pid_t));
+	}
 }
 
 /*
@@ -85,11 +86,13 @@ static void _sys_getpid( context_t *context ) {
 
 static void _sys_getppid( context_t *context ) {
 
-	//context->eax = _current->ppid;
+	context->eax = _current->ppid.id;
 
 	pid_t* pid_ptr = (pid_t*) ARG(context, 1);
 	//TODO: Make sure pid_ptr is within a valid page owned by _current
-	memcpy(pid_ptr, &_current->ppid, sizeof(pid_t));
+	if(pid_ptr != NULL){
+		memcpy(pid_ptr, &_current->ppid, sizeof(pid_t));
+	}
 }
 
 /*
@@ -211,8 +214,12 @@ static void _sys_fork( context_t *context ) {
 	// Next, set up the child's PCB.
 
 	//pcb->pid = _next_pid++;
-	_pid_next(&pcb->next);
-	pcb->ppid = _current->pid;
+	_pid_next(&pcb->pid);
+
+	//Inform calling process of child's PID
+
+	//pcb->ppid = _current->pid;
+	_pid_cpy(&pcb->ppid, &_current->pid);
 	pcb->prio = _current->prio;
 	pcb->stack = stack;
 	pcb->screen = _current->screen;
@@ -261,7 +268,7 @@ static void _sys_fork( context_t *context ) {
 	// Set up return values for the parent and child
 
 	pcb->context->eax = 0;
-	context->eax = pcb->pid;
+	context->eax = pcb->pid.id;
 
 	/*
 	** Philosophical issue:  should the child run immediately, or
@@ -343,7 +350,7 @@ static void _sys_readc( context_t *context ) {
 
 		_current->status = BLOCKED;
 
-		key.u = _current->pid;
+		key.u = _current->pid.id;
 		ch = _q_insert( &_reading, (void *) _current, key );
 		if( ch != E_SUCCESS ) {
 			_kpanic( "_sys_read", "insert status %s", ch );
@@ -421,7 +428,9 @@ static void _sys_kill( context_t *context ) {
 
 	// PID we're looking for
 
-	pid = ARG(context,1);
+	//pid = * ((pid_t*)&(ARG(context,1)));
+
+	_pid_cpy(&pid, (pid_t*) &(ARG(context,1)));
 
 	//
 	// Traverse the PCB table looking for this PID
@@ -477,7 +486,7 @@ static void _sys_wait( context_t *context ) {
 	// for the specific child having that PID.
 	//
 
-	if( info->pid > 0 ) {
+	if( info->pid.id > 0 ) {
 
 		//
 		// Waiting for a specific child.  Begin by
@@ -511,7 +520,8 @@ static void _sys_wait( context_t *context ) {
 			pcb = &_pcbs[i];
 
 			// if we find a child, remember it
-			if( pcb->ppid == _current->pid ) {
+			//if( pcb->ppid == _current->pid ) {
+			if(_pid_cmp(&pcb->ppid, &_current->pid) == 0){
 				found = pcb;
 				// if it is a zombie, stop looking
 				if( pcb->state == ZOMBIE ) {
@@ -561,12 +571,14 @@ static void _sys_wait( context_t *context ) {
 
 		// remember the PID and termination status
 
-		info->pid = pcb->pid;
+		//info->pid = pcb->pid;
+		_pid_cpy(&info->pid, &pcb->pid);
 		info->status = pcb->status;
 
 		// clean up the zombie - first, remove it from the queue
 
-		key.u = pcb->pid;
+		//TODO: Verify if the following use of pid_t as key is safe!
+		key.u = pcb->pid.id;
 		stat = _q_remove_by_key( &_zombie, (void **)&pcb, key );
 		if( stat != E_SUCCESS ) {
 			_kpanic( "_sys_wait", "zombie not on queue, %s", stat );
@@ -594,7 +606,8 @@ static void _sys_wait( context_t *context ) {
 	// zombies (yet).  Block this process until that happens.
 	//
 
-	key.u = _current->pid;
+	//TODO: Verify if the following use of pid_t as key is safe!
+	key.u = _current->pid.id;
 
 	_current->state = WAITING;
 
@@ -622,9 +635,10 @@ static void _sys_exit( context_t *context ) {
 	//
 
 	for( pcb = &_pcbs[0]; pcb < &_pcbs[N_PCBS]; ++pcb ) {
-		if( pcb->ppid == _current->pid ) {
+		//if( pcb->ppid == _current->pid ) {
+		if(_pid_cmp(&pcb->ppid, &_current->pid) == 0){
 			// this is one of our children; reparent it to init
-			pcb->ppid = PID_INIT;
+			pcb->ppid.id = PID_INIT;
 		}
 	}
 
@@ -646,7 +660,7 @@ static void _sys_exit( context_t *context ) {
 */
 static void _sys_setscreen( context_t *context ) {
     handle_t sh = ARG(context,1);
-    if( sh >= 0 && sh < NUM_SCREENS && _screens[sh].owner ) {
+    if( sh >= 0 && sh < NUM_SCREENS && _screens[sh].owner.id ) {
         context->eax = _current->screen;
         _current->screen = sh;
     } else {
@@ -693,9 +707,12 @@ static void _sys_openscreen( context_t *context ) {
         screen_t* scr = &_screens[sh];
         
         // set the owner to the current process
-        scr->owner = _current->pid;
-        scr->buf.next_char = &scr->buf;
-        scr->buf.next_space = &scr->buf;
+        //scr->owner = _current->pid;
+	    _pid_cpy(&scr->owner, &_current->pid);
+        scr->kb_buf.next_char = &scr->kb_buf;
+        scr->kb_buf.next_space = &scr->kb_buf;
+        scr->mouse_buf.next_char = &scr->mouse_buf;
+        scr->mouse_buf.next_space = &scr->mouse_buf;
     }
     // return the initialized screen's descriptor or the error code.
     context->eax = sh;
@@ -705,15 +722,15 @@ static void _sys_openscreen( context_t *context ) {
 ** _sys_closescreen - closes the given screen
 */
 static void _sys_closescreen( context_t *context ) {
-    handle_t sh = ARG(context,1);
-    // if the screen is a valid screen descriptor and is open
-    if( sh >= 0 && sh < NUM_SCREENS && _screens[sh].owner ) {
-        //set the owner to 0 to mark the screen as unused
-        _screens[sh].owner = 0;
-        context->eax = _screen_enqueue(sh);
-    } else {
-        context->eax = E_BAD_PARAM;
-    }
+	handle_t sh = ARG(context,1);
+	// if the screen is a valid screen descriptor and is open
+	if( sh >= 0 && sh < NUM_SCREENS && _screens[sh].owner.id != 0 ) {
+		//set the owner to 0 to mark the screen as unused
+		_pid_clear(&_screens[sh].owner);
+		context->eax = _screen_enqueue(sh);
+	} else {
+		context->eax = E_BAD_PARAM;
+	}
 }
 /*
 ** PUBLIC FUNCTIONS
@@ -779,11 +796,10 @@ void _isr_syscall( int vector, int code ) {
 status_t _syscall_init( void ) {
 
 	// Clear syscall table
-	int i=0;
-	for(i; i<N_SYSCALLS; i+){
-		_syscalls[i] = (syscall_t) 0x0;
+	int i;
+	for(i=0; i < N_SYSCALLS; i++){
+		_syscalls[i] = 0x0;
 	}
-
 
 	/*
 	** Set up the syscall jump table (this ensures that we
@@ -818,11 +834,16 @@ status_t _syscall_init( void ) {
 	*/
 
 	c_puts( " syscalls" );
-
 	return E_SUCCESS;
 }
 
-
+/**
+  *	Installs a system call handler
+  *
+  *	@param	func	System call function pointer
+  *	@param	num	Desired system call number
+  *	@return	Returns E_SUCCESS if the handler was successfully installed
+  */
 status_t _syscall_install(syscall_t func, uint8_t num){
 	if(num > N_SYSCALLS){
 		return E_BAD_PARAM;
@@ -837,6 +858,11 @@ status_t _syscall_install(syscall_t func, uint8_t num){
 	return E_SUCCESS;
 }
 
+/**
+  *	Removes an existing system call handler
+  *
+  *	@param	num	Index of syscall handler to remove
+  */
 status_t _syscall_clear(uint8_t num){
 	if(num > N_SYSCALLS){
 		return E_BAD_PARAM;

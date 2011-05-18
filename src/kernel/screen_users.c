@@ -10,6 +10,10 @@
 #include "vesa_demo.h"
 #include "gs_io.h"
 
+//TODO: Make a user space copy of the _pid_* routines
+#include "process.h"
+
+
 /**
  * Represents a sample user that opens a new screen then closes it immediately
  * afterwards.
@@ -143,9 +147,9 @@ void user_vesa_demo( void ) {
  * user.c.
  */
 void spawn_screen_users() {
-    pid_t pid = 0;
+	uint32_t pid;
     #ifdef SPAWN_SCREEN_USER_A
-    pid = fork();
+    pid = fork(NULL);
     if( pid < 0 ) {
         c_printf( "spawn_screen_users: error forking screen_user_a" );
     } else if( pid == 0 ) {
@@ -155,7 +159,7 @@ void spawn_screen_users() {
     }
     #endif
     #ifdef SPAWN_SCREEN_USER_B
-    pid = fork();
+    pid = fork(NULL);
     if( pid < 0 ) {
         c_printf( "spawn_screen_users: error forking screen_user_b" );
     } else if( pid == 0 ) {
@@ -165,7 +169,7 @@ void spawn_screen_users() {
     }
     #endif
     #ifdef SPAWN_SCREEN_USER_C
-    pid = fork();
+    pid = fork(NULL);
     if( pid < 0 ) {
         c_printf( "spawn_screen_users: error forking screen_user_c" );
     } else if( pid == 0 ) {
@@ -175,7 +179,7 @@ void spawn_screen_users() {
     }
     #endif
     #ifdef SPAWN_SCREEN_USER_D
-    pid = fork();
+    pid = fork(NULL);
     if( pid < 0 ) {
         c_printf( "spawn_screen_users: error forking screen_user_d" );
     } else if( pid == 0 ) {
@@ -186,7 +190,7 @@ void spawn_screen_users() {
     #endif
     
     #ifdef SPAWN_VESA_DEMO
-    pid = fork();
+    pid = fork(NULL);
     if( pid < 0 ) {
         //error
     } else if( pid == 0 ) {

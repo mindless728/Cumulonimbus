@@ -1,8 +1,8 @@
 #include <x86arch.h>
-#include <types.h>
 #include "../kernel/support.h"
 #include "../kernel/startup.h"
 #include "../kernel/c_io.h"
+#include "../kernel/screen.h"
 #include "mouse.h"
 
 /**
@@ -13,11 +13,80 @@
  */
 static void _isr_mouse( int vector, int code ) {
     // let's be loud and brag about how awesome the ISR is.    
-    c_printf( "MOUSE: 0x%02x\n", __inb( MOUSE_CMD_PORT )  );
+    uint8_t packet = __inb( MOUSE_CMD_PORT );
+
+    screen_input_buffer_t* cq = &(_screens[active_screen].mouse_buf); 
+    *(cq->next_space) = packet;
+    if( ++(cq->next_space) >= cq->input_buffer + BUFSIZE ) {
+        cq->next_space = cq->input_buffer;
+    }
+
     __outb( PIC_MASTER_CMD_PORT, PIC_EOI );
     __outb( PIC_SLAVE_CMD_PORT, PIC_EOI );
 }
 
+/**
+ * Obtains the next mouse packet from the current process' screen's mouse queue.
+ *
+ * WARNING: This function call blocks.
+ *
+ * @return The next mouse packet.
+ */
+uint8_t get_mouse() {
+    screen_input_buffer_t* cq = &(_screens[_current->screen].mouse_buf); 
+    while( cq->next_char == cq->next_space );
+    uint8_t packet = *cq->next_char;
+    if( ++(cq->next_char) >= cq->input_buffer + BUFSIZE ) {
+        cq->next_char = cq->input_buffer;
+    }
+    return packet;
+}
+
+/**
+ * Clears the mouse's input buffer.
+ */
+void clear_mouse() {
+    screen_input_buffer_t* cq = &(_screens[_current->screen].mouse_buf); 
+    cq->next_char = cq->next_space;
+}
+
+/**
+ * Obtains the x offset of the mouse movement as a 32 bit signed integer.
+ *
+ * @return The x offset of the current mouse packet.
+ */
+int32_t get_x_offset( uint8_t packet1, uint8_t packetpos ) {
+    // was there an overflow? commonly if there is the packet is 
+    // considered bad and ignored   
+    // we check bit 6 in p1 to see if there is an x overflow
+    int overflow = (packet1 & 0x40);
+    if( overflow == 0 ) {
+        // is our offset negative? if so we will want to sign extend the byte
+        // we check bit 4 in p1 to see if the x offset is negative
+        int32_t sign = 0xFFFFFF00 * ((packet1 >> 4 )& 0x1);
+        return (sign | packetpos);
+    }
+    return 0;
+}
+
+/**
+ * Obtains the y offset of the mouse movement as a 32 bit signed integer.
+ *
+ * @return The y offset of the current mouse packet.
+ */
+int32_t get_y_offset( uint8_t packet1, uint8_t packetpos ) {
+    // was there an overflow? commonly if there is the packet is 
+    // considered bad and ignored   
+    // we check bit 7 in p1 to see if there is an x overflow
+    int overflow = (packet1 & 0x80);
+    if( overflow == 0 ) {
+        // is our offset negative? if so we will want to sign extend the byte
+        // we check bit 5 in p1 to see if the x offset is negative
+        int32_t sign = 0xFFFFFF00 * ((packet1 >> 5 )& 0x1);
+        return (sign | packetpos);
+    }
+    return 0;
+}
 
 /**
  * Waits for either the output buffer of the mouse/keyboard controller to be 

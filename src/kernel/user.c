@@ -15,6 +15,7 @@
 #include "user.h"
 #include "screen_users.h"
 #include "gs_io.h"
+#include "../drivers/mouse/mouse.h"
 
 /*
 ** USER PROCESSES
@@ -136,7 +137,7 @@ void user_d( void ) {
 
 	c_puts( "User D running\n" );
 	writec( 'D' );
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		writec( 'd' );
 	} else if( pid == 0 ) {
@@ -162,7 +163,7 @@ void user_d( void ) {
 void user_e( void ) {
 	int i, pid;
 
-	pid = getpid();
+	pid = getpid(NULL);
 	c_printf( "User E (%d) running\n", pid );
 	writec( 'E' );
 	for( i = 0; i < 5 ; ++i ) {
@@ -183,7 +184,7 @@ void user_e( void ) {
 void user_f( void ) {
 	int i, pid;
 
-	pid = getpid();
+	pid = getpid(NULL);
 	c_printf( "User F (%d) running\n", pid );
 	writec( 'F' );
 	for( i = 0; i < 5 ; ++i ) {
@@ -204,7 +205,7 @@ void user_f( void ) {
 void user_g( void ) {
 	int i, pid;
 
-	pid = getpid();
+	pid = getpid(NULL);
 	c_printf( "User G (%d) running\n", pid );
 	writec( 'G' );
 	for( i = 0; i < 5; ++i ) {
@@ -250,7 +251,7 @@ void user_j( void ) {
 	writec( 'J' );
 
 	for( i = 0; i < N_PCBS * 2 ; ++i ) {
-		pid = fork();
+		pid = fork(NULL);
 		if( pid < 0 ) {
 			writec( 'j' );
 		} else if( pid == 0 ) {
@@ -280,7 +281,7 @@ void user_k( void ) {
 	writec( 'K' );
 
 	for( i = 0; i < 3 ; ++i ) {
-		pid = fork();
+		pid = fork(NULL);
 		if( pid < 0 ) {
 			writec( 'k' );
 		} else if( pid == 0 ) {
@@ -316,7 +317,7 @@ void user_l( void ) {
 
 	for( i = 0; i < 3 ; ++i ) {
 		time = gettime();
-		pid[i] = fork();
+		pid[i] = fork(NULL);
 		if( pid[i] < 0 ) {
 			writec( 'l' );
 		} else if( pid[i] == 0 ) {
@@ -333,7 +334,11 @@ void user_l( void ) {
 	// check them in last-to-first order
 	for( i = 2; i >= 0 ; --i ) {
 		c_printf( "User L waiting for child %d\n", pid[i] );
-		info.pid = pid[i];
+		int j=0;
+		for(; j<6; j++){
+			info.pid.host.addr[j] = 0x0;
+		}
+		info.pid.id = pid[i];
 		wait( &info );
 		c_printf( "User L child %d status %d\n", pid[i], info.status );
 	}
@@ -355,7 +360,7 @@ void user_m( void ) {
 
 	c_puts( "User M running\n" );
 	for( i = 0; i < 3; ++i ) {
-		pid[i] = fork();
+		pid[i] = fork(NULL);
 		if( pid[i] < 0 ) {
 			writec( 'm' );
 		} else if( pid[i] == 0 ) {
@@ -383,21 +388,21 @@ void user_n( void ) {
 	int i, pid, ppid;
 	time_t time;
 
-	pid = getpid();
-	ppid = getppid();
+	pid = getpid(NULL);
+	ppid = getppid(NULL);
 	c_printf( "User N (%d) running, parent %d\n", pid, ppid );
 	writec( 'N' );
 
 	for( i = 0; i < 3 ; ++i ) {
 		time = gettime();
-		pid = fork();
+		pid = fork(NULL);
 		if( pid < 0 ) {
 			writec( 'n' );
 		} else if( pid == 0 ) {
 			exec( PRIO_STANDARD, user_x );
 			writec( 'x' );
 			c_printf( "User N, exec of X (%d) failed at %d\n",
-				  getpid(), time );
+				  getpid(NULL), time );
 		} else {
 			c_printf( "User N, exec succeeded at time %d\n", time );
 			sleep( SECONDS_TO_TICKS(30) );
@@ -507,7 +512,7 @@ void user_t( void ) {
 	int priority, prio2;
 	int i, j, pid;
 
-	pid = getpid();
+	pid = getpid(NULL);
 	priority = getprio();
 	c_printf( "User T (%d) running, initial prio %d\n",
 		  pid, priority );
@@ -582,7 +587,7 @@ void user_w( void ) {
 	int pid;
 
 	c_printf( "User W running, " );
-	pid = getpid();
+	pid = getpid(NULL);
 	c_printf( " PID %d\n", pid );
 	for( i = 0; i < 20 ; ++i ) {
 		writec( 'W' );
@@ -605,7 +610,7 @@ void user_x( void ) {
 	int pid;
 
 	c_puts( "User X running, " );
-	pid = getpid();
+	pid = getpid(NULL);
 	c_printf( "PID %d, ", pid );
 
 	for( i = 0; i < 20 ; ++i ) {
@@ -661,9 +666,18 @@ void user_z( void ) {
 }
 
 void user_c_input_test( void ) {
-    while( 1 ) {
-        c_printf( "Input Tester: %c\n", c_getchar() );
-        sleep(10);
+    int pid = fork( NULL );
+    if( pid == 0 ) {
+        while( 1 ) {
+            c_printf( "Keyboard Test: %c\n", c_getchar() );
+        }
+    } else {
+        while( 1 ) {
+            uint8_t pktinfo = get_mouse();
+            uint8_t pktx = get_mouse();
+            uint8_t pkty = get_mouse();
+            c_printf( "Mouse Test: %02x %02x %02x\n", pktinfo, pktx, pkty );
+        }
     }
 }
 
@@ -689,7 +703,7 @@ void idle( void ) {
 	int pid;
 	int priority;
 
-	pid = getpid();
+	pid = getpid(NULL);
 	priority = getprio();
 	c_printf( "Idle (%d) started, prio %08x\n", pid, priority );
 
@@ -718,7 +732,7 @@ void init( void ) {
     switchscreen(sd1);
 #endif
 
-	pid_t pid;
+	uint32_t pid;
 	info_t info;
 
 	c_puts( "Init started\n" );
@@ -729,7 +743,7 @@ void init( void ) {
 	** Always start the idle process first
 	*/
 
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() idle\n" );
 	} else if( pid == 0 ) {
@@ -739,7 +753,7 @@ void init( void ) {
 	}
 
 #ifdef SPAWN_A
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user A\n" );
 	} else if( pid == 0 ) {
@@ -750,7 +764,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_B
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user B\n" );
 	} else if( pid == 0 ) {
@@ -761,7 +775,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_C
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user C\n" );
 	} else if( pid == 0 ) {
@@ -772,7 +786,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_D
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user D\n" );
 	} else if( pid == 0 ) {
@@ -783,7 +797,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_E
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user E\n" );
 	} else if( pid == 0 ) {
@@ -794,7 +808,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_F
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user F\n" );
 	} else if( pid == 0 ) {
@@ -805,7 +819,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_G
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user G\n" );
 	} else if( pid == 0 ) {
@@ -816,7 +830,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_H
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user H\n" );
 	} else if( pid == 0 ) {
@@ -827,7 +841,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_J
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user J\n" );
 	} else if( pid == 0 ) {
@@ -838,7 +852,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_K
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user K\n" );
 	} else if( pid == 0 ) {
@@ -849,7 +863,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_L
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user L\n" );
 	} else if( pid == 0 ) {
@@ -860,7 +874,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_M
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user M\n" );
 	} else if( pid == 0 ) {
@@ -871,7 +885,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_N
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user N\n" );
 	} else if( pid == 0 ) {
@@ -882,7 +896,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_P
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user P\n" );
 	} else if( pid == 0 ) {
@@ -893,7 +907,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_Q
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user Q\n" );
 	} else if( pid == 0 ) {
@@ -904,7 +918,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_R
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user R\n" );
 	} else if( pid == 0 ) {
@@ -915,7 +929,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_S
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user S\n" );
 	} else if( pid == 0 ) {
@@ -926,7 +940,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_T
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user T\n" );
 	} else if( pid == 0 ) {
@@ -937,7 +951,7 @@ void init( void ) {
 #endif
 
 #ifdef SPAWN_C_INPUT_TEST
-	pid = fork();
+	pid = fork(NULL);
 	if( pid < 0 ) {
 		c_puts( "init: can't fork() user CIT\n" );
 	} else if( pid == 0 ) {
@@ -948,7 +962,7 @@ void init( void ) {
 #endif
 
 #ifndef NO_VESA
-    pid = fork();
+    pid = fork(NULL);
     if( pid < 0 ) {
     } else if( pid == 0 ){
         exec(PRIO_STANDARD, user_draw_console );
@@ -966,10 +980,10 @@ void init( void ) {
 	*/
 
 	for(;;) {
-		info.pid = 0;	// wait for anyone
+		info.pid.id = 0;	// wait for anyone
 		wait( &info );
 		c_printf( "Init: process %d exited, status %d\n",
-			  info.pid, info.status );
+			  info.pid.id, info.status );
 	}
 
 	/*

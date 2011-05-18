@@ -1,9 +1,20 @@
+/**
+  * File: gs_io.h
+  * Author: Benjamin David Mayes
+  * Description: Drawing routines for kernel-level applications (though
+  * it is friendly enough to be used in userland until an appropriate wrapper
+  * is created.
+  */
+
 #ifndef GS_IO_H_
 #define GS_IO_H_
 #include "gs_font.h"
 #include "vesa_framebuffer.h"
+// size of the legacy console
 #define LEGACY_SCREEN_WIDTH 80
 #define LEGACY_SCREEN_HEIGHT 25
+
+// size of the font in pixels
 #define FONT_CHAR_WIDTH  12
 #define FONT_CHAR_HEIGHT 16
 
@@ -18,7 +29,7 @@ typedef struct _gs_text_buffer_t {
 } gs_textbuffer_t;
 
 typedef union _gs_frame_buffer_t {
-    pixel_t buffer[1280][1024];
+    pixel_t buffer[1024][1280];
     double_pixel_t dpbuffer[640][1024];
 } gs_framebuffer_t;
 
