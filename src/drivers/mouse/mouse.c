@@ -14,7 +14,6 @@
 static void _isr_mouse( int vector, int code ) {
     // let's be loud and brag about how awesome the ISR is.    
     uint8_t packet = __inb( MOUSE_CMD_PORT );
-    //c_printf( "MOUSE: 0x%02x\n", packet  );
 
     screen_input_buffer_t* cq = &(_screens[active_screen].mouse_buf); 
     *(cq->next_space) = packet;
@@ -36,7 +35,11 @@ static void _isr_mouse( int vector, int code ) {
 uint8_t get_mouse() {
     screen_input_buffer_t* cq = &(_screens[_current->screen].mouse_buf); 
     while( cq->next_char == cq->next_space );
-    return *cq->next_char;
+    uint8_t packet = *cq->next_char;
+    if( ++(cq->next_char) >= cq->input_buffer + BUFSIZE ) {
+        cq->next_char = cq->input_buffer;
+    }
+    return packet;
 }
 
 /**

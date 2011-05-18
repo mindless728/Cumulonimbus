@@ -15,6 +15,7 @@
 #include "user.h"
 #include "screen_users.h"
 #include "gs_io.h"
+#include "../drivers/mouse/mouse.h"
 
 /*
 ** USER PROCESSES
@@ -665,9 +666,18 @@ void user_z( void ) {
 }
 
 void user_c_input_test( void ) {
-    while( 1 ) {
-        c_printf( "Input Tester: %c\n", c_getchar() );
-        sleep(10);
+    int pid = fork( NULL );
+    if( pid == 0 ) {
+        while( 1 ) {
+            c_printf( "Keyboard Test: %c\n", c_getchar() );
+        }
+    } else {
+        while( 1 ) {
+            uint8_t pktinfo = get_mouse();
+            uint8_t pktx = get_mouse();
+            uint8_t pkty = get_mouse();
+            c_printf( "Mouse Test: %02x %02x %02x\n", pktinfo, pktx, pkty );
+        }
     }
 }
 

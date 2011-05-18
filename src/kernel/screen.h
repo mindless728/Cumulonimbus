@@ -9,7 +9,7 @@
 #include "gs_io.h"
 #include "headers.h"
 #define NUM_SCREENS 16
-#define BUFSIZE 200
+#define BUFSIZE 300 // should be a multiple of 3
 
 // the currently active screen (needed to know when to draw to video memory or
 // normal memory
