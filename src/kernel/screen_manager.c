@@ -4,6 +4,8 @@
 
 // The screen the manager uses
 static handle_t manager_screen = -1;
+static int mouse_x = 0;
+static int mouse_y = 0;
 
 /**
  * Initializes the scree manager by allocating a screen.

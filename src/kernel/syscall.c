@@ -708,9 +708,11 @@ static void _sys_openscreen( context_t *context ) {
         
         // set the owner to the current process
         //scr->owner = _current->pid;
-	_pid_cpy(&scr->owner, &_current->pid);
-        scr->buf.next_char = &scr->buf;
-        scr->buf.next_space = &scr->buf;
+	    _pid_cpy(&scr->owner, &_current->pid);
+        scr->kb_buf.next_char = &scr->kb_buf;
+        scr->kb_buf.next_space = &scr->kb_buf;
+        scr->mouse_buf.next_char = &scr->mouse_buf;
+        scr->mouse_buf.next_space = &scr->mouse_buf;
     }
     // return the initialized screen's descriptor or the error code.
     context->eax = sh;

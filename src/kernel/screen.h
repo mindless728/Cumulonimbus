@@ -32,18 +32,21 @@ typedef struct _screen_queue_t {
     uint_t length;
 } screen_queue_t;
 
+// circular queue-type structure used for keyboard and mouse input
 typedef struct _screen_input_buffer_t {
     int8_t input_buffer[BUFSIZE]; // a circular buffer used for storing input
     volatile int8_t* next_char;     //start of the circular buffer
     volatile int8_t* next_space;    //end of the circular buffer
 } screen_input_buffer_t;
 
+
 // the screen data structure itself
 typedef struct _screen_t {
     gs_framebuffer_t fb;
     gs_draw_mode_t draw_mode;
     pid_t owner;
-    screen_input_buffer_t buf;
+    screen_input_buffer_t kb_buf;
+    screen_input_buffer_t mouse_buf;
 } screen_t;
 
 extern screen_t _screens[NUM_SCREENS];
