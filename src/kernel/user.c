@@ -672,11 +672,14 @@ void user_c_input_test( void ) {
             c_printf( "Keyboard Test: %c\n", c_getchar() );
         }
     } else {
+        clear_mouse();
         while( 1 ) {
             uint8_t pktinfo = get_mouse();
             uint8_t pktx = get_mouse();
             uint8_t pkty = get_mouse();
-            c_printf( "Mouse Test: %02x %02x %02x\n", pktinfo, pktx, pkty );
+            uint8_t pktz = get_mouse();
+            c_printf( "Mouse Test: %02x %02x %02x %02x\n", pktinfo, pktx, pkty, pktz );
+            c_printf( "    > x:%4d y:%4d z:%4d\n", get_x_offset(pktinfo,pktx), get_y_offset(pktinfo, pkty), get_z_offset(pktinfo, pktz) );
         }
     }
 }
@@ -726,9 +729,9 @@ void idle( void ) {
 */
 
 void init( void ) {
-#ifndef NO_VESA
     screen_descriptor_t sd1 = openscreen();
     setscreen(sd1);
+#ifndef NO_VESA
     switchscreen(sd1);
 #endif
 

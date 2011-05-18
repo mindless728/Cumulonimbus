@@ -1,3 +1,10 @@
+/**
+ * File: mouse.c
+ * Author: Benjamin David Mayes <bdm8233@rit.edu>
+ * Description: A simple mouse driver. Sadly it's a bit more coupled with the
+ * operating system than I would like.
+ */
+
 #include <x86arch.h>
 #include "../kernel/support.h"
 #include "../kernel/startup.h"
@@ -63,7 +70,12 @@ int32_t get_x_offset( uint8_t packet1, uint8_t packetpos ) {
     if( overflow == 0 ) {
         // is our offset negative? if so we will want to sign extend the byte
         // we check bit 4 in p1 to see if the x offset is negative
-        int32_t sign = 0xFFFFFF00 * ((packet1 >> 4 )& 0x1);
+        int32_t sign; 
+        if( packet1 & 0x10 ) {
+            sign = 0xFFFFFF00;
+        } else {
+            sign = 0;
+        }
         return (sign | packetpos);
     }
     return 0;
@@ -82,10 +94,31 @@ int32_t get_y_offset( uint8_t packet1, uint8_t packetpos ) {
     if( overflow == 0 ) {
         // is our offset negative? if so we will want to sign extend the byte
         // we check bit 5 in p1 to see if the x offset is negative
-        int32_t sign = 0xFFFFFF00 * ((packet1 >> 5 )& 0x1);
+        int32_t sign; 
+        if( packet1 & 0x20 ) {
+            sign = 0xFFFFFF00;
+        } else {
+            sign = 0;
+        }
         return (sign | packetpos);
     }
     return 0;
+}
+
+/**
+ * Obtains the z(scroll) offset of the mouse movement as a 32 bit signed 
+ * integer.
+ *
+ * @return the z offset of the current mouse packet.
+ */
+int32_t get_z_offset( uint8_t packet1, uint8_t packetpos ) {
+    if( packetpos == 0xFF ) {
+        return -1;
+    } else if( packetpos ){
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 /**
@@ -156,22 +189,33 @@ void _mouse_init() {
         mouse_wait(WAIT_READ);
         ch = __inb(MOUSE_CMD_PORT);
     } while( ch != MOUSE_CMD_RESET_SUCCESS ); 
-
     
-    // we want to read the command register, this is done by writing CMD_READ_ENABLE to port MOUSE_DATA_PORT then reading from port MOUSE_CMD_PORT
+    // we want to read the command register, this is done by writing 
+    // CMD_READ_ENABLE to port MOUSE_DATA_PORT then reading from port 
+    // MOUSE_CMD_PORT
     mouse_wait(WAIT_WRITE);
     __outb( MOUSE_DATA_PORT, CMD_READ_ENABLE );
     mouse_wait(WAIT_READ);
     uint8_t status_byte = __inb(MOUSE_CMD_PORT);
 
-    // we want to enable mouse IRQ 12, this is done by setting bit 1 in the command register
+    // we want to enable mouse IRQ 12, this is done by setting bit 1 in the 
+    // command register
     status_byte |= 2;
 
-    // to write to the command register we write MOUSE_CMD_PORT to port MOUSE_DATA_PORT then write the new command register to 0x60
+    // to write to the command register we write MOUSE_CMD_PORT to port 
+    // MOUSE_DATA_PORT then write the new command register to 0x60
     mouse_wait(WAIT_WRITE);
     __outb(MOUSE_DATA_PORT, CMD_WRITE_ENABLE);
     mouse_wait(WAIT_WRITE);
     __outb(MOUSE_CMD_PORT, status_byte );
+
+    mouse_write(0xF3);
+    mouse_write(200);
+    mouse_write(0xF3);
+    mouse_write(100);
+    mouse_write(0xF3);
+    mouse_write(80);
+    mouse_write(0xF3);
 
     // writing 0xF6 to the mouse controller sets the default values
     mouse_write( MOUSE_CMD_DEFAULTS );
