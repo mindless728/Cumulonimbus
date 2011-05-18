@@ -1,3 +1,9 @@
+/**
+ * File: vesa_framebuffer.c
+ * Author: Benjamin David Mayes <bdm8233@rit.edu>
+ * Description: Initializes the vesa framebuffer and some globals with info
+ * about the selected vesa mode.
+ */
 #include "vesa_framebuffer.h"
 #include "vbe_info.h"
 
