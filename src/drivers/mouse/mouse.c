@@ -70,15 +70,14 @@ int32_t get_x_offset( uint8_t packet1, uint8_t packetpos ) {
     if( overflow == 0 ) {
         // is our offset negative? if so we will want to sign extend the byte
         // we check bit 4 in p1 to see if the x offset is negative
-        int32_t sign; 
+        //int32_t sign = packetpos; 
         if( packet1 & 0x10 ) {
-            sign = 0xFFFFFF00;
+            return 0xFFFFFF00 | packetpos;
         } else {
-            sign = 0;
+            return packetpos;
         }
-        return (sign | packetpos);
     }
-    return 0;
+    return 0xDEADBEEF;
 }
 
 /**
@@ -96,13 +95,12 @@ int32_t get_y_offset( uint8_t packet1, uint8_t packetpos ) {
         // we check bit 5 in p1 to see if the x offset is negative
         int32_t sign; 
         if( packet1 & 0x20 ) {
-            sign = 0xFFFFFF00;
+            return 0xFFFFFF00 | packetpos;
         } else {
-            sign = 0;
+            return packetpos;
         }
-        return (sign | packetpos);
     }
-    return 0;
+    return 0xDEADBEEF;
 }
 
 /**
@@ -215,7 +213,6 @@ void _mouse_init() {
     mouse_write(100);
     mouse_write(0xF3);
     mouse_write(80);
-    mouse_write(0xF3);
 
     // writing 0xF6 to the mouse controller sets the default values
     mouse_write( MOUSE_CMD_DEFAULTS );

@@ -29,6 +29,7 @@ static void _cursor_drawer(void) {
         int8_t pktz = get_mouse();
         //gs_puts_at( 0, 0, uitoa(mouse_x) ); 
         //gs_puts_at( 16, 0, uitoa(mouse_y) ); 
+        c_printf( "(%d,%d) ", get_x_offset( pktinfo,pktx ), get_y_offset( pktinfo, pkty ) );
         mouse_x += get_x_offset(pktinfo, pktx);
         if( mouse_x >= 1280 ){ 
             mouse_x = 1279;
