@@ -8,6 +8,7 @@
 
 #ifndef MOUSE_H_
 #define MOUSE_H_
+#include <types.h>
 #define WAIT_READ 0
 #define WAIT_WRITE 1
 
@@ -29,8 +30,12 @@
 #define MOUSE_CMD_ACK 0xFA
 #define MOUSE_CMD_RESET_SUCCESS 0xAA
 
-/**
- * Initializes a PS/2 Mouse and installs an ISR for handling mouse events.
- */
+// initialization routine
 extern void _mouse_init(void);
+
+// obtains the oldest mouse packet
+uint8_t get_mouse(void);
+void clear_mouse(void);
+int32_t get_x_offset( uint8_t, uint8_t );
+int32_t get_y_offset( uint8_t, uint8_t );
 #endif

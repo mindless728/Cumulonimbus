@@ -1,5 +1,4 @@
 #include <x86arch.h>
-#include <types.h>
 #include "../kernel/support.h"
 #include "../kernel/startup.h"
 #include "../kernel/c_io.h"
@@ -14,8 +13,8 @@
  */
 static void _isr_mouse( int vector, int code ) {
     // let's be loud and brag about how awesome the ISR is.    
-    int8_t packet = __inb( MOUSE_CMD_PORT );
-    c_printf( "MOUSE: 0x%02x\n", packet  );
+    uint8_t packet = __inb( MOUSE_CMD_PORT );
+    //c_printf( "MOUSE: 0x%02x\n", packet  );
 
     screen_input_buffer_t* cq = &(_screens[active_screen].mouse_buf); 
     *(cq->next_space) = packet;
@@ -34,7 +33,7 @@ static void _isr_mouse( int vector, int code ) {
  *
  * @return The next mouse packet.
  */
-int8_t get_mouse() {
+uint8_t get_mouse() {
     screen_input_buffer_t* cq = &(_screens[_current->screen].mouse_buf); 
     while( cq->next_char == cq->next_space );
     return *cq->next_char;
@@ -53,7 +52,7 @@ void clear_mouse() {
  *
  * @return The x offset of the current mouse packet.
  */
-int32_t get_x_offset( int8_t packet1, int8_t packetpos ) {
+int32_t get_x_offset( uint8_t packet1, uint8_t packetpos ) {
     // was there an overflow? commonly if there is the packet is 
     // considered bad and ignored   
     // we check bit 6 in p1 to see if there is an x overflow
@@ -72,7 +71,7 @@ int32_t get_x_offset( int8_t packet1, int8_t packetpos ) {
  *
  * @return The y offset of the current mouse packet.
  */
-int32_t get_y_offset( int8_t packet1, int8_t packetpos ) {
+int32_t get_y_offset( uint8_t packet1, uint8_t packetpos ) {
     // was there an overflow? commonly if there is the packet is 
     // considered bad and ignored   
     // we check bit 7 in p1 to see if there is an x overflow
