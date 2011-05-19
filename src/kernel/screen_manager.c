@@ -38,12 +38,25 @@ static void manager_init(void) {
 static void cursor_func(void) {
     // we have to remember the previous info packet in order to correctly do clicks
     int prev_pktinfo;
+    int i = 0;
+    int j = 0;
     while(1) {
-        gs_putc_at( mouse_x, mouse_y, 'L');
+        for( i = 0; i < 6; ++i ) {
+            for( j = 0; j < 6; ++j ) {
+                gs_draw_pixel( mouse_x+i, mouse_y+j, 0xFFFF ^ gs_get_pixel(mouse_x+i, mouse_y+j));
+            }
+        }
+        //gs_putc_at( mouse_x, mouse_y, 0x3);
+        
         int8_t pktinfo = get_mouse();
         int8_t pktx = get_mouse();
         int8_t pkty = get_mouse();
         int8_t pktz = get_mouse();
+        for( i = 0; i < 6; ++i ) {
+            for( j = 0; j < 6; ++j ) {
+                gs_draw_pixel( mouse_x+i, mouse_y+j, 0xFFFF ^ gs_get_pixel(mouse_x+i, mouse_y+j));
+            }
+        }
         // if the new packet is not registering a click but the old one is,
         // clearly a click was just completed by the user!
         if( (pktinfo & 0xF) == 0x8 && (prev_pktinfo & 0xF) == 0x9 ) {
@@ -57,7 +70,7 @@ static void cursor_func(void) {
 
             // we don't want to go to our current screen, it'd be redundant 
             // and causes problems. we also probably don't want to go to a
-            // screen without an owner (TODO: this)
+            // screen without an owner
             if( dst_screen != getscreen() && _pid_cmp(&zero,&_screens[dst_screen].owner)  ) {
                 //c_printf( "(%d,%d)->%d\n", getscreen(), mouse_x, mouse_y, dst_screen );
                 // switch to the selected screen 
@@ -152,7 +165,7 @@ void screen_manager(void) {
                             gs_draw_pixel( c*320 + x, r*256 + y, CREATE_PIXEL( avgR, avgG, avgB ) ); 
                         }
                     }
-                }
+                } 
                 s++;
             }    
         }

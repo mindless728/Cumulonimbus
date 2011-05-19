@@ -676,7 +676,7 @@ void user_input_test( void ) {
         // let's have the parent test keyboard input
         while( 1 ) {
             int c = c_getchar();
-            c_printf( "Keyboard Test: %c\n", c);
+            //c_printf( "Keyboard Test: %c\n", c);
             if( c == '\\' ) {
                 int pid = fork(NULL);
                 if( pid > 0 ) {
@@ -684,7 +684,7 @@ void user_input_test( void ) {
                 }
             }
         }
-    } else {
+    } /*else {
         // lets have the child test mouse input
         clear_mouse();
         while( 1 ) {
@@ -695,7 +695,7 @@ void user_input_test( void ) {
             c_printf( "Mouse Test: %02x %02x %02x %02x\n", pktinfo, pktx, pkty, pktz );
             c_printf( "    > x:%4d y:%4d z:%4d\n", get_x_offset(pktinfo,pktx), get_y_offset(pktinfo, pkty), get_z_offset(pktinfo, pktz) );
         }
-    }
+    }*/
 }
 
 void user_draw_console( void ) {
