@@ -15,6 +15,7 @@
 #include "headers.h"
 #include "version.h"
 
+#include "c_io.h"
 #include "system.h"
 #include "clock.h"
 #include "process.h"

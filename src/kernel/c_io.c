@@ -20,6 +20,7 @@
 #include "support.h"
 #include <x86arch.h>
 #include "screen.h"
+#include "irqs.h"
 
 /*
 ** Video parameters, and state variables
@@ -706,7 +707,8 @@ void c_io_init( void ){
 	/*
 	** Set up the interrupt handler for the keyboard
 	*/
-	__install_isr( INT_VEC_KEYBOARD, __c_keyboard_isr );
+	//__install_isr( INT_VEC_KEYBOARD, __c_keyboard_isr );
+	_interrupt_add_isr(&__c_keyboard_isr, INT_VEC_KEYBOARD);
 }
 
 #ifdef SA_DEBUG
