@@ -27,3 +27,13 @@ src/drivers/mouse/ subdirectory.
 The mouse buffers packets in a circular buffer similar (read: identical, mainly
 so that I could use a pre-existing datatype that I already had) to the one used
 by c_io.
+
+There are some functions in the mouse.c file that extracts out x and y offsets
+that a user program can use to move a mouse around.
+
+The annoying part about this however is that four calls to mouse_get() are
+required for all the packets and there is a very small window of vulnerability
+where the count could get thrown off. Since bit 4 is always 1 in the first
+packet it is easy enough to "sync" the buffer by scanning packets until the
+buffer is empty or a packet with bit 4 set is found followed by two packets
+without this condition
