@@ -41,7 +41,7 @@
 ** uncomment its entry in this list.
 */
 
-#define	SPAWN_A		// writec, exit
+//#define	SPAWN_A		// writec, exit
 //#define	SPAWN_B		// writec, exit
 //#define	SPAWN_C		// writec, exit
 //#define	SPAWN_D		// writec, fork, exec, exit
@@ -51,7 +51,7 @@
 //#define	SPAWN_H		// writec
 
 // no user i
-//#define	SPAWN_J		// writec, fork, exec, exit
+#define	SPAWN_J		// writec, fork, exec, exit
 //#define	SPAWN_K		// writec, sleep, fork, exec, exit
 //#define	SPAWN_L		// writec, sleep, fork, exec, gettime, wait, exit
 //#define	SPAWN_M		// writec, fork, exec, exit

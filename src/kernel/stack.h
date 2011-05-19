@@ -20,8 +20,7 @@
 */
 
 // size of a user stack (in longwords)
-
-#define	STACK_SIZE	0x100000
+#define	STACK_SIZE	0x400
 
 #ifndef __ASM__20103__
 

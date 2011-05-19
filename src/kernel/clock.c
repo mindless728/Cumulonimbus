@@ -88,16 +88,7 @@ void _isr_clock( int vector, int code ) {
 	*/
 
 	if( (_system_time & CLK_SEC_20) == 0 ) {
-		c_printf( "Queue contents @%08x\n", _system_time );
-		_q_dump( "ready[0]", &_ready[0] );
-		_q_dump( "ready[1]", &_ready[1] );
-		_q_dump( "ready[2]", &_ready[2] );
-		_q_dump( "ready[3]", &_ready[3] );
-		_q_dump( "sleep   ", &_sleep );
-		_q_dump( "reading ", &_reading );
-		_q_dump( "waiting ", &_waiting );
-		_q_dump( "zombie  ", &_zombie );
-		_sio_dump();
+		_clock_dump();
 	}
 
 	// select a new current process
@@ -138,4 +129,23 @@ void _clock_init( void ) {
 
 	c_puts( " clock" );
 
+}
+
+/*
+** _clock_dump
+**
+** dumps the queue information
+*/
+
+void _clock_dump(void) {
+	c_printf( "Queue contents @%08x\n", _system_time );
+	_q_dump( "ready[0]", &_ready[0] );
+	_q_dump( "ready[1]", &_ready[1] );
+	_q_dump( "ready[2]", &_ready[2] );
+	_q_dump( "ready[3]", &_ready[3] );
+	_q_dump( "sleep   ", &_sleep );
+	_q_dump( "reading ", &_reading );
+	_q_dump( "waiting ", &_waiting );
+	_q_dump( "zombie  ", &_zombie );
+	_sio_dump();
 }

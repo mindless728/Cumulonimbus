@@ -301,7 +301,6 @@ void _init( void ) {
 	// intialize the mouse
  	_mouse_init();
 
-
 	/*
 	** 20103-SPECIFIC CODE STARTS HERE
 	*/
