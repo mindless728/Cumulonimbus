@@ -29,5 +29,15 @@ In hindsight this wasn't necessary but since it worked fine right off the bat
 I can't say I wasted time taking this approach.
 
 All things considered - the screen system turned out great. It is incredibly
-simple to build more powerful shells or window managers on top of it that 
-further buffer the input. For an effective demo, see the screen_manager function.
+simple to build more powerful shells or window managers on top of that further
+buffer the input. For an effective demo, see the screen_manager function.
+
+The screens system introduced 5 system calls:
+handle_t getscreen();
+handle_t setscreen(handle_t screen); 
+handle_t switchscreen(handle_t screen); 
+handle_t openscreen();
+status_t closescreen();
+
+For more information about these system calls look them up in the 
+syscall/screen directory.
