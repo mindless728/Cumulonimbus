@@ -34,11 +34,11 @@ mac_address_t* _hosts_get_address(char* name){
 	int index = 0;
 	while(_dsl_hosts[index].name[0] != 0x00){
 		if(strcmp(_dsl_hosts[index].name, name) == 0){
-			break;
+			return &_dsl_hosts[index].address;
 		}
 		index++;
 	}
-	return &_dsl_hosts[index].address;
+	return NULL;
 }
 
 

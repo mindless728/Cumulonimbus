@@ -105,6 +105,8 @@ status_t _knet_process_frame(ethframe_t* frame){
 void _knet_syscall_sendmsg(context_t* context){
 	message_t* msg = ARG(context, 1);
 
+	c_printf("INFO: _knet_syscall_sendmsg - Enter\n");
+
 	_pid_cpy(&msg->sender, &_current->pid);
 	context->eax = _knet_send_msg(msg);
 }
@@ -131,6 +133,6 @@ status_t _knet_send_msg(message_t* msg){
 
 	memcpy( &frame.data[(sizeof(ctp_header_t))], msg, sizeof(message_t));
 
-	c_printf("INFO: sendmsg - Sending message size=%d to host=%s", msg->length, _hosts_get_hostname(&msg->dest.host));
+	c_printf("INFO: sendmsg - Sending message size=%d to host=%s\n", msg->length, _hosts_get_hostname(&msg->dest.host));
 	return i8255x_driver_transmit(&frame, sizeof(ethframe_t), TRUE);
 }

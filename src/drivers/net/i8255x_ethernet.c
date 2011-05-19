@@ -165,6 +165,10 @@ status_t i8255x_driver_transmit(uint8_t* frame, uint16_t size, boolean_t blockin
 
 	i8255x_write_cu_cmd(SCB_CMD_CUC_START, (uint32_t)_i8255x_device.tx_buffer_base);
 
+	//NOTE: The following is a HACK
+        //_i8255x_device.csr_bar->general_ptr = (uint32_t)_i8255x_device.tx_buffer_base;
+        //_i8255x_device.csr_bar->command |= INTEL_ETH_SCB_CMD_RUC_MASK & (SCB_CMD_CUC_START << INTEL_ETH_SCB_CMD_RUC_SHIFT);
+
 	return E_SUCCESS;
 }
 

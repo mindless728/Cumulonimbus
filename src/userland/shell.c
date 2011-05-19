@@ -1,6 +1,7 @@
 #include "shell.h"
 #include <kernel/gs_io.h>
 #include <kernel/user.h>
+#include <kernel/process.h>
 #include <kernel/screen_manager.h>
 #include <drivers/fat64/fat64.h>
 
@@ -26,6 +27,7 @@ void new_line();
 void _cmd_ls();
 void _cmd_touch();
 void _cmd_rm();
+void _cmd_send(void);
 
 void shell() {
 	//get a handle to a screen
@@ -66,7 +68,7 @@ void shell() {
 
 		//network commands
 		} else if(!strcmp(buf, cmd_send)) {
-			sendmsg(NULL);
+			_cmd_send();
 
 		//other commands
 		} else if(!strcmp(buf, cmd_home)) {
@@ -158,4 +160,38 @@ void _cmd_rm() {
 	if(!fat64_dir_entry(cur_dir, entry_num, file)) {
 		fat64_rm(file);
 	}
+}
+
+void _cmd_send(void) {
+	char desthost[255] = {0};
+
+	gs_puts_at(FONT_CHAR_WIDTH*scr_x,FONT_CHAR_HEIGHT*scr_y,"Host: ", GS_DRAW_MODE_FLAT);
+	scr_x = 7;
+	get_input(desthost);
+
+	mac_address_t* addr = _hosts_get_address(desthost);
+
+	if(addr == NULL){
+		gs_puts_at(FONT_CHAR_WIDTH*scr_x,FONT_CHAR_HEIGHT*scr_y,"ERROR: Unknown host", GS_DRAW_MODE_FLAT);
+		new_line();
+		return;
+	}
+
+	message_t msg;
+
+	int i;
+	for(i=0; i<6; i++){
+		msg.dest.host.addr[i] = addr->addr[i];
+	}
+
+	msg.dest.id = getpid(NULL);
+
+	gs_puts_at(FONT_CHAR_WIDTH*scr_x,FONT_CHAR_HEIGHT*scr_y,"Message: ", GS_DRAW_MODE_FLAT);
+	scr_x = 10;
+	get_input((char*)msg.data);
+
+	msg.length = strlen(msg.data);
+
+	switchscreen(0);
+	sendmsg(&msg);
 }

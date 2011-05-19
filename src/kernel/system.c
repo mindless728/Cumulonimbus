@@ -29,6 +29,7 @@
 #include "../drivers/mouse/mouse.h"
 
 #include "hosts.h"
+#include "knet.h"
 
 // need init() address
 #include "user.h"
@@ -375,6 +376,8 @@ void _init( void ) {
 
 	c_puts("Initializng clock...\n");
 	_clock_init();
+
+	_knet_init();
 
 
 	//initialize ioports allocation
