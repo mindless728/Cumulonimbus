@@ -140,6 +140,11 @@ status_t i8255x_driver_transmit(uint8_t* frame, uint16_t size, boolean_t blockin
 		data[i] = frame[i];
 	}
 
+	int index=6;
+	for(i=0; i<6; i++){
+		data[i+index] = _i8255x_device.mac_addr[i];
+	}
+
 	memset(_i8255x_device.tx_buffer_base, 0x00, sizeof(intel_tx_buffer_t));
 	//_i8255x_device.tx_buffer_base->tbd_addr = 0xffffffff;
 	_i8255x_device.tx_buffer_base->tbd_addr = 0x0;
