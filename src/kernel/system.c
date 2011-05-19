@@ -336,9 +336,9 @@ void _init( void ) {
 	//initialize ioports allocation
 	_ioports_init();
 	//initialize IDE subsystem
-	//_ide_init();
+	_ide_init();
 	//initialize FAT64 subsystem
-	//_fat64_init();
+	_fat64_init();
 
 	/*
 	** Create the initial system ESP
