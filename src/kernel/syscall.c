@@ -655,6 +655,11 @@ static void _sys_exit( context_t *context ) {
 
 }
 
+static void _sys_yield( context_t* context ){
+	//Select a new process
+	_dispatch();
+}
+
 /*
 ** _sys_setscreen - sets the screen of the calling process
 */
@@ -822,6 +827,7 @@ status_t _syscall_init( void ) {
 	_syscalls[ SYS_gettime ]  =  _sys_gettime;
 	_syscalls[ SYS_setprio ]  =  _sys_setprio;
 	_syscalls[ SYS_settime ]  =  _sys_settime;
+	_syscalls[ SYS_yield   ]  =  _sys_yield;
 	// screen system calls
 	_syscalls[ SYS_setscreen ] = _sys_setscreen;
 	_syscalls[ SYS_getscreen ] = _sys_getscreen;

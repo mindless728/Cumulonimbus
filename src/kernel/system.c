@@ -20,11 +20,14 @@
 #include "process.h"
 #include "bootstrap.h"
 #include "syscall.h"
+#include "irqs.h"
 #include "sio.h"
 #include "scheduler.h"
 #include "screen.h"
 #include "ioports.h"
 #include "../drivers/mouse/mouse.h"
+
+#include "hosts.h"
 
 // need init() address
 #include "user.h"
@@ -35,9 +38,16 @@
 //Include driver implementations
 #include <drivers/pci/pci.h>
 
+#include <drivers/net/i8255x_ethernet.h>
+
 //include ide and fat64
 #include <drivers/ide/ide.h>
 #include <drivers/fat64/fat64.h>
+
+
+char* _hostname = "UNKNOWN";
+
+mac_address_t _local_mac = {{0x00,0x00,0x00,0x00,0x00,0x00}};
 
 /*
 ** PUBLIC FUNCTIONS
@@ -281,6 +291,7 @@ void _init( void ) {
 
 	_interrupt_init();	//Initialize interrupt subsystem
 
+
 	/*
 	** Console I/O system.
 	*/
@@ -296,7 +307,41 @@ void _init( void ) {
 	__delay(100);
 #endif
 
+
 	c_puts_at( 0, 7, "================================================================================" );
+
+	//Initialize PCI subsystem
+	_pci_init();
+
+
+#ifndef NO_NET
+	//Initialize intel network device
+	//TODO: Simplify this terrible HACK!!!
+	_interrupt_enable(FALSE);		//Make sure interrupts are off
+	_interrupt_swap_idt(TRUE);		//Switch to basic IDT saving/restore
+	status_t driver_status = _i8255x_driver_init();			//Setup the driver
+	_interrupt_swap_idt(FALSE);		//Switch back to complex IDT
+	_interrupt_enable(FALSE);		//Make sure interrupts are still off!
+
+	if(driver_status != E_SUCCESS){
+		c_printf("\nCRITICAL: i8255x_driver failed init with error=0x%x\n", driver_status);
+		__panic("I'm scared?");
+	}
+
+	c_printf("INFO: _init - i8255x ethernet driver READY!\n");
+
+	if(_hosts_isknown(&_i8255x_device.mac_addr) != FALSE){
+		_hostname = _hosts_get_hostname(&_i8255x_device.mac_addr);
+
+		int i;
+		for(i=0; i<ETH_ALEN; i++){
+			_local_mac.addr[i] = _i8255x_device.mac_addr.addr[i];
+		}
+	}
+#endif
+
+	c_printf_at(20, 7, "Hostname: %s", _hostname);
+
 
 	// intialize the mouse
  	_mouse_init();
@@ -326,11 +371,10 @@ void _init( void ) {
 	_vesa_init();
 	c_puts("Initializing scheduler...\n");
 	_sched_init();
+
 	c_puts("Initializng clock...\n");
 	_clock_init();
 
-	//Initialize PCI subsystem
-	_pci_init();
 
 	//initialize ioports allocation
 	_ioports_init();
@@ -338,6 +382,7 @@ void _init( void ) {
 	_ide_init();
 	//initialize FAT64 subsystem
 	_fat64_init();
+
 
 	/*
 	** Create the initial system ESP
@@ -356,7 +401,15 @@ void _init( void ) {
 	_interrupt_add_isr(&_isr_clock, INT_VEC_TIMER);
 	_interrupt_add_isr(&_isr_syscall, INT_VEC_SYSCALL);
 	_interrupt_add_isr(&_isr_sio, INT_VEC_SERIAL_PORT_1);
-	c_puts("DONE\n");
+	c_printf("DONE\n");
+
+
+	/*c_printf("STARTING INTERRUPTS\n");
+	_interrupt_enable(TRUE);
+
+	c_printf("WAITING 5 SECONDS\n");
+	__delay(500);
+	_interrupt_enable(FALSE);*/
 
 
 	/*__install_isr( INT_VEC_TIMER, _isr_clock );
@@ -385,8 +438,10 @@ void _init( void ) {
 	** Next, set up various PCB fields
 	*/
 
-	pcb->pid.id  = PID_INIT;
-	pcb->ppid.id = PID_INIT;
+	_pid_next(&pcb->pid);
+	_pid_cpy(&pcb->ppid, &pcb->pid);
+	//pcb->pid.id  = PID_INIT;
+	//pcb->ppid.id = PID_INIT;
 	pcb->prio = PRIO_MAXIMUM;
 	pcb->screen = 0; //TODO: properly initialize
 

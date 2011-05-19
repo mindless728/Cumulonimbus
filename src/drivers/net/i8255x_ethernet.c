@@ -5,11 +5,16 @@
 #include <kernel/utils.h>
 #include <kernel/support.h>
 #include <kernel/irqs.h>
+#include <kernel/knet.h>
 #include "i8255x_ethernet.h"
+
+
+#define BUILD_DEBUG
+#define DEBUG_INTEL_NIC 1
 
 intel_ethernet_t _i8255x_device;
 
-status_t i8255x_driver_init(void){
+status_t _i8255x_driver_init(void){
 
 	pci_device_list_t* list = &_pci_devices;
 
@@ -32,7 +37,7 @@ status_t i8255x_driver_init(void){
 	//Determine value of base address register
 	_i8255x_device.csr_bar = (intel_csr_t*) _pci_base_addr(_i8255x_device.pci->config.headers.type0.bar[0]);
 
-	#if DEBUG
+	#ifdef BUILD_DEBUG
 	_pci_print_config(_i8255x_device.pci);
 	#endif
 
@@ -45,11 +50,13 @@ status_t i8255x_driver_init(void){
 		return E_NOT_FOUND;
 	}
 
-	#if DEBUG
+	#ifdef BUILD_DEBUG
 	c_printf("IRQ: 0x%x\n", _i8255x_device.irq_vector);
 	c_printf("Command: 0x%x\n", _i8255x_device.csr_bar->command);
 	c_printf("Status:  0x%x\n", _i8255x_device.csr_bar->status);
 	#endif
+
+	_interrupt_enable(TRUE);
 
 	//Setup Control Unit and Receive Unit base addresses
 	i8255x_write_cu_cmd(SCB_CMD_CUC_LD_CU_BASE, 0x00000000);
@@ -83,22 +90,25 @@ status_t i8255x_driver_init(void){
 
 			//Parse out device's MAC address
 			if((dump.header.status & ACTION_HDR_STATUS_OK) != 0){
-				for(j=0; j<6; j++){
-					_i8255x_device.mac_addr[j] = dump.buffer[39+j];
+				for(j=0; j<ETH_ALEN; j++){
+					_i8255x_device.mac_addr.addr[j] = dump.buffer[39+j];
 				}
 			}
 			else{
 				c_printf("ERROR: Failed to dump data!\n");
+				_interrupt_enable(FALSE);
 				return E_ERROR;
 			}
 		}
 		else{
 			c_printf("ERROR: Dump command failed to complete!\n");
+			_interrupt_enable(FALSE);
 			return E_ERROR;
 		}
 	}
 	else{
 		c_printf("ERROR: Waited too long for command to complete!\n");
+		_interrupt_enable(FALSE);
 		return E_TIMEOUT;
 	}
 
@@ -106,24 +116,25 @@ status_t i8255x_driver_init(void){
 	//Setup Receive Frame Area
 	i8255x_setup_rfa();
 
-	#if DEBUG
+	#ifdef BUILD_DEBUG
 	c_printf("Command: 0x%x\n", _i8255x_device.csr_bar->command);
 	c_printf("Status:  0x%x\n", _i8255x_device.csr_bar->status);
 
 	__delay_ms(150);
 
-	c_clearscreen();
+	//c_clearscreen();
 
 	c_printf("MAC Address = ");
 	for(j=0; j<6; j++){
 
 		if(j==5){
-			c_printf("%x\n", _i8255x_device.mac_addr[j]);
+			c_printf("%x\n", _i8255x_device.mac_addr.addr[j]);
 			continue;
 		}
-		c_printf("%x:", _i8255x_device.mac_addr[j]);
+		c_printf("%x:", _i8255x_device.mac_addr.addr[j]);
 	}
 	c_printf("Receiving frames now... \n");
+	__delay(500);
 	#endif
 
 	//Allocate transmit buffer
@@ -133,6 +144,7 @@ status_t i8255x_driver_init(void){
 	//Enable frame reception
 	i8255x_write_ru_cmd(SCB_CMD_RUC_START, (uint32_t)_i8255x_device.rx_buffer_base);
 
+	_interrupt_enable(FALSE);
 	return E_SUCCESS;
 }
 
@@ -256,7 +268,7 @@ void i8255x_driver_isr(int vector, int code){
 
 		if((_i8255x_device.csr_bar->status & INTEL_ETH_SCB_STATUS_FR) != 0){
 			//Recieve unit finished recieving frame
-			//c_printf("INFO: _i8255x_driver_isr - FR\n");
+			c_printf("INFO: _i8255x_driver_isr - FR\n");
 
 			//TODO: Wake up sleeping process thats waiting for packet info
 
@@ -276,6 +288,9 @@ void i8255x_driver_isr(int vector, int code){
 				_i8255x_device.rx_count++;
 
 				//DELIVER FRAME HERE
+
+				_knet_process_frame((ethframe_t*) &rx_buf->frame[0]);
+
 				struct ethframe* frame = (ethframe_t*) &rx_buf->frame[0];
 				if(frame->header.proto == htons(0xcafe)){
 					c_printf("MSG: %s\n", frame->data);
@@ -322,7 +337,7 @@ void i8255x_driver_isr(int vector, int code){
 
 		if((_i8255x_device.csr_bar->status & INTEL_ETH_SCB_STATUS_RNR) != 0){
 			//Receive unit Not Ready
-			#if DEBUG_INTEL_NIC
+			#ifdef DEBUG_INTEL_NIC
 			c_printf("INFO: _i8255x_driver_isr - RNR\n");
 			#endif
 			_i8255x_device.ru_transition = TRUE;
@@ -333,7 +348,7 @@ void i8255x_driver_isr(int vector, int code){
 
 		if((_i8255x_device.csr_bar->status & INTEL_ETH_SCB_STATUS_MDI) != 0){
 			//MDI Write complete
-			#if DEBUG_INTEL_NIC
+			#ifdef DEBUG_INTEL_NIC
 			c_printf("INFO: _i8255x_driver_isr - MDI\n");
 			#endif
 			handled=TRUE;
@@ -341,7 +356,7 @@ void i8255x_driver_isr(int vector, int code){
 
 		if((_i8255x_device.csr_bar->status & INTEL_ETH_SCB_STATUS_FCP) != 0){
 			//Flow Control Pause
-			#if DEBUG_INTEL_NIC
+			#ifdef DEBUG_INTEL_NIC
 			c_printf("INFO: _i8255x_driver_isr - FCP\n");
 			#endif
 			handled=TRUE;
@@ -349,8 +364,8 @@ void i8255x_driver_isr(int vector, int code){
 		}
 
 		if(handled != TRUE){
-			#if DEBUG_INTEL_NIC
-			c_printf("ERROR: _i8255x_driver_isr - Unexpected status 0x%x\n", _i8255x_device.csr_bar->status);
+			#ifdef DEBUG_INTEL_NIC
+			//c_printf("ERROR: _i8255x_driver_isr - Unexpected status 0x%x\n", _i8255x_device.csr_bar->status);
 			#endif
 		}
 
@@ -368,7 +383,7 @@ status_t i8255x_driver_setup_irq(void){
 	status_t status;
 	int i = 0;
 	for(; i < MAX_IRQ_FIND_TRIES; i++){
-		#if DEBUG_INTEL_NIC
+		#ifdef DEBUG_INTEL_NIC
 		c_printf("INFO: i8255x_driver_setup_irq - Try %d\n", i);
 		#endif
 
@@ -377,11 +392,13 @@ status_t i8255x_driver_setup_irq(void){
 		_i8255x_device.irq_vector = -1;
 		_i8255x_device.wrong_irq = FALSE;
 
-		//NOTE: The following my cause issues if interrupts are not enabled
-		//asm("cli");	//Turn off maskable interrupts
+		_interrupt_enable(FALSE);	//Turn off maskable interrupts
 
 		_i8255x_device.csr_bar->status |= INTEL_ETH_SCB_STATUS_ACK_MASK;
 
+		#ifdef DEBUG_INTEL_NIC
+		c_printf("DEBUG: i8255x_driver_setup_irq - Triggering interrupt\n");
+		#endif
 		//Trigger software interrupt
 		_i8255x_device.csr_bar->command |= INTEL_ETH_SCB_CMD_TRIGGER_SI;
 		status = _interrupt_wait(1000, &i8255x_driver_isr);
@@ -389,11 +406,11 @@ status_t i8255x_driver_setup_irq(void){
 		if(status != E_SUCCESS){
 			c_printf("ERROR: i8255x_driver_setup_irq - Wait was inconclusive\n");
 			//i=0;
-			__delay_ms(1000);
+			//__delay_ms(1000);
 			continue;
 		}
 
-		#if DEBUG_INTEL_NIC
+		#ifdef DEBUG_INTEL_NIC
 		c_printf("Initial Status:  0x%x\n", _i8255x_device.csr_bar->status);
 		#endif
 
@@ -420,19 +437,25 @@ status_t i8255x_driver_setup_irq(void){
 			if(status != E_SUCCESS){
 				__panic("ERROR: i8255x_driver_setup_irq - Failed to remove ISR\n");
 			}
+
+			c_printf("Unexpected during wait\n");
 			continue;
 		}
 
+		c_printf("Made it HERE\n");
+
 		//Test out our ISR
+		_interrupt_enable(TRUE);
 		_i8255x_device.csr_bar->command |= INTEL_ETH_SCB_CMD_TRIGGER_SI;
 		__delay_ms(10);
 		//c_printf("Final Status:  0x%x\n", _i8255x_device.csr_bar->status);
 		if(_i8255x_device.csr_bar->status == 0x0){
+			_interrupt_enable(FALSE);
 			return E_SUCCESS;
 		}
 	}
 
-	if(i == 3){
+	if(i >= 3){
 		//Try using the default IRQ
 		_i8255x_device.irq_vector = I8255X_DEFAULT_IRQ;
 		status = _interrupt_add_isr(&i8255x_driver_isr, I8255X_DEFAULT_IRQ);
@@ -444,20 +467,24 @@ status_t i8255x_driver_setup_irq(void){
 		}
 
 		//Test out our ISR
+		_interrupt_enable(TRUE);
 		_i8255x_device.csr_bar->command |= INTEL_ETH_SCB_CMD_TRIGGER_SI;
 		__delay_ms(10);
 		//c_printf("Final Status:  0x%x\n", _i8255x_device.csr_bar->status);
 		if(_i8255x_device.csr_bar->status == 0x0){
-			#if DEBUG
+			#ifdef BUILD_DEBUG
 			c_printf("INFO: i8255x_driver_setup_irq -  Using default IRQ\n");
 			#endif
+			_interrupt_enable(FALSE);
 			return E_SUCCESS;
 		}
 
 		_interrupt_del_isr(&i8255x_driver_isr, I8255X_DEFAULT_IRQ);
 
+		_interrupt_enable(FALSE);
 		return E_TOO_MANY_TRIES;
 	}
 
+	_interrupt_enable(FALSE);
 	return status;
 }

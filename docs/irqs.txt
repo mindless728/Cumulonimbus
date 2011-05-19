@@ -1,0 +1,9 @@
+Overiview of updates to interrupt subsystem
+
+Topcis:
+	Overhaul of isr_stubs.S
+		void _interrupt_swap_idt(boolean_t basic);
+
+	Probing for interrupts
+	ISR accounting
+	ISR Chains

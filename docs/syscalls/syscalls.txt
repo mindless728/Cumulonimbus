@@ -1,0 +1,7 @@
+Overview of syscalls updates
+
+Additions:
+	status_t _syscall_install(syscall_t func, uint8_t num);
+
+	status_t _syscall_clear(uint8_t num);
+	

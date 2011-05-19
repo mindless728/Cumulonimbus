@@ -71,7 +71,7 @@ static void generate_hues(double parameter, pixel_t hues[] ) {
  * @param parameter The hue generation parameter.
  */
 void print_mandelbrot( double parameter ) {
-    static pixel_t hues[NUM_ITERS+1];
+    pixel_t hues[NUM_ITERS+1];
     double zoom = 128.0;
     double xoffset = 0;
     double yoffset = 0;
@@ -193,7 +193,7 @@ void print_mandelbrot( double parameter ) {
  * @param cy The imaginary part of the complex parameter.
  */
 void print_julia( double parameter, double cx, double cy ) {
-    static pixel_t hues[NUM_ITERS+1];
+    pixel_t hues[NUM_ITERS+1];
     double zoom = 128.0;
     double xoffset = 0;
     double yoffset = 0;

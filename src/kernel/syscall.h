@@ -55,9 +55,11 @@
 #define SYS_openscreen      19
 #define SYS_closescreen      20
 
+#define SYS_yield	30
 #define SYS_ide_read 0x70
 #define SYS_ide_write 0x71
 #define SYS_fat64_user_init 0x69
+
 
 // number of "real" system calls
 

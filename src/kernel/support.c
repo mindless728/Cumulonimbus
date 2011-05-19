@@ -59,8 +59,8 @@ typedef struct	{
 **		to ever occur.  It handles them by calling panic.
 */
 static void __default_unexpected_handler( int vector, int code ){
-	//c_printf( "\nVector=0x%02x, code=%d\n", vector, code );
-	//__panic( "Unexpected interrupt" );
+	c_printf( "\nVector=0x%02x, code=%d\n", vector, code );
+	__panic( "Unexpected interrupt" );
 	if( vector >= 0x20 && vector < 0x30 ){
 		__outb( PIC_MASTER_CMD_PORT, PIC_EOI );
 		if( vector > 0x28 ){
@@ -109,10 +109,10 @@ static void __default_expected_handler( int vector, int code ){
 */
 static void __default_mystery_handler( int vector, int code ){
 
-#ifdef REPORT_MYSTERY_INTS
+//#ifdef REPORT_MYSTERY_INTS
 	c_printf( "\nMystery interrupt!\nVector=0x%02x, code=%d\n",
 		  vector, code );
-#endif
+//#endif
 
 	__outb( PIC_MASTER_CMD_PORT, PIC_EOI );
 
@@ -163,7 +163,7 @@ static void init_pic( void ){
 ** Arguments:	The entry number (vector number), and a pointer to the
 **		stub (NOT the ISR routine) that handles that interrupt.
 */
-static void set_idt_entry( int entry, void ( *handler )( void ) ){
+void set_idt_entry( int entry, void ( *handler )( void ) ){
 	IDT_Gate *g = (IDT_Gate *)IDT_ADDRESS + entry;
 
 	g->offset_15_0 = (int)handler & 0xffff;
@@ -200,7 +200,7 @@ static void init_idt( void ){
 	*/
 	__install_isr( INT_VEC_KEYBOARD, __default_expected_handler );
 	__install_isr( INT_VEC_TIMER,    __default_expected_handler );
-	__install_isr( INT_VEC_MYSTERY,  __default_mystery_handler );
+	//__install_isr( INT_VEC_MYSTERY,  __default_mystery_handler );
 }
 
 /*

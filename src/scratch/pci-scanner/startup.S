@@ -40,6 +40,7 @@ begtext:
 	.globl	_start
 
 _start:
+	cli
 	movb	$0x00, %al	/* re-enable NMIs (bootstrap */
 	outb	$0x70		/*   turned them off) */
 
