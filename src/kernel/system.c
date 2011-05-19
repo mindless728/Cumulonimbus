@@ -314,6 +314,7 @@ void _init( void ) {
 	_pci_init();
 
 
+#ifndef NO_NET
 	//Initialize intel network device
 	//TODO: Simplify this terrible HACK!!!
 	_interrupt_enable(FALSE);		//Make sure interrupts are off
@@ -337,6 +338,7 @@ void _init( void ) {
 			_local_mac.addr[i] = _i8255x_device.mac_addr.addr[i];
 		}
 	}
+#endif
 
 	c_printf_at(20, 7, "Hostname: %s", _hostname);
 
