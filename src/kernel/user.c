@@ -14,8 +14,10 @@
 
 #include "user.h"
 #include "screen_users.h"
+#include "screen_manager.h"
 #include "gs_io.h"
 #include <drivers/fat64/fat64.h>
+#include "../drivers/mouse/mouse.h"
 
 /*
 ** USER PROCESSES
@@ -64,7 +66,7 @@ void user_m( void ); void user_n( void ); void user_o( void );
 void user_p( void ); void user_q( void ); void user_r( void );
 void user_s( void ); void user_t( void ); void user_u( void );
 void user_v( void ); void user_w( void ); void user_x( void );
-void user_y( void ); void user_z( void ); void user_c_input_test( void );
+void user_y( void ); void user_z( void ); void user_input_test( void );
 void user_draw_console( void );
 
 /*
@@ -672,11 +674,36 @@ void user_z( void ) {
 
 }
 
-void user_c_input_test( void ) {
-    while( 1 ) {
-        c_printf( "Input Tester: %c\n", c_getchar() );
-        sleep(10);
-    }
+/**
+ * Continuous polls both the keyboard and the mouse buffers for input that it
+ * will read an interpret.
+ */
+void user_input_test( void ) {
+    int pid = fork( NULL );
+    if( pid == 0 ) {
+        // let's have the parent test keyboard input
+        while( 1 ) {
+            int c = c_getchar();
+            //c_printf( "Keyboard Test: %c\n", c);
+            if( c == '\\' ) {
+                int pid = fork(NULL);
+                if( pid > 0 ) {
+                    exec( PRIO_STANDARD, screen_manager );
+                }
+            }
+        }
+    } /*else {
+        // lets have the child test mouse input
+        clear_mouse();
+        while( 1 ) {
+            uint8_t pktinfo = get_mouse();
+            uint8_t pktx = get_mouse();
+            uint8_t pkty = get_mouse();
+            uint8_t pktz = get_mouse();
+            c_printf( "Mouse Test: %02x %02x %02x %02x\n", pktinfo, pktx, pkty, pktz );
+            c_printf( "    > x:%4d y:%4d z:%4d\n", get_x_offset(pktinfo,pktx), get_y_offset(pktinfo, pkty), get_z_offset(pktinfo, pktz) );
+        }
+    }*/
 }
 
 void user_draw_console( void ) {
@@ -724,9 +751,9 @@ void idle( void ) {
 */
 
 void init( void ) {
-#ifndef NO_VESA
     screen_descriptor_t sd1 = openscreen();
     setscreen(sd1);
+#ifndef NO_VESA
     switchscreen(sd1);
 #endif
 
@@ -948,13 +975,13 @@ void init( void ) {
 	}
 #endif
 
-#ifdef SPAWN_C_INPUT_TEST
+#ifdef SPAWN_INPUT_TEST
 	pid = fork(NULL);
 	if( pid < 0 ) {
-		c_puts( "init: can't fork() user CIT\n" );
+		c_puts( "init: can't fork() user IT\n" );
 	} else if( pid == 0 ) {
-		exec( PRIO_STANDARD, user_c_input_test );
-		c_puts( "init: can't exec user CIT\n" );
+		exec( PRIO_STANDARD, user_input_test );
+		c_puts( "init: can't exec user IT\n" );
 		exit( X_FAILURE );
 	}
 #endif

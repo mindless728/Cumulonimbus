@@ -9,7 +9,7 @@
 #
 # User supplied files
 #
-U_USER_C_SRC = deadspace.o fpu.c gs_io.c gs_font.c vesa_framebuffer.c vbe_info.c screen.c vesa_demo.c screen_users.c atomic.c mutex.c screen_manager.c
+U_USER_C_SRC = fpu.c gs_io.c deadspace.c vesa_framebuffer.c atomic.c mutex.c vbe_info.c gs_font.c screen.c vesa_demo.c screen_users.c screen_manager.c
 U_C_SRC = kalloc.c irqs.c clock.c klibc.c queue.c process.c scheduler.c sio.c \
 	  stack.c syscall.c system.c ulibc.c user.c utils.c ioports.c ethernet.c
 

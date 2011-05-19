@@ -49,6 +49,7 @@
 //#define	SPAWN_F		// writec, getpid, sleep, exit
 //#define	SPAWN_G		// writec, getpid, sleep, exit
 //#define	SPAWN_H		// writec
+
 // no user i
 //#define	SPAWN_J		// writec, fork, exec, exit
 //#define	SPAWN_K		// writec, sleep, fork, exec, exit
@@ -56,6 +57,7 @@
 //#define	SPAWN_M		// writec, fork, exec, exit
 //#define	SPAWN_N		// writec, sleep, fork, exec, gettime, getpid, getppid, exit
 // no user O
+
 //#define	SPAWN_P		// writec, sleep, gettime
 //#define	SPAWN_Q		// writec, bogus, exit
 //#define	SPAWN_R		// writec, readc, sleep, exit
@@ -73,7 +75,6 @@
 // user Y:  write, sleep, exit
 // user Z:  write, exit
 //#define SPAWN_C_INPUT_TEST
-
 
 /*
 ** Prototypes for externally-visible routines
