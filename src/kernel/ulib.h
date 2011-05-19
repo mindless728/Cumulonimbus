@@ -268,6 +268,16 @@ handle_t openscreen( void );
 
 status_t closescreen( handle_t sh );
 
+
+/*
+** sendmsg - Send a CTP-IPC message to the specified host
+** usage:	message_t msg;
+**		msg.dest = dest;
+**		sendmsg(&msg);
+** Returns a status code to indicate if sending was successful
+**/
+status_t sendmsg(message_t* msg);
+
 /*
 ** bogus - a bogus system call, for testing our syscall ISR
 **

@@ -47,5 +47,7 @@ status_t _knet_getmsg(pid_t dest, message_t* msg_buf);
   */
 boolean_t _knet_has_msg(pid_t dest);
 
+void _knet_syscall_sendmsg(context_t* context);
+
 #endif	//K_NET_H
 
