@@ -59,4 +59,6 @@ void __delay( int tenths );
 
 void __delay_ms(int milli);
 
+void set_idt_entry( int entry, void ( *handler )( void ) );
+
 #endif

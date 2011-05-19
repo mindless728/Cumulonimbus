@@ -48,7 +48,7 @@ void* memset(void* buf, uint8_t value, int size){
 		}
 
 		//loops = size & 0x3;
-		i = loops << 2;		//Multiply by for to get current index
+		i = loops << 2;		//Multiply by four to get current index
 
 		for(; i<size; i++){
 			((uint8_t*)buf)[i] = value;

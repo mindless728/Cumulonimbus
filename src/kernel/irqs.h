@@ -25,6 +25,25 @@ typedef struct isr_action{
 status_t _interrupt_init(void);
 
 
+
+void _interrupt_swap_idt(boolean_t basic);
+
+
+/**
+  *	Safely enables or disables the interrupt subsystem
+  *
+  *	@param	enable	State to place the IRQ subsystem
+  */
+void _interrupt_enable(boolean_t enable);
+
+
+/**
+  *	Determines if the interrupt subsystem is enabled
+  *
+  *	@return	Returns a TRUE or FALSE to indicate if interrupts are enabled
+  */
+boolean_t _interrupt_is_enabled(void);
+
 /**
   *	Waits at most timeout_ms milliseconds for an interrupt to be triggered
   *	on the specified vector.

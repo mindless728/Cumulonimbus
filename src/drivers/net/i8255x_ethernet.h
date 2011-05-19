@@ -6,6 +6,8 @@
 #include <types.h>
 #include <kernel/ethernet.h>
 
+//status_t _knet_process_frame(ethframe_t* frame);
+
 #define I8255X_DEFAULT_IRQ	0x2b
 
 #define I8255X_TX_BUFFER_COUNT	5
@@ -93,7 +95,7 @@ typedef struct intel_ethernet{
 	int irq_vector;
 	boolean_t wrong_irq;
 
-	uint8_t mac_addr[6];
+	mac_address_t mac_addr;
 
 	boolean_t cu_transition;
 	boolean_t ru_transition;
@@ -108,6 +110,8 @@ typedef struct intel_ethernet{
 	uint32_t rx_count;
 } intel_ethernet_t;
 
+extern intel_ethernet_t _i8255x_device;
+
 /**
   *	Searches the PCI bus for an Intel 8255x network interface
   *	and initializes the device if found. Also registers the
@@ -116,7 +120,7 @@ typedef struct intel_ethernet{
   *	@return	Returns an error code if the device initialization
   *		fails for any reason.
   */
-status_t i8255x_driver_init(void);
+status_t _i8255x_driver_init(void);
 
 /**
   *	Dynamically determins the IRQ number of the i8255x NIC and

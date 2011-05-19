@@ -94,6 +94,8 @@ void _kpanic( char *mod, char *msg, status_t code ) {
 	// Pretty simple, actually
 	//
 
+	//gs_draw_console();
+
 	__panic( msg );
 
 }

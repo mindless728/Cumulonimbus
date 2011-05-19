@@ -9,11 +9,12 @@
 #define ETH_DATA_LEN    1500            /* Max. octets in payload */
 
 
-
+#define PROTO_CTP		(0x0C79)
 #define IP_PROTO_ICMP		(0x01)
 #define IP_PROTO_UDP		(0x11)
 #define IP_PROTO_TCP		(0x06)
 
+#define CTP_IPC	0x1f1f
 
 /*
  *	This is an Ethernet frame header.
@@ -60,7 +61,6 @@ typedef struct udp_header{
 
 
 extern mac_address_t _local_mac;
-
 
 uint32_t htonl(uint32_t hostlong);
 
