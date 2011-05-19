@@ -116,7 +116,7 @@ static void screen_user_d(void) {
     if( s >= 0 ) {
         c_printf( "screen_user_d: sucessfully opened screen %d\n", s );
         setscreen(s);
-        gs_puts_at(0,0,"screen_user_d says, \"Hello, Cumulonimbus User!\""); 
+        gs_puts_at(0,0,"screen_user_d says, \"Hello, Cumulonimbus User!\"", GS_DRAW_MODE_FLAT); 
         while( 1 ) {
             sleep(1000);
             switchscreen(s); 
