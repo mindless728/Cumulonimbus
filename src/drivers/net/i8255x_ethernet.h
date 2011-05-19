@@ -93,7 +93,7 @@ typedef struct intel_ethernet{
 	int irq_vector;
 	boolean_t wrong_irq;
 
-	uint8_t mac_addr[6];
+	mac_address_t mac_addr[6];
 
 	boolean_t cu_transition;
 	boolean_t ru_transition;
@@ -107,6 +107,8 @@ typedef struct intel_ethernet{
 	intel_tx_buffer_t* tx_buffer_base;
 	uint32_t rx_count;
 } intel_ethernet_t;
+
+extern intel_ethernet_t _i8255x_device;
 
 /**
   *	Searches the PCI bus for an Intel 8255x network interface

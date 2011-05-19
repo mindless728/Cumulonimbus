@@ -88,8 +88,8 @@ status_t _i8255x_driver_init(void){
 
 			//Parse out device's MAC address
 			if((dump.header.status & ACTION_HDR_STATUS_OK) != 0){
-				for(j=0; j<6; j++){
-					_i8255x_device.mac_addr[j] = dump.buffer[39+j];
+				for(j=0; j<ETH_ALEN; j++){
+					_i8255x_device.mac_addr->addr[j] = dump.buffer[39+j];
 				}
 			}
 			else{
@@ -126,10 +126,10 @@ status_t _i8255x_driver_init(void){
 	for(j=0; j<6; j++){
 
 		if(j==5){
-			c_printf("%x\n", _i8255x_device.mac_addr[j]);
+			c_printf("%x\n", _i8255x_device.mac_addr->addr[j]);
 			continue;
 		}
-		c_printf("%x:", _i8255x_device.mac_addr[j]);
+		c_printf("%x:", _i8255x_device.mac_addr->addr[j]);
 	}
 	c_printf("Receiving frames now... \n");
 	__delay(500);

@@ -27,6 +27,8 @@
 #include "ioports.h"
 #include "../drivers/mouse/mouse.h"
 
+#include "hosts.h"
+
 // need init() address
 #include "user.h"
 
@@ -36,9 +38,15 @@
 //Include driver implementations
 #include <drivers/pci/pci.h>
 
+#include <drivers/net/i8255x_ethernet.h>
+
 //include ide and fat64
 #include <drivers/ide/ide.h>
 #include <drivers/fat64/fat64.h>
+
+
+char* _hostname = "UNKNOWN";
+
 
 /*
 ** PUBLIC FUNCTIONS
@@ -343,15 +351,15 @@ void _init( void ) {
 	if(driver_status != E_SUCCESS){
 		c_printf("\nCRITICAL: i8255x_driver failed init with error=0x%x\n", driver_status);
 		__panic("I'm scared?");
-		//_kpanic("_init", "PANIC %s\n", driver_status);
 	}
 
 	c_printf("INFO: _init - i8255x ethernet driver READY!\n");
-	//__panic("Too young to die");
 
-	__delay(200);
+	if(_hosts_isknown(&_i8255x_device.mac_addr) != FALSE){
+		_hostname = _hosts_get_hostname(&_i8255x_device.mac_addr);
+	}
 
-
+	c_printf_at(20, 7, "Hostname: %s", _hostname);
 	c_puts("Initializng clock...\n");
 	_clock_init();
 
