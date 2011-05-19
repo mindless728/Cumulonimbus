@@ -201,7 +201,10 @@ static void _sys_fork( context_t *context ) {
 		context->eax = -1;
 		return;
 	}
-
+	//**********************************
+	int * cr3 = init_process_pagemem();
+	
+/*
 	if( _stack_alloc( &stack ) != E_SUCCESS ) {
 		stat = _pcb_free( pcb );
 		if( stat != E_SUCCESS ) {
@@ -210,6 +213,7 @@ static void _sys_fork( context_t *context ) {
 		context->eax = -1;
 		return;
 	}
+*/
 
 	// Next, set up the child's PCB.
 
@@ -221,12 +225,13 @@ static void _sys_fork( context_t *context ) {
 	//pcb->ppid = _current->pid;
 	_pid_cpy(&pcb->ppid, &_current->pid);
 	pcb->prio = _current->prio;
-	pcb->stack = stack;
+	pcb->stack = 600<<22; //***********************
 	pcb->screen = _current->screen;
 
 	// Duplicate the parent's stack for the child.
-
+	//TODO enable paging
 	_memcpy( stack, _current->stack, sizeof( stack_t ) );
+	//TODO disable paging
 
 	/*
 	** We duplicated the parent's stack contents, which means that
@@ -238,6 +243,9 @@ static void _sys_fork( context_t *context ) {
 	** three pointers to correct them.
 	*/
 
+	//********************************
+	//I don't think we need to do this anymore
+	/*
 	offset = (void *) pcb->stack - (void *) _current->stack;
 
 	// Next, update the pointers.
@@ -245,6 +253,7 @@ static void _sys_fork( context_t *context ) {
 	pcb->context = (context_t *) ((void *)_current->context + offset);
 	pcb->context->esp += offset;
 	pcb->context->ebp += offset;
+	*/
 
 	/*
 	** IMPORTANT NOTE

@@ -23,6 +23,7 @@
 
 #include "process.h"
 #include "stack.h"
+#include "phy_vert_mem_init.h"
 
 /*
 ** Start of C-only definitions

@@ -57,6 +57,8 @@ context_t *_setup_stack( stack_t *stack, uint32_t entry ) {
 	uint32_t *tmp;
 	context_t *context;
 
+	
+
 	/*
 	** Set up the initial stack contents for a (new) user process.
 	**
@@ -339,6 +341,8 @@ void _init( void ) {
 	_ide_init();
 	//initialize FAT64 subsystem
 	_fat64_init();
+	//initialize paging subsystem
+	init_paging();//**************************
 
 	/*
 	** Create the initial system ESP
