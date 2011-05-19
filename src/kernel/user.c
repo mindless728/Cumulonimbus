@@ -14,6 +14,7 @@
 
 #include "user.h"
 #include "screen_users.h"
+#include "screen_manager.h"
 #include "gs_io.h"
 #include "../drivers/mouse/mouse.h"
 
@@ -64,7 +65,7 @@ void user_m( void ); void user_n( void ); void user_o( void );
 void user_p( void ); void user_q( void ); void user_r( void );
 void user_s( void ); void user_t( void ); void user_u( void );
 void user_v( void ); void user_w( void ); void user_x( void );
-void user_y( void ); void user_z( void ); void user_c_input_test( void );
+void user_y( void ); void user_z( void ); void user_input_test( void );
 void user_draw_console( void );
 
 /*
@@ -665,13 +666,26 @@ void user_z( void ) {
 
 }
 
-void user_c_input_test( void ) {
+/**
+ * Continuous polls both the keyboard and the mouse buffers for input that it
+ * will read an interpret.
+ */
+void user_input_test( void ) {
     int pid = fork( NULL );
     if( pid == 0 ) {
+        // let's have the parent test keyboard input
         while( 1 ) {
-            c_printf( "Keyboard Test: %c\n", c_getchar() );
+            int c = c_getchar();
+            c_printf( "Keyboard Test: %c\n", c);
+            if( c == '\\' ) {
+                int pid = fork(NULL);
+                if( pid > 0 ) {
+                    exec( PRIO_STANDARD, screen_manager );
+                }
+            }
         }
     } else {
+        // lets have the child test mouse input
         clear_mouse();
         while( 1 ) {
             uint8_t pktinfo = get_mouse();
@@ -953,13 +967,13 @@ void init( void ) {
 	}
 #endif
 
-#ifdef SPAWN_C_INPUT_TEST
+#ifdef SPAWN_INPUT_TEST
 	pid = fork(NULL);
 	if( pid < 0 ) {
-		c_puts( "init: can't fork() user CIT\n" );
+		c_puts( "init: can't fork() user IT\n" );
 	} else if( pid == 0 ) {
-		exec( PRIO_STANDARD, user_c_input_test );
-		c_puts( "init: can't exec user CIT\n" );
+		exec( PRIO_STANDARD, user_input_test );
+		c_puts( "init: can't exec user IT\n" );
 		exit( X_FAILURE );
 	}
 #endif

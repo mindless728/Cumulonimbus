@@ -11,14 +11,13 @@
 
 // an array containing hues to color the fractals
 #define NUM_ITERS 2000
-pixel_t hues[NUM_ITERS+1];
 
 /**
  * Generates the hues based on the given parameter.
  *
  * @param The power that the percentage given by n/NUM_ITERS is raised to.
  */
-static void generate_hues(double parameter) {
+static void generate_hues(double parameter, pixel_t hues[] ) {
     int i = 0;
     // calculate the color for every iteration
     for(; i < NUM_ITERS; ++i ) {
@@ -72,13 +71,14 @@ static void generate_hues(double parameter) {
  * @param parameter The hue generation parameter.
  */
 void print_mandelbrot( double parameter ) {
+    static pixel_t hues[NUM_ITERS+1];
     double zoom = 128.0;
     double xoffset = 0;
     double yoffset = 0;
     int done = 0;
     hues[NUM_ITERS] = 0.0;
     while( 1 ) {
-        generate_hues(parameter);
+        generate_hues(parameter, hues);
         done = 0;
         while( !done ) {
             int r,c;
@@ -142,8 +142,6 @@ void print_mandelbrot( double parameter ) {
                     break;
                 case 'x':
                     switchscreen(0);
-                    exit(X_SUCCESS);
-                    return;
                     break;
             }
         }
@@ -159,13 +157,14 @@ void print_mandelbrot( double parameter ) {
  * @param cy The imaginary part of the complex parameter.
  */
 void print_julia( double parameter, double cx, double cy ) {
+    static pixel_t hues[NUM_ITERS+1];
     double zoom = 128.0;
     double xoffset = 0;
     double yoffset = 0;
     int done = 0;
     hues[NUM_ITERS] = 0.0;
     while( 1 ) {
-        generate_hues(parameter);
+        generate_hues(parameter, hues);
         done = 0;
         while( !done ) {
             int r,c;
@@ -241,11 +240,7 @@ void print_julia( double parameter, double cx, double cy ) {
                     break;
                 case 'x':
                     switchscreen(0);
-                    exit(X_SUCCESS);
-                    return;
                     break;
-                case 'z':
-                    _draw_screen_manager();
             }
         }
     }

@@ -58,6 +58,18 @@ void clear_mouse() {
 }
 
 /**
+ * Obtains the number of mouse packets in the input buffer
+ *
+ * @return the number of input packets in the input buffer
+ */
+int size_mouse() {
+    screen_input_buffer_t* cq = &(_screens[_current->screen].mouse_buf); 
+    int offset = cq->next_char - cq->next_space;
+    return offset >= 0 ? offset : BUFSIZE + offset;
+}
+
+
+/**
  * Obtains the x offset of the mouse movement as a 32 bit signed integer.
  *
  * @return The x offset of the current mouse packet.
@@ -77,7 +89,7 @@ int32_t get_x_offset( uint8_t packet1, uint8_t packetpos ) {
             return packetpos;
         }
     }
-    return 0xDEADBEEF;
+    return 0;
 }
 
 /**
@@ -100,7 +112,7 @@ int32_t get_y_offset( uint8_t packet1, uint8_t packetpos ) {
             return packetpos;
         }
     }
-    return 0xDEADBEEF;
+    return 0;
 }
 
 /**

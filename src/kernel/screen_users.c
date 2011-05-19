@@ -128,18 +128,39 @@ static void screen_user_d(void) {
     }
 }
 
-void user_vesa_demo( void ) {
-    c_getchar();
+static void julia_demo(void) {
     handle_t s = openscreen();
-    handle_t sold = getscreen();
-    c_printf( "VESA DEMO handle: %d, formerly: %d\n", s, sold );
-    c_getchar();
     setscreen(s);
-    switchscreen(s);
+    print_julia( 1.00, .25, .25 );
+}
+
+static void mandel_demo(void) {
+    handle_t s = openscreen();
+    setscreen(s);
+    print_mandelbrot( 0.25 );
+}
+
+static void hue_demo(void) {
+    handle_t s = openscreen();
+    setscreen(s);
     print_hue_test();
-    c_getchar();
-    print_julia( 1.5, .25, .25 );
-    exit(X_SUCCESS);
+    while( 1 ) {
+        c_getchar();
+        switchscreen(0);
+    }
+}
+void user_vesa_demo( void ) {
+    int pid = fork(NULL);
+    if( pid > 0 ) {
+        exec( PRIO_STANDARD, julia_demo );
+    } else {
+        pid = fork(NULL);
+        if( pid > 0 ) {
+            exec( PRIO_STANDARD, mandel_demo );
+        } else {
+            exec( PRIO_STANDARD, hue_demo );
+        }
+    }
 }
 
 /**

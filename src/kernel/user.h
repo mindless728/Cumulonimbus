@@ -72,8 +72,7 @@
 // user X:  write, getpid, exit
 // user Y:  write, sleep, exit
 // user Z:  write, exit
-#define SPAWN_C_INPUT_TEST
-
+#define SPAWN_INPUT_TEST // tests mouse and keyboard input/multiplexing
 
 /*
 ** Prototypes for externally-visible routines

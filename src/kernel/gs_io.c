@@ -19,8 +19,8 @@ void gs_draw_console() {
     unsigned short* mem = VIDEO_BASE_ADDR;
     int r = 0;
     int c = 0;
-    for( r = 0; r < LEGACY_SCREEN_HEIGHT; ++r ) {
-        for( c = 0; c < LEGACY_SCREEN_WIDTH; ++c ) {
+    for( r = 0; r < 64; ++r ) {
+        for( c = 0; c < 106; ++c ) {
             gs_putc_at( c*FONT_CHAR_WIDTH, r*FONT_CHAR_HEIGHT, (char)(*mem & 0xFF) );
             ++mem;
         }
