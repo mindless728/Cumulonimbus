@@ -1,4 +1,6 @@
 ==== Mouse Driver ====
+Author:Benjamin Mayes
+
 A simple driver for any PS/2 mouse that supports Microsoft Intellisense 
 emulation (you can read this as "any mouse from the last two decades")
 

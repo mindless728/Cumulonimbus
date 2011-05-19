@@ -1,0 +1,33 @@
+==== Screens ====
+Author: Benjamin Mayes
+
+The screens system allows for each process to have its own dedicated drawing
+space and input buffers (both mouse and keyboard).
+
+Features
+1. Using system calls a user process is able to get and set its own screen, 
+   open and close new screens, and switch to a different active (shown 
+   screen). Children inherit their parent's screen (users spawned by init
+   share screen 0).
+        Religious Debate: It may not be desirable to have children share a
+        screen in this fashion.
+2. Input multiplexing: Keyboard and mouse input will be buffered in the buffer
+   of the active screen. c_io functions involving keyboard input and the io
+   functions for getting mouse input take advantage of these buffers.
+        Issues: I broke c_io keyboard input when interrupts are not enabled.
+        This was not a large enough issue to fix though.
+3. Output multiplexing: gs_io functions will write to the correct buffer.
+   (if the screen is not the active screen it'll write to a framebuffer in
+    memory, if it is the active screen it'll write the video memory)
+        Issues: There is a small window of vulnerability where the wrong buffer
+        will be written to if a buffer is swapped in/out of memory at the wrong
+        time. I wrote mutexes to try to solve this but afterwards I realized
+        that there was no good approach to fixing this issue using them.
+
+Under the hood the active and inactive handles are queued up for easy access.
+In hindsight this wasn't necessary but since it worked fine right off the bat
+I can't say I wasted time taking this approach.
+
+All things considered - the screen system turned out great. It is incredibly
+simple to build more powerful shells or window managers on top of it that 
+further buffer the input. For an effective demo, see the screen_manager function.
