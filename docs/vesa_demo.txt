@@ -1,0 +1,19 @@
+==== vesa_demos ====
+Author: Benjamin Mayes
+
+To initially test the VESA driver I wrote a few graphics demos. I only left
+the ones that were most complex in the operating system. The code for these
+demos were from before we had the baseline operating system.
+
+void print_hue_test();
+    Prints a hue test on the screen to verify that hues are working correctly.
+    This demo shows that colors are created correctly and show off the marvels
+    of having thousands of colors (16 bits).
+
+void print_mandelbrot( double param );
+    The Mandelbrot demo that everybody has seen. Somehow this demo, despite its
+    simplicity, generates extremely complex images that show off the "power" of
+    the driver.
+
+void print_julia( double param, double cx, double cy );
+    Similar to the Mandelbrot demo but more interactive.

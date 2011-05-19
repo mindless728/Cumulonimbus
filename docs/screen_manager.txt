@@ -1,0 +1,9 @@
+==== screen manager ====
+Author: Benjamin Mayes
+
+Displays all active screens and allows the user to use the mouse to select a
+screen to switch to. While the user is selecting a screen the screens are
+continuosly redrawn.
+
+This is a wonderful example of what can be accomplished in the userland of our
+operating system.
