@@ -118,6 +118,8 @@ void _isr_clock( int vector, int code );
 
 void _clock_init( void );
 
+void _clock_dump(void);
+
 #endif
 
 #endif

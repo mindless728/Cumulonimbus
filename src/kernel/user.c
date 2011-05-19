@@ -107,8 +107,8 @@ void user_b( void ) {
 		writec( 'B' );
 	}
 
-	c_puts( "User B exiting\n" );
-	exit( X_SUCCESS );*/
+	c_puts( "User B exiting\n" );*/
+	exit( X_SUCCESS );
 
 }
 
@@ -267,6 +267,7 @@ void user_j( void ) {
 	}
 
 	c_puts( "User J exiting\n" );
+	_clock_dump();
 	exit( X_SUCCESS );
 
 }
