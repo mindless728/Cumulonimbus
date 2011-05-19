@@ -1,0 +1,15 @@
+﻿Christopher Kaczmarek (cmk1412)
+System II
+Project Documentation for Paging Implementation
+
+Name
+sys_page_fault
+
+Synopsis
+#include syscall.c
+
+static void _sys_page_fault( context_t *context )
+
+Description:
+
+This is the syscall called during the handling of a page fault exception (IRQ 0xE0.)   The linear address at fault is available in register cr2 along with a number of flags to help identify the problem.   Page faults are triggered when accessing unallocated memory, out of bounds memory, writing to a read protected page and accessing a supervisor page while CPL is greater then zero.   Although we did not encounter them just doing 32 bit paging other errors exist but are only applicable when using PAE or higher.  Despite the cause of the error in our implantation the result is the same regardless, the offending process is zombified (terminated.)

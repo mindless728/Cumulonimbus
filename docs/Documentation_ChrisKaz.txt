@@ -1,0 +1,72 @@
+﻿Christopher Kaczmarek (cmk1412)
+System II
+Project Documentation for Paging Implementation
+
+
+
+Description:
+
+This is the syscall called during the handling of a page fault exception (IRQ 0xE0.)   The linear address at fault is available in register cr2 along with a number of flags to help identify the problem.   Page faults are triggered when accessing unallocated memory, out of bounds memory, writing to a read protected page and accessing a supervisor page while CPL is greater then zero.   Although we did not encounter them just doing 32 bit paging other errors exist but are only applicable when using PAE or higher.  Despite the cause of the error in our implantation the result is the same regardless, the offending process is zombified (terminated.)
+
+Paging
+
+The implantation of paging in the OS is done using the simple 32 bit method supported by x86 processors.   In this method every user process gets its own page directory hierarchy to support its own private virtual memory space.   This of course prevents a process from effecting the memory of another process (with out meaning to, methods like shared memory objects exists.)   A paging directory for the kernel was never implanted as each process gets to be identity mapped to the kernel (along with identity mapping to the PCI interrupts.)   This avoids have to constantly disable paging during interrupts and is very noninvasive in terms of leaving the kernel unaffected.   Page swapping was not implanted as it was not the focus of this implantation and was outside the scope of the work was being done.   Thus there is no page file on hard disk and programs have only physical ram to use.   The identity mapped kernel is accessed with supervisor permission only, preventing user processes from altering critical kernel memory.    Each program lives in its own virtual world memory wise, having access to 2.5 gigs (of the 4 gigs of memory) as most portions of ram are left reserved or belong to the kernel.   Pages are allocated in 4k sections.
+
+Every time a process is forked its virtual memory is copied another directory mapped in the exact same way.  Thus both processes have there own private space and cannot effect each others memory addresses.   Stack and data sections currently have a static size of 4k (one page) for simplicity.   The executable sections of code are copied out of a chunk of the kernel and copied into memory.   Because at the time of this implantation all user land process where internal functions of the kernel they where difficult to isolate, thus this less efficient method that might copy more then it needs was used.   
+
+The physical memory allocates memory in a bitmap using a hybrid next-fit and first fit method.   The performance increase from this nominal and mostly present during the first run through allocation of memory but it was an interesting experiment.   Doubly linked list methods where investigated but it proved difficult to make a dynamic physical memory allocator that also needed dynamic amounts of physical memory allocated.   Although the look up times for allocating memory is mostly linear, de-allocation is automatic.
+
+
+Code files:
+
+Physical memory allocation is handled int he file phys_mem.c.  This handles all physical memory allocation.
+
+Paging and virtual memory is handled in page_mem.c .   This builds, creates and maintains page hierarchies.
+
+phy_vert_mem_init.h handles the initlization of a paging as a whole and toggling the registers to enable the processor.
+
+Changes where also made is system.c and in the exec and fork calls.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Experience:
+
+I learned a lot during this project, sometimes the hard way.   The physical memory allocator gave me no problems what so ever.   This is mostly do to the fact that I could test and simulate it on a machine running Linux and visually test the bitmap to debug the operations.   The greatest problem came with the virtual memory allocator.   The entire system appears simple at first but branches out into more then a couple subsystems I was unable to anticipate till the integration phase.   The biggest problem during integration was the unforeseen propagation of effect that paging has on kernel level functions.   Already by week 6 our OS was getting more complicated and kernel level calls where intertwined in user processes.   As we became more dependent on this web of dependencies I realized by week 8 that implementing virtual memory also required isolating user processes from doing anything but user level things.   By this point it was taken for granted the ability to use kernel calls and globals in user programs.   Without a very hackish implementation it would be rather invasive to change the way we did things so I created a branch from a stable version where I could safely work on the allocator.   Around week 9 I started to work on getting my own test user files compiled at separate a.out files for dynamic loading.   Once again I started to hit my head on some problems and doing so proved to isolate my work from the team and my progress diverged.
+
+I suppose the biggest thing I learned was about integration.   Although not impossible, paging was not a so much 'feature' to be integrated in parallel with kernel development.   Rather it was a subsystem that needed to be built on top of, as it heavily effects the development of the system there after.   I now see why so many people fail to get this to work, to do so you would need to get it working in the very early weeks of the project and then build on top of it.   The problem is my code was not ready until week 6 and my understanding of both the subsystems and paging itself was not strong enough until about week 8 to start to see this realization, much to late to turn back.   Bacillary this was not something to be developed in parallel with the kernel, but rather it should have been finished off before most anything else is started.   Of course this is saying that I would need to finish off my entire portion of the project before most other where even getting started.   Perhaps I bit up more then I could chew.   
+
+However I have learned more about x86 computers in this one class then I did in my first two and a half years at RIT.   Although System I and OS I did introduce me to lower level OS operations, most of what went on my computer was a complete mystery to me.   I now know more then a few MMU implementations ranging from what x86 supports down to what some older segmented schemes used.   I know how interrupts run kernel processes while seamlessly running user programs.   Not just do I understand how a scheduler works, but I know how to pass control from kernel initialization to user context switches.   I wish I had know of the identity mapping scheme earlier as this would have saved a lot of work on my end, but that also explained to me how you do not have to turn off paging every time an interrupt fires.   I know about newer paging schemes like PAE and 64 bit that have more features like the do no execute bit.   Processor cashes that hold the Translation Lookaside Buffer now make more sense to me as do the newer TLB schemes that implement process IDs to cycle between multiple cashed TLBs.   Most importantly though I see the importance of preplanned and standardization of subsystems early as integration of such in even early stages of development are very difficult.
