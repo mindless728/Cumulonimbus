@@ -122,3 +122,11 @@ void strcpy(char * dst, char * src) {
 		++i;
 }
 
+int strcmp(char * dst, char * src) {
+	uint32_t i = 0;
+	while(dst[i] && src[i] && (dst[i] == src[i]))
+		++i;
+
+	return dst[i]-src[i];
+}
+

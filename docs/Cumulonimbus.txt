@@ -10,8 +10,10 @@ Overview
 
 Current Status
 	Cumulonimbus is currently a collection of all of the components necessary to accomplish process migration however integration and user space support routines are not yet complete. Namely, project progress is as follows:
-
 		-Storage
+			An polled i/o ide driver is used to comunicate with the the hard disk drives
+		-Filesystem
+			An implementaton of the FAT file system, namely one that uses 64bits, was used as the filesystem of choic
 		-Network
 			An example network driver implementation has been completed. The network stack is currently incomplete, providing only the basic ability to send and receive packets at the kernel level. 
 		-Graphics

@@ -78,6 +78,7 @@ SYSCALL(closescreen)
 SYSCALL(ide_read)
 SYSCALL(ide_write)
 SYSCALL(fat64_user_init)
+SYSCALL(sendmsg)
 
 /*
 ** This is a bogus system call; it's here so that we can test
