@@ -14,6 +14,7 @@ static handle_t manager_screen = -1;
 static int mouse_x = 100;
 static int mouse_y = 100;
 static int draw_cursor = 0;
+static pid_t zero;
 
 /**
  * Initializes the screen manager by allocating a screen if necesary then
@@ -57,7 +58,7 @@ static void cursor_func(void) {
             // we don't want to go to our current screen, it'd be redundant 
             // and causes problems. we also probably don't want to go to a
             // screen without an owner (TODO: this)
-            if( dst_screen != getscreen() ) {
+            if( dst_screen != getscreen() && _pid_cmp(&zero,&_screens[dst_screen].owner)  ) {
                 //c_printf( "(%d,%d)->%d\n", getscreen(), mouse_x, mouse_y, dst_screen );
                 // switch to the selected screen 
                 switchscreen( dst_screen ); 
@@ -120,34 +121,36 @@ void screen_manager(void) {
         // we are arranging the screen in 4x4 mini-screens (TODO: Don't hard-code this) 
         for( r = 0; r < 4; ++r ) {
             for( c = 0; c < 4; ++c ) {
-                gs_framebuffer_t* current = &(s->fb);
-                for( x = 0; x < 320 ; ++x ) { // 1024/16 = 2^6 = 64
-                    for( y = 0; y < 256; ++y ) { // 1280/16=256/16*5= 80
-                        // For each cluster of 4x4 screens we went to take
-                        // average color values and draw a single pixel of the
-                        // average color
-                        int avgR = 0;
-                        int avgG = 0;
-                        int avgB = 0;
-                        // average of 16 pixels is expensive, let's just take
-                        // the one in the upper-righthand corner until we work
-                        // on efficiency.
+                if( _pid_cmp(&zero,&s->owner) ) {
+                    gs_framebuffer_t* current = &(s->fb);
+                    for( x = 0; x < 320 ; ++x ) { // 1024/16 = 2^6 = 64
+                        for( y = 0; y < 256; ++y ) { // 1280/16=256/16*5= 80
+                            // For each cluster of 4x4 screens we went to take
+                            // average color values and draw a single pixel of the
+                            // average color
+                            int avgR = 0;
+                            int avgG = 0;
+                            int avgB = 0;
+                            // average of 16 pixels is expensive, let's just take
+                            // the one in the upper-righthand corner until we work
+                            // on efficiency.
 
-                        avgR = EXTRACT_RED(s->fb.buffer[4*y][4*x]);
-                        avgG += EXTRACT_GREEN(s->fb.buffer[4*y][4*x]);
-                        avgB += EXTRACT_BLUE(s->fb.buffer[4*y][4*x]);
-                        //for( b = 0; b < 4; ++b ) {
-                        //    for( a = 0; a < 4; ++a ) {
-                                //avgR += EXTRACT_RED(s->fb.buffer[a+4*y][b+4*x]);
-                                //avgG += EXTRACT_GREEN(s->fb.buffer[a+4*y][b+4*x]);
-                                //avgB += EXTRACT_BLUE(s->fb.buffer[a+4*y][b+4*x]);
-                        //    }
-                        //}
-                        //avgR >>= 4;
-                        //avgG >>= 4;
-                        //avgB >>= 4;
-                        // draw the pixel at the correct location
-                        gs_draw_pixel( c*320 + x, r*256 + y, CREATE_PIXEL( avgR, avgG, avgB ) ); 
+                            avgR = EXTRACT_RED(s->fb.buffer[4*y][4*x]);
+                            avgG += EXTRACT_GREEN(s->fb.buffer[4*y][4*x]);
+                            avgB += EXTRACT_BLUE(s->fb.buffer[4*y][4*x]);
+                            //for( b = 0; b < 4; ++b ) {
+                            //    for( a = 0; a < 4; ++a ) {
+                            //avgR += EXTRACT_RED(s->fb.buffer[a+4*y][b+4*x]);
+                            //avgG += EXTRACT_GREEN(s->fb.buffer[a+4*y][b+4*x]);
+                            //avgB += EXTRACT_BLUE(s->fb.buffer[a+4*y][b+4*x]);
+                            //    }
+                            //}
+                            //avgR >>= 4;
+                            //avgG >>= 4;
+                            //avgB >>= 4;
+                            // draw the pixel at the correct location
+                            gs_draw_pixel( c*320 + x, r*256 + y, CREATE_PIXEL( avgR, avgG, avgB ) ); 
+                        }
                     }
                 }
                 s++;
