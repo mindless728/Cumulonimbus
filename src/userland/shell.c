@@ -11,6 +11,8 @@ uint32_t scr_x = 0,
 const char cmd_ls[] = "ls";
 const char cmd_touch[] = "touch";
 const char cmd_rm[] = "rm";
+const char cmd_write[] = "write";
+const char cmd_cat[] = "cat";
 
 const char cmd_send[] = "send";
 
@@ -28,6 +30,8 @@ void _cmd_ls();
 void _cmd_touch();
 void _cmd_rm();
 void _cmd_send(void);
+void _cmd_write();
+void _cmd_cat();
 
 void shell() {
 	//get a handle to a screen
@@ -65,10 +69,15 @@ void shell() {
 			_cmd_touch();
 		} else if(!strcmp(buf, cmd_rm)) {
 			_cmd_rm();
+		} else if(!strcmp(buf, cmd_write)) {
+			_cmd_write();
+		} else if(!strcmp(buf, cmd_cat)) {
+			_cmd_cat();
 
 		//network commands
 		} else if(!strcmp(buf, cmd_send)) {
 			_cmd_send();
+			//sendmsg(NULL);
 
 		//other commands
 		} else if(!strcmp(buf, cmd_home)) {
@@ -83,8 +92,6 @@ void shell() {
 			gs_puts_at(FONT_CHAR_WIDTH*scr_x,FONT_CHAR_HEIGHT*scr_y," - Command not found", GS_DRAW_MODE_FLAT);
 		new_line();
 	}
-
-	while(1);
 }
 
 void get_input(char * buf) {
@@ -128,9 +135,11 @@ void _cmd_ls() {
 	handle_t file = (handle_t)&f;
 	char num[] = "0: ";
 
+	fat64_reopen(cur_dir);
+
 	for(i = 0; i < 8; ++i) {
 		if(!fat64_dir_entry(cur_dir, i, file)) {
-			num[0] += (uint8_t)f.entry.dir_entry_num;
+			num[0] = '0'+(uint8_t)f.entry.dir_entry_num;
 			gs_puts_at(FONT_CHAR_WIDTH*scr_x,FONT_CHAR_HEIGHT*scr_y,num, GS_DRAW_MODE_FLAT);
 			scr_x += 3;
 			gs_puts_at(FONT_CHAR_WIDTH*scr_x,FONT_CHAR_HEIGHT*scr_y,f.entry.name, GS_DRAW_MODE_FLAT);
@@ -144,7 +153,9 @@ void _cmd_touch() {
 	gs_puts_at(FONT_CHAR_WIDTH*scr_x,FONT_CHAR_HEIGHT*scr_y,"Filename: ", GS_DRAW_MODE_FLAT);
 	scr_x = 10;
 	get_input(file_name);
+	fat64_reopen(cur_dir);
 	fat64_touch(cur_dir, file_name);
+	fat64_flush(cur_dir);
 }
 
 void _cmd_rm() {
@@ -159,6 +170,44 @@ void _cmd_rm() {
 	entry_num = entry[0]-'0';
 	if(!fat64_dir_entry(cur_dir, entry_num, file)) {
 		fat64_rm(file);
+		fat64_flush(cur_dir);
+	}
+}
+
+void _cmd_write() {
+	char entry[255] = {0};
+	uint64_t entry_num;
+	fat64_file_t f;
+	handle_t file = (handle_t)&f;
+
+	gs_puts_at(FONT_CHAR_WIDTH*scr_x,FONT_CHAR_HEIGHT*scr_y,"Entry: ", GS_DRAW_MODE_FLAT);
+	scr_x = 7;
+	get_input(entry);
+	entry_num = entry[0]-'0';
+	if(!fat64_dir_entry(cur_dir, entry_num, file)) {
+		new_line();
+		gs_puts_at(FONT_CHAR_WIDTH*scr_x,FONT_CHAR_HEIGHT*scr_y,"Data: ", GS_DRAW_MODE_FLAT);
+		scr_x = 6;
+		get_input(entry);
+		fat64_write(file, 128, entry);
+		fat64_flush(file);
+	}
+}
+
+void _cmd_cat() {
+	char entry[255] = {0};
+	uint64_t entry_num;
+	fat64_file_t f;
+	handle_t file = (handle_t)&f;
+
+	gs_puts_at(FONT_CHAR_WIDTH*scr_x,FONT_CHAR_HEIGHT*scr_y,"Entry: ", GS_DRAW_MODE_FLAT);
+	scr_x = 7;
+	get_input(entry);
+	entry_num = entry[0]-'0';
+	if(!fat64_dir_entry(cur_dir, entry_num, file)) {
+		fat64_read(file, 128, entry);
+		new_line();
+		gs_puts_at(FONT_CHAR_WIDTH*scr_x,FONT_CHAR_HEIGHT*scr_y,entry, GS_DRAW_MODE_FLAT);
 	}
 }
 

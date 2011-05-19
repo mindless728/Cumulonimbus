@@ -449,6 +449,7 @@ void _ide_pio_lba_read(context_t * context) {
 #endif
 
 	ide_pio_lba_read(&(ide_devices[1]), sector, buf);
+	context->eax = E_SUCCESS;
 }
 
 void _ide_pio_lba_write(context_t * context) {
@@ -460,6 +461,7 @@ void _ide_pio_lba_write(context_t * context) {
 #endif
 
 	ide_pio_lba_write(&(ide_devices[1]), sector, buf);
+	context->eax = E_SUCCESS;
 }
 
 void _ide_isr(int vector, int code) {

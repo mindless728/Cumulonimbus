@@ -189,6 +189,13 @@ status_t fat64_open(handle_t file, char * path) {
 	return E_SUCCESS;
 }
 
+status_t fat64_reopen(handle_t file) {
+	//change the handle to a pointer
+	fat64_file_t * f = (fat64_file_t*)file;
+
+	load_cluster(f);
+}
+
 status_t fat64_close(handle_t file) {
 	//change the handle to a pointer
 	fat64_file_t * f = (fat64_file_t*)file;
@@ -362,6 +369,13 @@ status_t fat64_write(handle_t file, uint64_t amount, uint8_t * buf) {
 	return E_SUCCESS;
 }
 
+status_t fat64_flush(handle_t file) {
+	//change the handle to a pointer
+	fat64_file_t * f = (fat64_file_t*)file;
+
+	save_cluster(f);
+}
+
 //directory functions
 status_t fat64_dir_entry(handle_t dir, uint64_t index, handle_t file) {
 	//change the handle to a pointer
@@ -395,6 +409,8 @@ status_t fat64_touch(handle_t dir, char * name) {
 	fat64_file_t * d = (fat64_file_t*)dir;
 	fat64_file_t f;
 	uint64_t entry_num = get_free_dir_entry(d);
+
+	load_cluster(d);
 
 	if(d == FAT64_EOF)
 		return FAT64_EOF;
