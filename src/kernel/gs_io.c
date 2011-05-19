@@ -247,7 +247,7 @@ void gs_draw_buf( const gs_framebuffer_t* buf ) {
     if( _current->screen == active_screen ) {
         m = (double_pixel_t*)vesa_video_memory;
     } else {
-        m = _screens[_current->screen].fb.dpbuffer;
+        m = (double_pixel_t*)_screens[_current->screen].fb.dpbuffer;
     }
     
     // perform the copy
@@ -261,7 +261,7 @@ void gs_draw_buf( const gs_framebuffer_t* buf ) {
 }
 
 /**
- * Copies the active screen into the given buf.
+ * Copies the process' screen into the given buf.
  *
  * @param buf The buffer to draw the active screen onto.
  */
@@ -274,15 +274,42 @@ void gs_save_buf( gs_framebuffer_t* buf ) {
     if( _current->screen == active_screen ) {
         m = (double_pixel_t*)vesa_video_memory;
     } else {
-        m = _screens[_current->screen].fb.dpbuffer;
+        m = (double_pixel_t*)_screens[_current->screen].fb.dpbuffer;
     }
 
     // perform the copy
     double_pixel_t* b = (double_pixel_t*)buf;
-    for(; y < vesa_y_resolution; ++y ) {
-        for(; x < vesa_x_resolution; ++x ) {
+    for(y = 0; y < vesa_y_resolution; ++y ) {
+        for(x = 0; x < vesa_x_resolution; ++x ) {
             *b = *m;
             ++m; ++b;
+        }
+    }
+}
+
+/**
+ * Clears the process' screen.
+ */
+void gs_clear() {
+    if( _current->screen == active_screen ) {
+        gs_clear_buf( (gs_framebuffer_t*)vesa_video_memory );
+    } else {
+        gs_clear_buf( &_screens[_current->screen].fb );
+    }
+}
+
+/**
+ * Clears the current buffer.
+ *
+ * @param buf The buffer to clear.
+ */
+void gs_clear_buf( gs_framebuffer_t* buf ) {
+    pixel_t* p = (pixel_t*)buf;
+    int x, y;
+    for(y = 0; y < vesa_y_resolution; ++y ) {
+        for(x = 0; x < vesa_x_resolution; ++x ) {
+            *p = 0;
+            ++p;
         }
     }
 }

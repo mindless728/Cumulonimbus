@@ -26,6 +26,7 @@
 
 #include <types.h>
 #include "process.h"
+#include "gs_io.h"
 
 /*
 ** Types

@@ -1,0 +1,18 @@
+Cumulonimbus - A cloud operating operating system
+
+Overview
+	From the start of the project, Cumulonimbus was designed to be a kernel well suited for cloud computing. The focus during this quarter has primarily been on developing device drivers and proof of concept scenarios. However, the design goals for Cumulonimbus extend beyond what was accomplished during this quarter.
+
+	Cumulonimbus was designed to be a message passing micro-kernel with strong separations between kernel space, driver space, system services and user level processes. Many of these boundaries have not been fully realized but this is the goal we were working toward. A core usage scenario for our kernel is the automatic network balancing of cluster resources. For instance if a single computer on the network had an extremely high load average relative to the rest of the cluster, this over burdened server would select a user space process to transfer to a less loaded server. This process would be offered up on the network to first server willing to execute it. For this reason we undertook the task of expanding our concept of Process IDs to allow for identifying what computer a process is currently executing on. So if a child process is off loaded to a server different than the one its parent is currently running on they can both be notified of the move. The final stage of process migration would be to notify the migrated process of its updated host adddress such that any internal copies of its PID may be updated.
+
+	We decided to move in the direction of a micro-kernel to support usage scenario of process migration. A micro-kernel would allow for simplifying communication between a migrated process and non-migratable resources. For instance a process maybe migrated from one server to another but may still wish to communicated with a specific system service on its original host which interfaces with some specialized hardware. This would also allow for very simplistic remote windowing systems.
+
+
+Current Status
+	Cumulonimbus is currently a collection of all of the components necessary to accomplish process migration however integration and user space support routines are not yet complete. Namely, project progress is as follows:
+
+		-Storage
+		-Network
+			An example network driver implementation has been completed. The network stack is currently incomplete, providing only the basic ability to send and receive packets at the kernel level. 
+		-Graphics
+		-Virtual Memory
