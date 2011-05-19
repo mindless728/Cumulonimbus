@@ -58,4 +58,6 @@ extern void gs_puts_at_buf( int x, int y, const char* s, gs_framebuffer_t* buf, 
 extern void gs_putc_at_buf( int x, int y, char c, gs_framebuffer_t* buf, gs_draw_mode_t dm );
 extern void gs_draw_buf(const gs_framebuffer_t* buf);
 extern void gs_save_buf(gs_framebuffer_t* buf);
+extern void gs_clear(void);
+extern void gs_clear_buf( gs_framebuffer_t* buf );
 #endif
