@@ -74,6 +74,9 @@ SYSCALL(setscreen)
 SYSCALL(switchscreen)
 SYSCALL(openscreen)
 SYSCALL(closescreen)
+SYSCALL(ide_read)
+SYSCALL(ide_write)
+SYSCALL(fat64_user_init)
 
 /*
 ** This is a bogus system call; it's here so that we can test

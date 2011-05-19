@@ -97,9 +97,7 @@ status_t ide_init(pci_device_list_t * list) {
 					ide_channel->base_control_register = 0x3f4-i*0x80;
 					ide_channel->bus_master_base = device->config.headers.type0.bar[4]+i*8;
 				}
-
-				//turn off interrupts on the channel
-				ide_register_write(ide_device, ATA_REG_CONTROL, 2);
+				
 				
 				//debug output @TODO remove
 				//c_printf(" - Channel: %d, CMD_BAR: 0x%x, CNL_BAR: 0x%x, BM_BASE: 0x%x\n",i,ide_channel->base_io_register,ide_channel->base_control_register,ide_channel->bus_master_base);
@@ -118,6 +116,7 @@ status_t ide_init(pci_device_list_t * list) {
 					__delay(1);
 					
 					//send the identify command over
+					ide_register_write(ide_device, ATA_REG_CONTROL, 2);
 					ide_register_write(ide_device, ATA_REG_COMMAND, ATA_CMD_IDENTIFY);
 					__delay(1);
 					
