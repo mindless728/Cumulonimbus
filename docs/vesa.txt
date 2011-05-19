@@ -1,0 +1,44 @@
+==== Vesa Driver ====
+Author: Benjamin Mayes
+
+Following the advice of a recent graduate, a graduate-to-be at the end of this
+quarter, and OSDev, I decided to take the simple/incorrect approach involving
+setting the video mode before the jump to protected mode. This has several
+advantages:
+    - Works great for homogeneous machines where you can hardcode a video mode
+    - Easy (just some assembly in the bootstrap)
+    - Linear framebuffer at set location in memory is convenient.
+
+However, these advantages also happen to be some of the disadvantages:
+    - Does not work on every machine (not so much an issue nowadays but I would
+      have liked to be able to do more testing on my netbook)
+    - Assembly required.
+    - Linear framebuffer is kind of weak.
+        > Double/Triple Buffering not possible in hardware
+            - slow software approaches required or we see the redraw
+        > Limited by computer's memory traffic
+    - After the jump to protected mode there is no easy way to talk to the BIOS
+      to do more configuration!
+
+
+Failed Approaches:
+For about a week I looked into doing some BIOS communication in VM8086 mode
+and after giving up on that I looked into the VESA protected mode interface
+after noting that the machines had VESA BIOS Extension (VBE) 3.0. I got half
+way through the initialization portion for the PMI and I just decided to stop
+it feeling that triple buffering and being able to relocate the video memory 
+(which would have fixed a window of vulnerability) was not worth the hassle.
+
+I could have also dropped back down into real mode but I decided against this
+idea very quickly.
+
+I also attempted to write a routine in real mode that iterated through all the
+VESA modes and selected the one with the highest 16 bit resolution. I gave up
+on this however because I could not figure out how to do the segmented
+addressing with AT&T assembly (it actually iterated through just fine on my
+netbook which had the data placed somewhere in segment 0 but did not work on 
+QEMU or the DSL machines where the segment was different).
+
+Despite initially intending for a generic VESA driver which could support
+multiple resolutions, I did not accomplish this goal but I still was able
+to do a lot with a little.
