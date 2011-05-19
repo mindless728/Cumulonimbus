@@ -19,4 +19,6 @@
 #define FAT64_SEEK_BEG 0x2
 #define FAT64_SEEK_END 0x3
 
+#define FAT64_SYS_CALL_NUMBER 0x69
+
 #endif

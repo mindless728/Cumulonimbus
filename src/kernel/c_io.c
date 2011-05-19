@@ -26,8 +26,13 @@
 */
 #define	SCREEN_MIN_X	0
 #define	SCREEN_MIN_Y	0
-#define	SCREEN_X_SIZE	80
-#define	SCREEN_Y_SIZE	25
+#ifndef NO_VESA
+#define	SCREEN_X_SIZE	106
+#define	SCREEN_Y_SIZE	64
+#else
+#define SCREEN_X_SIZE 80
+#define SCREEN_Y_SIZE 25
+#endif
 #define	SCREEN_MAX_X	( SCREEN_X_SIZE - 1 )
 #define	SCREEN_MAX_Y	( SCREEN_Y_SIZE - 1 )
 
@@ -607,7 +612,7 @@ static void __c_input_scan_code( int code ){
 		if( ( code & 0x80 ) == 0 ){
 			code = scan_code[ shift ][ (int)code ];
 			if( code != '\377' ){
-                screen_input_buffer_t* buf = &_screens[active_screen].buf;
+                    screen_input_buffer_t* buf = &_screens[active_screen].kb_buf;
 				volatile char	*next = __c_increment( buf, buf->next_space );
 
 				/*
@@ -629,7 +634,7 @@ static void __c_keyboard_isr( int vector, int code ){
 
 int c_getchar( void ){
 	char	c;
-    screen_input_buffer_t* buf = &(_screens[_current->screen].buf);
+    screen_input_buffer_t* buf = &(_screens[_current->screen].kb_buf);
     while( buf->next_char == buf->next_space ) {
     }
 	c = *buf->next_char & 0xff;
@@ -662,7 +667,7 @@ int c_gets( char *buffer, unsigned int size ){
 }
 
 int c_input_queue( void ){
-    screen_input_buffer_t* buf = &_screens[_current->screen].buf;
+    screen_input_buffer_t* buf = &_screens[_current->screen].kb_buf;
 	int	n_chars = buf->next_space - buf->next_char;
 
 	if( n_chars < 0 ){

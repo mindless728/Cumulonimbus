@@ -303,10 +303,12 @@ void _init( void ) {
 
 	c_moveto(0, 0);
 	c_printf(VERSION_STRING);
+#ifdef NO_VESA
 	__delay(100);
+#endif
+
 
 	c_puts_at( 0, 7, "================================================================================" );
-
 
 	//Initialize PCI subsystem
 	_pci_init();
@@ -338,9 +340,9 @@ void _init( void ) {
 
 	c_printf_at(20, 7, "Hostname: %s", _hostname);
 
+
 	// intialize the mouse
  	_mouse_init();
-
 
 	/*
 	** 20103-SPECIFIC CODE STARTS HERE

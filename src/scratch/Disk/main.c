@@ -20,6 +20,7 @@ int main(void) {
 	uint8_t buf[512] = {0};
 	uint8_t * b2 = 0;
 	uint32_t sector = 0;
+	uint32_t dev = 1;
 	MBR_t mbr;
 	int c,i,j,k;
 	
@@ -28,6 +29,7 @@ int main(void) {
 	__install_isr(0x23, dummy);
 	__install_isr(0x27, dummy);
 	__install_isr(0x2a, dummy);
+	__install_isr(0x2e, dummy);
 	asm("sti");
 	
 	c_io_init();
@@ -51,7 +53,7 @@ int main(void) {
 
 	//get the mbr of disk 1
 #ifndef ZERO_FIRST_LBA
-	ide_pio_lba_read(&ide_devices[1],0,(uint8_t*)&mbr);
+	ide_pio_lba_read(&ide_devices[dev],0,(uint8_t*)&mbr);
 	c_printf("Partition[0] on Disk[1]:\n");
 	c_printf("Status: 0x%x\n",mbr.partition[0].status);
 	c_printf("Partition Type: 0x%x\n",mbr.partition[0].partition_type);
@@ -67,7 +69,7 @@ int main(void) {
 			c_clearscreen();
 			c_moveto(0,0);
 			c_printf("Sector:%x\n",sector);
-			ide_pio_lba_read(&ide_devices[1],sector,buf);
+			ide_pio_lba_read(&ide_devices[dev],sector,buf);
 			for(i = 0; i < 16; ++i) {
 				if(i & 0x8)
 					c_printf("%x0: ",2*i);
@@ -94,11 +96,15 @@ int main(void) {
 			sector -= 0x100;
 		else if(c == 'w')
 			sector += 0x100;
+		else if((c == 'q') && dev)
+			--dev;
+		else if((c == 'e') && (dev < ide_num_devices))
+			++dev;
 	}
 #endif
 
 #ifdef ZERO_FIRST_LBA
-	j = 2*1024*1024+1;
+	j = 2*1024*1024+8;
 	for(i = 0; i < j; ++i) {
 		ide_pio_lba_write(&ide_devices[1],i,buf);
 		c_printf_at(0,1,"Clearing Sector: %x\n",i);

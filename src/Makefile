@@ -61,6 +61,9 @@ wall: all
 qemu: all
 	(cd kernel; $(MAKE) qemu)
 
+qemu-hd: all
+	(cd kernel; $(MAKE) qemu-hd)
+
 clean:
 	@rm -f *.o
 	@for d in $(SUB_DIRS); do ($(ECHO) Cleaning $$d; cd $$d; $(MAKE) $(MFLAGS) clean); done

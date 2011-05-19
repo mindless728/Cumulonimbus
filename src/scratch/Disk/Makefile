@@ -141,6 +141,9 @@ usbl:	usb.image
 usbr:	usb.image
 	dd if=usb.image of=/local/devices/usbr
 
+qemu:	usb.image
+	qemu -m 512 -vga std -hda usb.image -hdb ../../../hdb.img
+
 #
 # Special rule for creating the modification and offset programs
 #

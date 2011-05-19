@@ -77,4 +77,8 @@
 #define ATA_MAX_IDE_CHANNELS 8
 #define ATA_MAX_IDE_DEVICES 16
 
+//define syscall numbers
+#define IDE_SYSCALL_READ 0x70
+#define IDE_SYSCALL_WRITE 0x71
+
 #endif

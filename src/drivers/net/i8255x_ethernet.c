@@ -240,7 +240,7 @@ void i8255x_write_cu_cmd(uint8_t cmd, uint32_t general_ptr){
 
 
 void i8255x_driver_isr(int vector, int code){
-	c_printf("_i8255x_driver_isr - Status:  0x%x\n", _i8255x_device.csr_bar->status);
+	//c_printf("_i8255x_driver_isr - Status:  0x%x\n", _i8255x_device.csr_bar->status);
 
 	if(_i8255x_device.csr_bar->status == 0){
 		c_printf("ERROR: _i8255x_driver_isr - WRONG IRQ, expected %x got %x!\n", _i8255x_device.irq_vector, vector);

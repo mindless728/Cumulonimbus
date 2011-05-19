@@ -8,11 +8,12 @@
 #include "defs.h"
 #include "screen.h"
 
-handle_t active_screen = 0;
-screen_t _screens[NUM_SCREENS];
-static screen_qnode_t _screen_nodes[NUM_SCREENS];
-screen_queue_t _unused_screens;
-screen_queue_t _active_screens;
+// globals
+handle_t active_screen = 0;     // the active screen
+screen_t _screens[NUM_SCREENS]; // array containing all screens
+static screen_qnode_t _screen_nodes[NUM_SCREENS]; // screen nodes used for queueing up screens
+screen_queue_t _unused_screens; // queue for inactive screens
+screen_queue_t _active_screens; // queue for active screens
 
 /**
  * Removes the first screen from the screen queue.

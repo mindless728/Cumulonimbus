@@ -14,7 +14,10 @@
 
 #include "user.h"
 #include "screen_users.h"
+#include "screen_manager.h"
 #include "gs_io.h"
+#include <drivers/fat64/fat64.h>
+#include "../drivers/mouse/mouse.h"
 
 /*
 ** USER PROCESSES
@@ -63,7 +66,7 @@ void user_m( void ); void user_n( void ); void user_o( void );
 void user_p( void ); void user_q( void ); void user_r( void );
 void user_s( void ); void user_t( void ); void user_u( void );
 void user_v( void ); void user_w( void ); void user_x( void );
-void user_y( void ); void user_z( void ); void user_c_input_test( void );
+void user_y( void ); void user_z( void ); void user_input_test( void );
 void user_draw_console( void );
 
 /*
@@ -72,28 +75,29 @@ void user_draw_console( void );
 ** times delaying and printing, before exiting.
 */
 
+#define USER_DEBUG
+
 void user_a( void ) {
-	int i, j;
-	// uint32_t *ebp;
+	uint32_t i = 0;
+	fat64_file_t _root;
+	fat64_file_t _file;
 
-	c_puts( "User A running\n" );
-	// ebp = (uint32_t *) get_ebp();
-	// c_printf( "User A returns to %08x\n", *(ebp + 1) );
-	writec( 'A' );
-	for( i = 0; i < 30; ++i ) {
-	// for( i = 0; 1; ++i ) {
-		for( j = 0; j < DELAY_STD; ++j )
-			continue;
-		writec( 'A' );
-	}
+	handle_t root = (handle_t)&_root;
+	handle_t file = (handle_t)&_file;
 
-	c_puts( "User A exiting\n" );
-	exit( X_SUCCESS );
+	fat64_open(root,0);
+	fat64_dir_entry(root, 0, file);
+	for(i = 0; i < 4*FAT64_CLUSTER_SIZE; ++i)
+		fat64_putc(file, 0x69);
 
+	fat64_close(file);
+	fat64_close(root);
+
+	while(1);
 }
 
 void user_b( void ) {
-	int i, j;
+	/*int i, j;
 
 	c_puts( "User B running\n" );
 	writec( 'B' );
@@ -103,7 +107,7 @@ void user_b( void ) {
 		writec( 'B' );
 	}
 
-	c_puts( "User B exiting\n" );
+	c_puts( "User B exiting\n" );*/
 	exit( X_SUCCESS );
 
 }
@@ -264,7 +268,6 @@ void user_j( void ) {
 
 	c_puts( "User J exiting\n" );
 	exit( X_SUCCESS );
-
 }
 
 
@@ -664,11 +667,38 @@ void user_z( void ) {
 
 }
 
-void user_c_input_test( void ) {
-    while( 1 ) {
-        c_printf( "Input Tester: %c\n", c_getchar() );
-        sleep(10);
-    }
+/**
+ * Continuous polls both the keyboard and the mouse buffers for input that it
+ * will read an interpret.
+ */
+void user_input_test( void ) {
+    int pid = fork( NULL );
+    if( pid == 0 ) {
+        // let's have the parent test keyboard input
+        while( 1 ) {
+            int c = c_getchar();
+            //c_printf( "Keyboard Test: %c\n", c);
+            if( c == '\\' ) {
+                int pid = fork(NULL);
+                if( pid > 0 ) {
+                    exec( PRIO_STANDARD, screen_manager );
+                }
+            } else if( c == 's' ) {
+                _clock_dump();
+            }
+        }
+    } /*else {
+        // lets have the child test mouse input
+        clear_mouse();
+        while( 1 ) {
+            uint8_t pktinfo = get_mouse();
+            uint8_t pktx = get_mouse();
+            uint8_t pkty = get_mouse();
+            uint8_t pktz = get_mouse();
+            c_printf( "Mouse Test: %02x %02x %02x %02x\n", pktinfo, pktx, pkty, pktz );
+            c_printf( "    > x:%4d y:%4d z:%4d\n", get_x_offset(pktinfo,pktx), get_y_offset(pktinfo, pkty), get_z_offset(pktinfo, pktz) );
+        }
+    }*/
 }
 
 void user_draw_console( void ) {
@@ -716,9 +746,9 @@ void idle( void ) {
 */
 
 void init( void ) {
-#ifndef NO_VESA
     screen_descriptor_t sd1 = openscreen();
     setscreen(sd1);
+#ifndef NO_VESA
     switchscreen(sd1);
 #endif
 
@@ -940,13 +970,13 @@ void init( void ) {
 	}
 #endif
 
-#ifdef SPAWN_C_INPUT_TEST
+#ifdef SPAWN_INPUT_TEST
 	pid = fork(NULL);
 	if( pid < 0 ) {
-		c_puts( "init: can't fork() user CIT\n" );
+		c_puts( "init: can't fork() user IT\n" );
 	} else if( pid == 0 ) {
-		exec( PRIO_STANDARD, user_c_input_test );
-		c_puts( "init: can't exec user CIT\n" );
+		exec( PRIO_STANDARD, user_input_test );
+		c_puts( "init: can't exec user IT\n" );
 		exit( X_FAILURE );
 	}
 #endif

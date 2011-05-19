@@ -3,3 +3,7 @@ Moriarty	00:90:27:bb:da:c0
 Lestrade	00:90:27:90:29:9d
 Beppo		00:90:27:bb:d9:cd
 Addler		00:90:27:bb:d9:6a
+Baskerville	00:90:27:bb:d9:90
+Sholto		00:90:27:bb:da:d9
+Milverton	00:90:27:bb:d9:f8
+Wilson		00:90:27:bb:da:28

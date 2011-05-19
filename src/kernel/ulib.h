@@ -152,7 +152,7 @@ int kill( int pid );
 **
 ** usage:       getpid(&pid);
 **
-** returns the current process' pid
+** returns the current process' id field of the pid stuct
 */
 
 int getpid(pid_t* p);
@@ -160,9 +160,11 @@ int getpid(pid_t* p);
 /*
 ** getppid - retrieve parent pid of the current process
 **
-** usage:       getppid(&pid);
+** usage:       pid_t pid;
+**              getppid(&pid);
+**              
 **
-** returns PID of the parent of the current process
+** returns id field of the pid struct of the parent of the current process
 */
 
 int getppid(pid_t* p);
