@@ -116,7 +116,7 @@ typedef struct intel_ethernet{
   *	@return	Returns an error code if the device initialization
   *		fails for any reason.
   */
-status_t i8255x_driver_init(void);
+status_t _i8255x_driver_init(void);
 
 /**
   *	Dynamically determins the IRQ number of the i8255x NIC and

@@ -1,5 +1,6 @@
 #include <types.h>
 #include <x86arch.h>
+#include "startup.h"
 #include "support.h"
 #include "kalloc.h"
 #include "irqs.h"
@@ -20,7 +21,8 @@ _isr_action_t* _isr_vector_table[INT_VECTOR_COUNT];
 
 status_t _interrupt_init(void){
 	//Disable interrupts
-	//asm( "cli" );
+	boolean_t state = _interrupt_is_enabled();
+	_interrupt_enable(FALSE);
 
 	//Initialize interrupt vector lists
 	int i = 0;
@@ -37,11 +39,65 @@ status_t _interrupt_init(void){
 		__install_isr(i, _interrupt_global_handler);
 	}
 
-	//Enable interrupts
-	//asm( "sti" );
+
+	//Enable interrupts if needed
+	_interrupt_enable(state);
 	return E_SUCCESS;
 }
 
+
+void _interrupt_swap_idt(boolean_t basic){
+	extern	void	( *__isr_stub_table[ 256 ] )( void );
+	extern  void    ( *__basic_isr_stub_table[ 256 ])( void );
+
+	boolean_t state = _interrupt_is_enabled();
+	_interrupt_enable(FALSE);
+
+	int i;
+	for ( i=0; i < 256; i++ ){
+		if(basic == FALSE){
+			set_idt_entry( i, __isr_stub_table[ i ] );
+		}
+		else{
+			set_idt_entry( i, __basic_isr_stub_table[ i ]);
+		}
+	}
+
+	//Make sure interrupts are in the same state we found them in
+	_interrupt_enable(state);
+}
+
+
+void _interrupt_enable(boolean_t enable){
+	boolean_t if_state = _interrupt_is_enabled(); //(__get_flags() & EFLAGS_IF) >> 9;
+
+	#ifdef IRQ_DEBUG
+	c_printf("DEBUG irqs_enable(%d) - EFLAGS=0x%x IF=0x%x\n", enable, __get_flags(), if_state);
+	#endif
+
+	if( if_state == enable ){
+		#ifdef IRQ_DEBUG
+		c_printf("INFO: irqs_enable(%d) - skipping\n", enable);
+		#endif
+		return;
+	}
+
+	if(enable != FALSE || enable == TRUE){
+		asm("sti");
+	}
+	else{
+		asm("cli");
+	}
+	return;
+}
+
+
+boolean_t _interrupt_is_enabled(void){
+	if((__get_flags() & EFLAGS_IF) > 0){
+		return TRUE;
+	}
+	return FALSE;
+}
 
 status_t _interrupt_wait_for_irq(uint32_t timeout_ms, uint8_t vector){
 	int count = _isr_vector_table[vector]->calls;
@@ -58,7 +114,8 @@ status_t _interrupt_wait_for_irq(uint32_t timeout_ms, uint8_t vector){
 
 
 status_t _interrupt_wait(uint32_t timeout_ms, _isr_handler_t* handler){
-	asm( "cli" );
+	boolean_t state = _interrupt_is_enabled();
+	_interrupt_enable(FALSE);
 
 	int i=0;
 	_handled_int = -1;
@@ -70,20 +127,35 @@ status_t _interrupt_wait(uint32_t timeout_ms, _isr_handler_t* handler){
 		__install_isr(i, _interrupt_wait_handler);
 	}
 
-	asm( "sti" );	//Enable interrupts
+	#ifdef IRQ_DEBUG
+	c_printf("DEBUG: irq_wait() - enabling interrupts\n");
+	#endif
+	_interrupt_enable(TRUE);	//Enable interrupts
 
+	#ifdef IRQ_DEBUG
+	c_printf("DEBUG: irq_wait() - delaying...\n");
+	#endif
 	while(_handled_int == -1 && timeout_ms > 0){
 		__delay_ms(1);
 		timeout_ms--;
 	}
 
-	asm( "cli" );
+	_interrupt_enable(FALSE);
 	_test_handler = NULL;
+
+
 	//Direct all interrupts to global handler
 	for(i=0; i < INT_VECTOR_COUNT; i++){
 		__install_isr(i, _interrupt_global_handler);
 	}
-	asm( "sti" );	//Enable interrupts
+
+
+	//Enable interrupts if needed
+	_interrupt_enable(state);
+
+	#ifdef IRQ_DEBUG
+	c_printf("DEBUG: irq_wait() - returning\n");
+	#endif
 
 	if(_wait_irq_count == 1){
 		return E_SUCCESS;
@@ -105,18 +177,37 @@ void _interrupt_terminate(void){
 
 
 void _interrupt_wait_handler(int vector, int code){
+	#ifdef IRQ_DEBUG
+	c_printf("WAIT HANDLER\n");
+	#endif
+	boolean_t state = _interrupt_is_enabled();
+	_interrupt_enable(FALSE);
 	_wait_irq_count++;
 	_handled_int = vector;
 	if(_test_handler != NULL){
 		_test_handler(vector, code);
 	}
-	//c_printf("Handled IRQ = 0x%x\n", _handled_int);
+
+	#ifdef IRQ_DEBUG
+	c_printf("Handled IRQ = 0x%x\n", _handled_int);
+	#endif
+
 	_interrupt_clear(vector);
+	_interrupt_enable(state);
 }
 
 
 void _interrupt_global_handler(int vector, int code){
-	//asm( "cli" );
+	#ifdef IRQ_DEBUG
+	c_printf("GLOBAL ISR\n");
+	#endif
+	boolean_t state = _interrupt_is_enabled();
+	_interrupt_enable(FALSE);
+
+	#ifdef IRQ_DEBUG
+	c_printf("VALIDATING\n");
+	#endif
+
 	//Validate vector
 	if(vector >= INT_VECTOR_COUNT || vector < 0){
 		__panic("_interrupt_global_handler - Invalid interrupt vector!\n");
@@ -130,8 +221,9 @@ void _interrupt_global_handler(int vector, int code){
 
 	int value = __inb(PIC_MASTER_IMR_PORT);
 
-	//c_printf_at(0, 0, "ISR vector=0x%x code=0x%x calls=%d value=0x%x\n", vector, code, action->calls, value);
-
+	#ifdef IRQ_DEBUG
+	c_printf("ISR vector=0x%x code=0x%x calls=%d value=0x%x\n", vector, code, action->calls, value);
+	#endif
 
 
 	while(action != NULL && _terminate_isr == FALSE){
@@ -154,7 +246,7 @@ void _interrupt_global_handler(int vector, int code){
 	//Indicate that we are no longer executing ISRs
 	_handling_int = FALSE;
 	_interrupt_clear(vector);
-	//asm( "sti" );
+	_interrupt_enable(state);
 }
 
 
@@ -177,7 +269,8 @@ status_t _interrupt_add_isr(_isr_handler_t handler, int vector){
 	action->handler = handler;
 
 	//Protect against race conditions
-	//asm( "cli" );
+	boolean_t state = _interrupt_is_enabled();
+	_interrupt_enable(FALSE);
 	_isr_action_t* actionTemp = _isr_vector_table[vector];
 
 	while(actionTemp->next != NULL){
@@ -185,7 +278,9 @@ status_t _interrupt_add_isr(_isr_handler_t handler, int vector){
 	}
 
 	actionTemp->next = action;
-	//asm( "sti" );
+
+	//Enable interrupts if needed
+	_interrupt_enable(state);
 
 	return E_SUCCESS;
 }
@@ -198,7 +293,8 @@ status_t _interrupt_del_isr(_isr_handler_t handler, int vector){
 	}
 
 	//Protect against race conditions
-	asm( "cli" );
+	boolean_t state = _interrupt_is_enabled();
+	_interrupt_enable(FALSE);
 
 	_isr_action_t* previous = _isr_vector_table[vector];
 	_isr_action_t* action = previous->next;
@@ -215,7 +311,8 @@ status_t _interrupt_del_isr(_isr_handler_t handler, int vector){
 		action = action->next;
 	}
 
-	asm( "sti" );
+	//Enable interrupts if needed
+	_interrupt_enable(state);
 	return E_NOT_FOUND;
 }
 

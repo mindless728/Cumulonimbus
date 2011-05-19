@@ -20,6 +20,7 @@
 #include "process.h"
 #include "bootstrap.h"
 #include "syscall.h"
+#include "irqs.h"
 #include "sio.h"
 #include "scheduler.h"
 #include "screen.h"
@@ -281,6 +282,7 @@ void _init( void ) {
 
 	_interrupt_init();	//Initialize interrupt subsystem
 
+
 	/*
 	** Console I/O system.
 	*/
@@ -295,6 +297,10 @@ void _init( void ) {
 	__delay(100);
 
 	c_puts_at( 0, 7, "================================================================================" );
+
+
+	//Initialize PCI subsystem
+	_pci_init();
 
 	// intialize the mouse
  	_mouse_init();
@@ -325,11 +331,30 @@ void _init( void ) {
 	_vesa_init();
 	c_puts("Initializing scheduler...\n");
 	_sched_init();
+
+	//Initialize intel network device
+	//TODO: Simplify this terrible HACK!!!
+	_interrupt_enable(FALSE);		//Make sure interrupts are off
+	_interrupt_swap_idt(TRUE);		//Switch to basic IDT saving/restore
+	status_t driver_status = _i8255x_driver_init();			//Setup the driver
+	_interrupt_swap_idt(FALSE);		//Switch back to complex IDT
+	_interrupt_enable(FALSE);		//Make sure interrupts are still off!
+
+	if(driver_status != E_SUCCESS){
+		c_printf("\nCRITICAL: i8255x_driver failed init with error=0x%x\n", driver_status);
+		__panic("I'm scared?");
+		//_kpanic("_init", "PANIC %s\n", driver_status);
+	}
+
+	c_printf("INFO: _init - i8255x ethernet driver READY!\n");
+	//__panic("Too young to die");
+
+	__delay(200);
+
+
 	c_puts("Initializng clock...\n");
 	_clock_init();
 
-	//Initialize PCI subsystem
-	_pci_init();
 
 	//initialize ioports allocation
 	_ioports_init();
@@ -337,6 +362,7 @@ void _init( void ) {
 	_ide_init();
 	//initialize FAT64 subsystem
 	_fat64_init();
+
 
 	/*
 	** Create the initial system ESP
@@ -355,7 +381,15 @@ void _init( void ) {
 	_interrupt_add_isr(&_isr_clock, INT_VEC_TIMER);
 	_interrupt_add_isr(&_isr_syscall, INT_VEC_SYSCALL);
 	_interrupt_add_isr(&_isr_sio, INT_VEC_SERIAL_PORT_1);
-	c_puts("DONE\n");
+	c_printf("DONE\n");
+
+
+	/*c_printf("STARTING INTERRUPTS\n");
+	_interrupt_enable(TRUE);
+
+	c_printf("WAITING 5 SECONDS\n");
+	__delay(500);
+	_interrupt_enable(FALSE);*/
 
 
 	/*__install_isr( INT_VEC_TIMER, _isr_clock );
