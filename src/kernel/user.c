@@ -91,7 +91,23 @@ void user_b( void ) {
 		writec( 'B' );
 	}
 
-	c_puts( "User B exiting\n" );*/
+*/
+
+	while(1){
+		message_t msg;
+
+		int i=0;
+		for(; i<6; i++){
+			msg.dest.host.addr[i] = 0x00;
+		}
+
+		c_puts( "SEND\n" );
+		sendmsg(&msg);
+		//sleep(100);
+		 c_puts( "YIELD\n" );
+		yield();
+		__delay(100);
+	}
 	exit( X_SUCCESS );
 
 }
