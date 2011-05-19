@@ -29,6 +29,18 @@ boolean_t _hosts_isknown(mac_address_t* mac){
 	return FALSE;
 }
 
+mac_address_t* _hosts_get_address(char* name){
+	int len = strlen(name);
+	int index = 0;
+	while(_dsl_hosts[index].name[0] != 0x00){
+		if(strcmp(_dsl_hosts[index].name, name) == 0){
+			break;
+		}
+		index++;
+	}
+	return &_dsl_hosts[index].address;
+}
+
 
 char* _hosts_get_hostname(mac_address_t* mac){
 	int index = 0;

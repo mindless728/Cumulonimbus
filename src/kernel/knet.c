@@ -114,6 +114,7 @@ status_t _knet_send_msg(message_t* msg){
 	ethframe_t frame;
 
 	if(msg == NULL){
+		c_printf("WARNING: sendmsg - Invalid message pointer, passed NULL!\n");
 		return E_BAD_PARAM;
 	}
 
@@ -130,5 +131,6 @@ status_t _knet_send_msg(message_t* msg){
 
 	memcpy( &frame.data[(sizeof(ctp_header_t))], msg, sizeof(message_t));
 
+	c_printf("INFO: sendmsg - Sending message size=%d to host=%s", msg->length, _hosts_get_hostname(&msg->dest.host));
 	return i8255x_driver_transmit(&frame, sizeof(ethframe_t), TRUE);
 }
