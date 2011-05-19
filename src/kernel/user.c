@@ -682,6 +682,8 @@ void user_input_test( void ) {
                 if( pid > 0 ) {
                     exec( PRIO_STANDARD, screen_manager );
                 }
+            } else if( c == 's' ) {
+                dump();
             }
         }
     } /*else {

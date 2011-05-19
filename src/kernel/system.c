@@ -296,8 +296,8 @@ void _init( void ) {
 	__delay(100);
 #endif
 
-	c_puts_at( 0, 7, "================================================================================" );
 
+	c_puts_at( 0, 7, "================================================================================" );
 	// intialize the mouse
  	_mouse_init();
 
@@ -336,9 +336,9 @@ void _init( void ) {
 	//initialize ioports allocation
 	_ioports_init();
 	//initialize IDE subsystem
-	_ide_init();
+	//_ide_init();
 	//initialize FAT64 subsystem
-	_fat64_init();
+	//_fat64_init();
 
 	/*
 	** Create the initial system ESP
