@@ -22,7 +22,7 @@ U_C_OBJ = ${U_C_SRC:%.c=%.o}
 
 U_S_SRC = klibs.S ulibs.S
 U_S_OBJ = klibs.o ulibs.o
-U_LIBS = ../drivers/drivers.a
+U_LIBS = ../drivers/drivers.a ../userland/userland.o
 
 #
 # User compilation/assembly definable options

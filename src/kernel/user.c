@@ -18,6 +18,7 @@
 #include "gs_io.h"
 #include <drivers/fat64/fat64.h>
 #include "../drivers/mouse/mouse.h"
+#include <userland/shell.h>
 
 /*
 ** USER PROCESSES
@@ -78,6 +79,8 @@ void user_draw_console( void );
 #define USER_DEBUG
 
 void user_a( void ) {
+	if(!fork(NULL))
+		exec(PRIO_STANDARD, shell);
 }
 
 void user_b( void ) {

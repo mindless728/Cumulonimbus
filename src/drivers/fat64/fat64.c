@@ -4,8 +4,8 @@
 #include <kernel/user.h>
 
 #define FAT64_FS_SIZE 0x40000000
-#define MKFS_DEBUG
-#define FAT64_DEBUG_MSG
+//#define MKFS_DEBUG
+//#define FAT64_DEBUG_MSG
 
 ide_device_t * ide_device;
 fat64_partition_t fat64_partition;
@@ -369,6 +369,9 @@ status_t fat64_dir_entry(handle_t dir, uint64_t index, handle_t file) {
 	fat64_file_t * f = (fat64_file_t*)file;
 	fat64_dir_entry_t * entries = (fat64_dir_entry_t*)d->buf;
 
+	//load the data from disk in case it is different
+	load_cluster(d);
+
 	//check to see if the entry is valid or not
 	if((index > 8) || !(entries[index].flags & FAT64_VALID_FLAG)) {
 		return FAT64_EOF;
@@ -412,6 +415,8 @@ status_t fat64_touch(handle_t dir, char * name) {
 
 	//save directory information
 	save_dir_entry(&f);
+
+	return E_SUCCESS;
 }
 
 status_t fat64_mkdir(handle_t dir, char * name) {
@@ -441,6 +446,8 @@ status_t fat64_mkdir(handle_t dir, char * name) {
 	//save directory information
 	save_dir_entry(&f);
 	save_cluster(&f);
+
+	return E_SUCCESS;
 }
 
 //helper functions
