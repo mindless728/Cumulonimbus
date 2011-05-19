@@ -202,8 +202,45 @@ status_t fat64_close(handle_t file) {
 	return E_SUCCESS;
 }
 
+status_t fat64_is_directory(handle_t file, uint8_t * ret) {
+	//change the handle to a pointer
+	fat64_file_t * f = (fat64_file_t*)file;
+
+	//check for invalid handle
+	if(f->cluster == 0)
+		return FAT64_BAD_HANDLE;
+
+	*ret = 0;
+	if(f->entry.flags & FAT64_DIRECTORY_FLAG)
+		*ret = 1;
+
+	return E_SUCCESS;
+}
 
 //file functions
+status_t fat64_rm(handle_t file) {
+	//change the handle to a pointer
+	fat64_file_t * f = (fat64_file_t*)file;
+
+	//check for invalid handle
+	if(f->cluster == 0)
+		return FAT64_BAD_HANDLE;
+
+	//mark entry as invalid
+	f->entry.flags = 0;
+	save_dir_entry(f);
+
+	//loop through the tags and mark them as free
+	f->cluster = f->entry.file;
+	while(f->cluster != FAT64_CLUSTER_TAG_EOF) {
+		mark_cluster(f->cluster, FAT64_CLUSTER_TAG_FREE, FAT64_CLUSTER_TAG_FREE);
+		f->cluster = f->current_tags.next;
+		load_cluster_tags(f);
+	}
+
+	return E_SUCCESS;
+}
+
 status_t fat64_getc(handle_t file, uint8_t * data) {
 	//change the handle to a pointer
 	fat64_file_t * f = (fat64_file_t*)file;
@@ -213,7 +250,7 @@ status_t fat64_getc(handle_t file, uint8_t * data) {
 		return FAT64_BAD_HANDLE;
 
 	//check for EOF
-	if(f->abs_location >= f->entry.size)
+	if(f->location == FAT64_EOF)
 		return FAT64_EOF;
 
 	//read in byte
@@ -222,16 +259,19 @@ status_t fat64_getc(handle_t file, uint8_t * data) {
 	++(f->abs_location);
 
 	//check for end of cluster and move to next one if valid
-	if((f->location == FAT64_CLUSTER_SIZE) && (f->current_tags.next != FAT64_CLUSTER_TAG_EOF)) {
+	if(f->location == FAT64_CLUSTER_SIZE) {
 		//save current cluster
 		save_cluster(f);
 
-		//move to next cluster
-		f->cluster = f->current_tags.next;
-		open_cluster(f);
+		if(f->current_tags.next != FAT64_CLUSTER_TAG_EOF) {
+			//move to next cluster
+			f->cluster = f->current_tags.next;
+			open_cluster(f);
 
-		//reset local location
-		f->location = 0;
+			//reset local location
+			f->location = 0;
+		} else
+			f->location == FAT64_EOF;
 	}
 
 	return E_SUCCESS;
@@ -248,7 +288,7 @@ status_t fat64_putc(handle_t file, uint8_t data) {
 		return FAT64_BAD_HANDLE;
 
 	//check for EOF
-	if(f->abs_location >= f->entry.size) {
+	if(f->location == FAT64_EOF) {
 		//if it is a directory, return EOF
 		if(f->entry.flags & FAT64_DIRECTORY_FLAG)
 			return FAT64_EOF;
@@ -281,24 +321,26 @@ status_t fat64_putc(handle_t file, uint8_t data) {
 	++(f->location);
 	++(f->abs_location);
 	f->dirty = 1;
-	if((f->abs_location >= f->entry.size) && (f->location != FAT64_CLUSTER_SIZE)) {
+	if((f->abs_location > f->entry.size)/* && (f->location != FAT64_CLUSTER_SIZE)*/) {
 		++(f->entry.size);
 		save_dir_entry(f);
 	}
 
 	//check for end of cluster and move to next one if valid
-	if((f->location == FAT64_CLUSTER_SIZE) && (f->current_tags.next != FAT64_CLUSTER_TAG_EOF)) {
+	if(f->location == FAT64_CLUSTER_SIZE) {
 		//save current cluster
 		save_cluster(f);
 
-		//move to next cluster
-		f->cluster = f->current_tags.next;
-		open_cluster(f);
+		if(f->current_tags.next != FAT64_CLUSTER_TAG_EOF) {
+			//move to next cluster
+			f->cluster = f->current_tags.next;
+			open_cluster(f);
 
-		//reset local location
-		f->location = 0;
+			//reset local location
+			f->location = 0;
+		} else
+			f->location = FAT64_EOF;
 	}
-
 	return E_SUCCESS;
 }
 
@@ -329,7 +371,6 @@ status_t fat64_dir_entry(handle_t dir, uint64_t index, handle_t file) {
 
 	//check to see if the entry is valid or not
 	if((index > 8) || !(entries[index].flags & FAT64_VALID_FLAG)) {
-		c_printf("FAIL\n");while(1);
 		return FAT64_EOF;
 	}
 
@@ -342,6 +383,8 @@ status_t fat64_dir_entry(handle_t dir, uint64_t index, handle_t file) {
 	//set the cluster
 	f->cluster = f->entry.file;
 	open_cluster(f);
+
+	return E_SUCCESS;
 }
 
 status_t fat64_touch(handle_t dir, char * name) {
@@ -369,6 +412,35 @@ status_t fat64_touch(handle_t dir, char * name) {
 
 	//save directory information
 	save_dir_entry(&f);
+}
+
+status_t fat64_mkdir(handle_t dir, char * name) {
+	//change the handle to a pointer
+	fat64_file_t * d = (fat64_file_t*)dir;
+	fat64_file_t f;
+	uint64_t entry_num = get_free_dir_entry(d);
+
+	if(d == FAT64_EOF)
+		return FAT64_EOF;
+
+	//clear it out initially
+	memset(&f, 0, sizeof(fat64_file_t));
+
+	//setup file handle infor for internal use
+	f.cluster = get_free_cluster(FAT64_CLUSTER_TAG_EOF, FAT64_CLUSTER_TAG_EOF);
+	f.dirty = 1; //mark it as dirty to save the cluster info, ie make it zeros
+
+	//setup entry information
+	strcpy(f.entry.name, name);
+	f.entry.file = f.cluster;
+	f.entry.parent = d->entry.file;
+	f.entry.size = FAT64_CLUSTER_SIZE;
+	f.entry.flags = FAT64_VALID_FLAG | FAT64_DIRECTORY_FLAG;
+	f.entry.dir_entry_num = entry_num;
+
+	//save directory information
+	save_dir_entry(&f);
+	save_cluster(&f);
 }
 
 //helper functions
@@ -401,6 +473,10 @@ void load_cluster(fat64_file_t * f) {
 	uint32_t sector_to_read = 0;
 	uint32_t i = 0;
 
+#ifdef FAT64_DEBUG_MSG
+	//c_printf("Cluster Read: 0x%x:\n",f->cluster);
+#endif
+
 	//loop through the sectors in the cluster and read them in
 	for(i = 0; i < number_sectors; ++i) {
 		sector_to_read = number_sectors*f->cluster+i+
@@ -419,7 +495,7 @@ void save_cluster(fat64_file_t * f) {
 		return;
 
 #ifdef FAT64_DEBUG_MSG
-c_printf("saving current cluster: %x\n",f->cluster);
+	//c_printf("Cluster Write: 0x%x:\n",f->cluster);
 #endif
 
 	//loop through the sectors in the cluster and read them in
@@ -452,6 +528,7 @@ void save_dir_entry(fat64_file_t * f) {
 	entries = (fat64_dir_entry_t*)dir.buf;
 
 	memcpy(&(entries[f->entry.dir_entry_num]), &(f->entry), sizeof(fat64_dir_entry_t));
+	dir.dirty = 1;
 
 	save_cluster(&dir);
 }
