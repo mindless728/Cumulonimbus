@@ -66,7 +66,7 @@ void shell() {
 
 		//network commands
 		} else if(!strcmp(buf, cmd_send)) {
-			sendmsg(NULL);
+			//sendmsg(NULL);
 
 		//other commands
 		} else if(!strcmp(buf, cmd_home)) {
@@ -81,8 +81,6 @@ void shell() {
 			gs_puts_at(FONT_CHAR_WIDTH*scr_x,FONT_CHAR_HEIGHT*scr_y," - Command not found", GS_DRAW_MODE_FLAT);
 		new_line();
 	}
-
-	while(1);
 }
 
 void get_input(char * buf) {

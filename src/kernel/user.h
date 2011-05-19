@@ -42,7 +42,7 @@
 */
 
 #define	SPAWN_A		// writec, exit
-#define	SPAWN_B		// writec, exit
+//#define	SPAWN_B		// writec, exit
 //#define	SPAWN_C		// writec, exit
 //#define	SPAWN_D		// writec, fork, exec, exit
 //#define	SPAWN_E		// writec, getpid, sleep, exit
