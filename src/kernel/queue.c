@@ -146,8 +146,9 @@ void _q_dump( char *which, queue_t *queue ) {
 	if( queue->length ) {
 		c_puts( " i/s/p: " );
 		for( tmp = queue->head; tmp != NULL; tmp = tmp->next ) {
-			c_printf( " [%d/%d/0x%x]",
-				((pcb_t *)(tmp->data))->pid,
+			c_printf( " [%d(%d)/%d/0x%x]",
+				((pcb_t *)(tmp->data))->pid.id,
+				((pcb_t *)(tmp->data))->pid.host,
 				((pcb_t *)(tmp->data))->state,
 				((pcb_t *)(tmp->data))->prio );
 		}
