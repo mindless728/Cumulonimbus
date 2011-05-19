@@ -267,9 +267,7 @@ void user_j( void ) {
 	}
 
 	c_puts( "User J exiting\n" );
-	_clock_dump();
 	exit( X_SUCCESS );
-
 }
 
 
@@ -686,7 +684,7 @@ void user_input_test( void ) {
                     exec( PRIO_STANDARD, screen_manager );
                 }
             } else if( c == 's' ) {
-                dump();
+                _clock_dump();
             }
         }
     } /*else {
