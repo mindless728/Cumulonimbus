@@ -30,7 +30,7 @@
 */
 
 static queue_t _stack_avail;
-static stack_t _stacks[ N_STACKS ];
+stack_t _stacks[ N_STACKS ];
 
 /*
 ** PUBLIC GLOBAL VARIABLES

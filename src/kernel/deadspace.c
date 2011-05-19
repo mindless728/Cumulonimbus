@@ -1,1 +1,1 @@
-char deadspace[1024][800];
+char deadspace[1024][1024];
