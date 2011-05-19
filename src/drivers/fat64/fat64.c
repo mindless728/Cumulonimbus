@@ -248,7 +248,7 @@ status_t fat64_putc(handle_t file, uint8_t data) {
 		return FAT64_BAD_HANDLE;
 
 	//check for EOF
-	if(f->location >= FAT64_CLUSTER_SIZE) {
+	if(f->abs_location >= f->entry.size) {
 		//if it is a directory, return EOF
 		if(f->entry.flags & FAT64_DIRECTORY_FLAG)
 			return FAT64_EOF;
@@ -264,6 +264,9 @@ status_t fat64_putc(handle_t file, uint8_t data) {
 		//update the current tags and save them
 		f->current_tags.next = new_cluster;
 		save_cluster_tags(f);
+
+		//save the current cluster information
+		save_cluster(f);
 
 		//move to next cluster in file
 		f->cluster = f->current_tags.next;
@@ -299,6 +302,23 @@ status_t fat64_putc(handle_t file, uint8_t data) {
 	return E_SUCCESS;
 }
 
+status_t fat64_read(handle_t file, uint64_t amount, uint8_t * buf) {
+	uint32_t i = 0;
+	status_t stat;
+	for(i = 0; i < amount; ++i)
+		if(stat = fat64_getc(file, buf+i))
+			return stat;
+	return E_SUCCESS;
+}
+
+status_t fat64_write(handle_t file, uint64_t amount, uint8_t * buf) {
+	uint32_t i = 0;
+	status_t stat;
+	for(i = 0; i < amount; ++i)
+		if(stat = fat64_putc(file, buf[i]))
+			return stat;
+	return E_SUCCESS;
+}
 
 //directory functions
 status_t fat64_dir_entry(handle_t dir, uint64_t index, handle_t file) {
@@ -397,6 +417,10 @@ void save_cluster(fat64_file_t * f) {
 
 	if(!(f->dirty))
 		return;
+
+#ifdef FAT64_DEBUG_MSG
+c_printf("saving current cluster: %x\n",f->cluster);
+#endif
 
 	//loop through the sectors in the cluster and read them in
 	for(i = 0; i < number_sectors; ++i) {

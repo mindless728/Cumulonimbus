@@ -4,7 +4,7 @@
 #include <kernel/system.h>
 #include <kernel/syscall.h>
 
-#define IDE_DEBUG_MSG
+//#define IDE_DEBUG_MSG
 
 unsigned int ide_num_devices;
 unsigned int ide_num_channels;

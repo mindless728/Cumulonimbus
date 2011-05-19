@@ -1,7 +1,7 @@
 /**
- * @author Benjamin Mayes and font_maker (written by Benjamin Mayes)
- * @description This is an automatically generated file that generates fonts 
- *used by the kernel early on for debugging output.
+ * Author: Benjamin Mayes and font_maker (written by Benjamin Mayes)
+ * Description: This is an automatically generated file that generates fonts 
+ * used by the kernel early on for debugging output.
  */
 
 #include "gs_font.h"
