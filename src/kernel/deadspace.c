@@ -8,4 +8,5 @@
  * things WILL break.
  */
 
+// lets make it 1 meg to be safe...
 char deadspace[1024][1024];
