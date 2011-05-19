@@ -28,6 +28,8 @@ char* _hosts_get_hostname(mac_address_t* mac);
 
 boolean_t _hosts_isknown(mac_address_t* mac);
 
+mac_address_t* _hosts_get_address(char* name);
+
 
 #endif	//HOSTS_H
 

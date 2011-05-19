@@ -64,6 +64,7 @@ static void _fat64_user_init(context_t * context); //fills in the partition info
 //generic functions
 status_t fat64_user_init(fat64_partition_t * partition);
 status_t fat64_open(handle_t file, char * path);
+status_t fat64_reopen(handle_t file);
 status_t fat64_close(handle_t file);
 status_t fat64_is_directory(handle_t file, uint8_t * ret);
 
