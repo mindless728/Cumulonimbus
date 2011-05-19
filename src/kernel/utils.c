@@ -27,7 +27,10 @@ int strlen(char* str){
 void* memset(void* buf, uint8_t value, int size){
 	int i=0;
 
-	if(size < 0x4){
+	for(i = 0; i < size; ++i)
+		((uint8_t*)buf)[i] = value;
+
+	/*if(size < 0x4){
 		for(i=0; i<size; i++){
 			((uint8_t*)buf)[i] = value;
 		}
@@ -50,7 +53,7 @@ void* memset(void* buf, uint8_t value, int size){
 		for(; i<size; i++){
 			((uint8_t*)buf)[i] = value;
 		}
-	}
+	}*/
 	return buf;
 }
 
@@ -89,7 +92,10 @@ int memcmp(const void *s1, const void *s2, int size){
 void *memcpy(void *dest, const void *src, int size){
 	int i=0;
 
-	if(size < 0x4){
+	for(i = 0; i < size; ++i)
+		((uint8_t*)dest)[i] = ((uint8_t*)src)[i];
+
+	/*if(size < 0x4){
 		for(i=0; i<size; i++){
 			((uint8_t*) dest)[i] = ((uint8_t*) src)[i];
 		}
@@ -106,7 +112,13 @@ void *memcpy(void *dest, const void *src, int size){
 		for(; i<size; i++){
 			((uint8_t*) dest)[i] = ((uint8_t*) src)[i];
 		}
-	}
+	}*/
 	return dest;
+}
+
+void strcpy(char * dst, char * src) {
+	uint32_t i = 0;
+	while(dst[i] = src[i])
+		++i;
 }
 

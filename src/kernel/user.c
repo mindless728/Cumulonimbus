@@ -15,6 +15,7 @@
 #include "user.h"
 #include "screen_users.h"
 #include "gs_io.h"
+#include <drivers/fat64/fat64.h>
 
 /*
 ** USER PROCESSES
@@ -72,28 +73,35 @@ void user_draw_console( void );
 ** times delaying and printing, before exiting.
 */
 
+#define USER_DEBUG
+
 void user_a( void ) {
-	int i, j;
-	// uint32_t *ebp;
+	fat64_file_t _root;
+	fat64_file_t _file;
 
-	c_puts( "User A running\n" );
-	// ebp = (uint32_t *) get_ebp();
-	// c_printf( "User A returns to %08x\n", *(ebp + 1) );
-	writec( 'A' );
-	for( i = 0; i < 30; ++i ) {
-	// for( i = 0; 1; ++i ) {
-		for( j = 0; j < DELAY_STD; ++j )
-			continue;
-		writec( 'A' );
-	}
+	handle_t root = (handle_t)&_root;
+	handle_t file = (handle_t)&_file;
 
-	c_puts( "User A exiting\n" );
-	exit( X_SUCCESS );
+	fat64_open(root,0);
+	fat64_touch(root, "hello");
+	fat64_dir_entry(root, 0, file);
 
+c_printf("file.cluster: %x\n", _file.cluster);
+c_printf("file.location: %x\n", _file.location);
+
+	fat64_putc(file, 0x69);
+
+c_printf("file.cluster: %x\n", _file.cluster);
+c_printf("file.location: %x\n", _file.location);
+
+	fat64_close(file);
+	fat64_close(root);
+
+	while(1);
 }
 
 void user_b( void ) {
-	int i, j;
+	/*int i, j;
 
 	c_puts( "User B running\n" );
 	writec( 'B' );
@@ -104,7 +112,7 @@ void user_b( void ) {
 	}
 
 	c_puts( "User B exiting\n" );
-	exit( X_SUCCESS );
+	exit( X_SUCCESS );*/
 
 }
 

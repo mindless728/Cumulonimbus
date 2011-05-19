@@ -163,6 +163,9 @@ sdb: usb.image
 qemu: usb.image
 	qemu -m 512 -vga std -hda usb.image 
 
+qemu-hd: usb.image
+	qemu -m 512 -vga std -hda usb.image -hdb ../../hdb.img
+
 #
 # Special rule for creating the modification and offset programs
 #

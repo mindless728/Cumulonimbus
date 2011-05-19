@@ -1,8 +1,10 @@
 #include "ide.h"
 #include <kernel/includes.h>
 #include <kernel/irqs.h>
+#include <kernel/system.h>
+#include <kernel/syscall.h>
 
-//#define IDE_DEBUG_MSG
+#define IDE_DEBUG_MSG
 
 unsigned int ide_num_devices;
 unsigned int ide_num_channels;
@@ -199,6 +201,10 @@ status_t _ide_init(void) {
 	}
 
 	//_interrupt_add_isr(_ide_isr, 0x23);
+
+	//register system calls
+	_syscall_install(_ide_pio_lba_read, IDE_SYSCALL_READ);
+	_syscall_install(_ide_pio_lba_write, IDE_SYSCALL_WRITE);
 	
 	return E_SUCCESS;
 }
@@ -418,24 +424,40 @@ status_t ide_polling(ide_device_t * device, uint32_t advanced_check) {
 	return E_SUCCESS;
 }
 
-status_t ide_read(uint32_t sector, uint8_t * buf) {
+status_t ide_read(uint32_t sector, uint8_t * buf);/* {
 	//system call
-}
+	__asm__(
+		"movl	$0x70, %eax\n"
+		"int	$0x80"
+	);
+}*/
 
-status_t ide_write(uint32_t sector, uint8_t * buf) {
+status_t ide_write(uint32_t sector, uint8_t * buf);/* {
 	//system call
-}
+	__asm__(
+		"movl	$0x71, %eax\n"
+		"int	$0x80"
+	);
+}*/
 
 void _ide_pio_lba_read(context_t * context) {
-	uint32_t sector = 0;
-	uint8_t * buf = 0;
+	uint32_t sector = ARG(context,1);
+	uint8_t * buf = ARG(context,2);
+
+#ifdef IDE_DEBUG_MSG
+	c_printf("Reading from Sector: %x, to buf: %x\n",sector, buf);
+#endif
 
 	ide_pio_lba_read(&(ide_devices[1]), sector, buf);
 }
 
 void _ide_pio_lba_write(context_t * context) {
-	uint32_t sector = 0;
-	uint8_t * buf = 0;
+	uint32_t sector = ARG(context,1);
+	uint8_t * buf = ARG(context,2);
+
+#ifdef IDE_DEBUG_MSG
+	c_printf("Writing to Sector: %x\n",sector);
+#endif
 
 	ide_pio_lba_write(&(ide_devices[1]), sector, buf);
 }

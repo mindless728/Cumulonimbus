@@ -19,7 +19,7 @@ struct _fat64_partition_t {
 	uint64_t size; //size of the partition in clusters
 	uint64_t cluster_size; //size of a cluster, always 4k
 	uint64_t partition_location; //location of this superblock
-	uint8_t reserver[480];
+	uint8_t reserved[480];
 };
 
 struct _fat64_cluster_tags_t {
@@ -47,7 +47,6 @@ struct _fat64_dir_entry_t {
 struct _fat64_file_t {
 	fat64_dir_entry_t entry; //directory entry for the file
 	fat64_cluster_tags_t current_tags; //tags for the current location
-	uint64_t entry_num; //the entry into the directory the file is
 	uint64_t cluster; //current cluster location in file
 	uint64_t abs_location; //the current location of the file
 	uint32_t location; //location into current cluster
@@ -55,13 +54,15 @@ struct _fat64_file_t {
 	boolean_t dirty;
 };
 
+extern fat64_partition_t fat64_partition;
+
 //kernel functions
 status_t _fat64_init(void);
 status_t _fat64_mkfs(uint64_t size, mbr_t * mbr);
 static void _fat64_user_init(context_t * context); //fills in the partition info for the user
 
 //generic functions
-status_t fat64_user_init(void);
+status_t fat64_user_init(fat64_partition_t * partition);
 status_t fat64_open(handle_t file, char * path);
 status_t fat64_close(handle_t file);
 status_t fat64_is_directory(handle_t file, uint8_t * ret);
