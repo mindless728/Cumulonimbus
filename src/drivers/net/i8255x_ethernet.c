@@ -5,7 +5,9 @@
 #include <kernel/utils.h>
 #include <kernel/support.h>
 #include <kernel/irqs.h>
+#include <kernel/knet.h>
 #include "i8255x_ethernet.h"
+
 
 #define BUILD_DEBUG
 #define DEBUG_INTEL_NIC 1
@@ -89,7 +91,7 @@ status_t _i8255x_driver_init(void){
 			//Parse out device's MAC address
 			if((dump.header.status & ACTION_HDR_STATUS_OK) != 0){
 				for(j=0; j<ETH_ALEN; j++){
-					_i8255x_device.mac_addr->addr[j] = dump.buffer[39+j];
+					_i8255x_device.mac_addr.addr[j] = dump.buffer[39+j];
 				}
 			}
 			else{
@@ -126,10 +128,10 @@ status_t _i8255x_driver_init(void){
 	for(j=0; j<6; j++){
 
 		if(j==5){
-			c_printf("%x\n", _i8255x_device.mac_addr->addr[j]);
+			c_printf("%x\n", _i8255x_device.mac_addr.addr[j]);
 			continue;
 		}
-		c_printf("%x:", _i8255x_device.mac_addr->addr[j]);
+		c_printf("%x:", _i8255x_device.mac_addr.addr[j]);
 	}
 	c_printf("Receiving frames now... \n");
 	__delay(500);
@@ -266,7 +268,7 @@ void i8255x_driver_isr(int vector, int code){
 
 		if((_i8255x_device.csr_bar->status & INTEL_ETH_SCB_STATUS_FR) != 0){
 			//Recieve unit finished recieving frame
-			//c_printf("INFO: _i8255x_driver_isr - FR\n");
+			c_printf("INFO: _i8255x_driver_isr - FR\n");
 
 			//TODO: Wake up sleeping process thats waiting for packet info
 
@@ -286,6 +288,9 @@ void i8255x_driver_isr(int vector, int code){
 				_i8255x_device.rx_count++;
 
 				//DELIVER FRAME HERE
+
+				_knet_process_frame((ethframe_t*) &rx_buf->frame[0]);
+
 				struct ethframe* frame = (ethframe_t*) &rx_buf->frame[0];
 				if(frame->header.proto == htons(0xcafe)){
 					c_printf("MSG: %s\n", frame->data);
@@ -360,7 +365,7 @@ void i8255x_driver_isr(int vector, int code){
 
 		if(handled != TRUE){
 			#ifdef DEBUG_INTEL_NIC
-			c_printf("ERROR: _i8255x_driver_isr - Unexpected status 0x%x\n", _i8255x_device.csr_bar->status);
+			//c_printf("ERROR: _i8255x_driver_isr - Unexpected status 0x%x\n", _i8255x_device.csr_bar->status);
 			#endif
 		}
 

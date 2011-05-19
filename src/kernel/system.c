@@ -47,6 +47,7 @@
 
 char* _hostname = "UNKNOWN";
 
+mac_address_t _local_mac = {{0x00,0x00,0x00,0x00,0x00,0x00}};
 
 /*
 ** PUBLIC FUNCTIONS
@@ -310,6 +311,33 @@ void _init( void ) {
 	//Initialize PCI subsystem
 	_pci_init();
 
+
+	//Initialize intel network device
+	//TODO: Simplify this terrible HACK!!!
+	_interrupt_enable(FALSE);		//Make sure interrupts are off
+	_interrupt_swap_idt(TRUE);		//Switch to basic IDT saving/restore
+	status_t driver_status = _i8255x_driver_init();			//Setup the driver
+	_interrupt_swap_idt(FALSE);		//Switch back to complex IDT
+	_interrupt_enable(FALSE);		//Make sure interrupts are still off!
+
+	if(driver_status != E_SUCCESS){
+		c_printf("\nCRITICAL: i8255x_driver failed init with error=0x%x\n", driver_status);
+		__panic("I'm scared?");
+	}
+
+	c_printf("INFO: _init - i8255x ethernet driver READY!\n");
+
+	if(_hosts_isknown(&_i8255x_device.mac_addr) != FALSE){
+		_hostname = _hosts_get_hostname(&_i8255x_device.mac_addr);
+
+		int i;
+		for(i=0; i<ETH_ALEN; i++){
+			_local_mac.addr[i] = _i8255x_device.mac_addr.addr[i];
+		}
+	}
+
+	c_printf_at(20, 7, "Hostname: %s", _hostname);
+
 	// intialize the mouse
  	_mouse_init();
 
@@ -340,26 +368,6 @@ void _init( void ) {
 	c_puts("Initializing scheduler...\n");
 	_sched_init();
 
-	//Initialize intel network device
-	//TODO: Simplify this terrible HACK!!!
-	_interrupt_enable(FALSE);		//Make sure interrupts are off
-	_interrupt_swap_idt(TRUE);		//Switch to basic IDT saving/restore
-	status_t driver_status = _i8255x_driver_init();			//Setup the driver
-	_interrupt_swap_idt(FALSE);		//Switch back to complex IDT
-	_interrupt_enable(FALSE);		//Make sure interrupts are still off!
-
-	if(driver_status != E_SUCCESS){
-		c_printf("\nCRITICAL: i8255x_driver failed init with error=0x%x\n", driver_status);
-		__panic("I'm scared?");
-	}
-
-	c_printf("INFO: _init - i8255x ethernet driver READY!\n");
-
-	if(_hosts_isknown(&_i8255x_device.mac_addr) != FALSE){
-		_hostname = _hosts_get_hostname(&_i8255x_device.mac_addr);
-	}
-
-	c_printf_at(20, 7, "Hostname: %s", _hostname);
 	c_puts("Initializng clock...\n");
 	_clock_init();
 
@@ -426,8 +434,10 @@ void _init( void ) {
 	** Next, set up various PCB fields
 	*/
 
-	pcb->pid.id  = PID_INIT;
-	pcb->ppid.id = PID_INIT;
+	_pid_next(&pcb->pid);
+	_pid_cpy(&pcb->ppid, &pcb->pid);
+	//pcb->pid.id  = PID_INIT;
+	//pcb->ppid.id = PID_INIT;
 	pcb->prio = PRIO_MAXIMUM;
 	pcb->screen = 0; //TODO: properly initialize
 

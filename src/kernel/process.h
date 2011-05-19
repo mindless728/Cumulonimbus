@@ -122,8 +122,18 @@ typedef struct process_id {
 	uint32_t id;
 	mac_address_t host;
 	uint16_t reserved;
-} __attribute((__packed__)) pid_t;
+} __attribute__((__packed__)) pid_t;
 
+#define MAX_MESSAGE_LEN (1024)
+
+#define MESSAGE_HDR_LEN ((2*sizeof(pid_t)) + sizeof(uint16_t))
+
+typedef struct process_message {
+	pid_t sender;
+	pid_t dest;
+	uint16_t length;
+	uint8_t data[MAX_MESSAGE_LEN];
+} message_t;
 
 // process control block
 //

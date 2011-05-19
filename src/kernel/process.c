@@ -145,7 +145,7 @@ void _pcb_init( void ) {
 
 	memset(&_next_pid, 0x0, sizeof(pid_t));
 	memcpy(&_next_pid.host, &_local_mac, sizeof(mac_address_t));
-	_next_pid.id = PID_INIT + 1;
+	_next_pid.id = PID_INIT;
 
 	_q_reset( &_pcb_avail, NULL, NULL );
 	_q_reset( &_sleep, _compare_uint_asc, _remove_if_le_u );

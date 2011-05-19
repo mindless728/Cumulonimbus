@@ -6,6 +6,8 @@
 #include <types.h>
 #include <kernel/ethernet.h>
 
+//status_t _knet_process_frame(ethframe_t* frame);
+
 #define I8255X_DEFAULT_IRQ	0x2b
 
 #define I8255X_TX_BUFFER_COUNT	5
@@ -93,7 +95,7 @@ typedef struct intel_ethernet{
 	int irq_vector;
 	boolean_t wrong_irq;
 
-	mac_address_t mac_addr[6];
+	mac_address_t mac_addr;
 
 	boolean_t cu_transition;
 	boolean_t ru_transition;
