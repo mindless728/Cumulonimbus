@@ -1,0 +1,13 @@
+SCREEN DOCUMENTATION
+Author: Benjamin Mayes
+
+Usage:
+handle_t setscreen( handle_t )
+
+Description:
+Sets the calling process' screen to the given screen.
+
+Return:
+Returns the process' old screen handle on successful completion. If the given
+screen is invalid or was never opened, the returned value is < 0 and the 
+handle_t should be creatively reinterpreted as a status_t.

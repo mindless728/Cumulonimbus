@@ -1,0 +1,47 @@
+==== gs_io - graphics system routines ====
+Author: Benjamin Mayes
+
+These are routines that take advantage of the screens system that I implemnted.
+
+Functions that do not take a buffer implicitly draw to either video memory if
+the current process' screen is the active screen or to the framebuffer in
+memory if it is not the active screen.
+
+
+Data Structures and Types
+-------------------------
+gs_draw_mode_t: Specifies the drawing mode for some of the routines.
+    Values:
+        - GS_DRAW_MODE_FLAT: draws the font on using the font's pixel values
+        - GS_DRAW_MODE_(AND/OR/XOR): combines the font's pixel values with the
+          current's using the specified operator
+        - GS_DRAW_MODE_DRAW_BLACK: Draw black pixels?
+        - GS_DRAW_MODE_INVERSE: Invert the pixels before performing the draw operation.
+gs_framebuffer_t: A union of a 1280x1024 array of pixels or 640x1024 double pixels.
+
+Prototypes
+---------------
+Debug routines
+extern void gs_draw_console(void);
+    > Draws the c_io console to the current process' screen
+
+Pixel routines
+extern pixel_t gs_get_pixel( int x, int y );
+extern pixel_t gs_get_pixel_buf( int x, int y, gs_framebuffer_t* buf );
+extern void gs_draw_pixel( int x, int y, pixel_t color );
+extern void gs_draw_double_pixel( int x, int y, pixel_t color_l, pixel_t color_r );
+
+Character routines
+extern void gs_puts_at( int x, int y, const char* s, gs_draw_mode_t dm );
+extern void gs_putc_at( int x, int y, char c, gs_draw_mode_t dm );
+extern void gs_puts_at_buf( int x, int y, const char* s, gs_framebuffer_t* buf, gs_draw_mode_t dm );
+extern void gs_putc_at_buf( int x, int y, char c, gs_framebuffer_t* buf, gs_draw_mode_t dm );
+
+Buffer routines
+extern void gs_draw_buf(const gs_framebuffer_t* buf);
+extern void gs_save_buf(gs_framebuffer_t* buf);
+extern void gs_clear(void);
+extern void gs_clear_buf( gs_framebuffer_t* buf );
+
+Functions should be self-explanatory based on their protoypes. More verbose 
+comments can be found in the gs_io.c file.

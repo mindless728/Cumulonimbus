@@ -219,6 +219,8 @@ void _mouse_init() {
     mouse_wait(WAIT_WRITE);
     __outb(MOUSE_CMD_PORT, status_byte );
 
+    // switch the mouse to an intellisense mouse that sends a different packet
+    // format
     mouse_write(0xF3);
     mouse_write(200);
     mouse_write(0xF3);

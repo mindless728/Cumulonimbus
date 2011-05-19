@@ -1,0 +1,17 @@
+SCREEN DOCUMENTATION
+Author: Benjamin Mayes
+
+Usage:
+status_t closescreen( handle_t screen )
+
+Description
+Closes the given screen handle if is valid. This syscall will check to see 
+if the screen handle is valid before closing.
+
+WARNING: Processes that allocate a screen are EXPECTED to call this to close
+the screen.
+
+Return:
+On success, it returns E_SUCCESS, if the screen is not allocated, it returns 
+E_BAD_PARAM, otherwise there is a problem giving the screen back to the
+operating system and some non-zero error will be returned.
