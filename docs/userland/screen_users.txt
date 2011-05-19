@@ -1,0 +1,11 @@
+==== screen_users ====
+Author: Benjamin Mayes
+Various user level processes that emulate how a user may use the screens system
+for testing screen functionality.
+
+screen_user_a: opens a screen, closes it immediately after 
+screen_user_b: gets and sets screens, opens and closes them.
+screen_user_c: allocates all available screens then closes them in reverse
+               order
+screen_user_d: sleeps for a few seconds, switches to a screen for a few seconds
+               then switches back to the original screen
