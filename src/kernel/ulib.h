@@ -207,6 +207,16 @@ int setprio( int prio );
 
 time_t settime( time_t time );
 
+
+/*
+** yield - Gives up the CPU and dispatches a different process
+**
+**	usage:	yield();
+**
+**	returns nothing at all
+**/
+void yield( void );
+
 /*
 ** getscreen - get the process' screen handle
 **

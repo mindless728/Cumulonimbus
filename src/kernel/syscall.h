@@ -55,6 +55,8 @@
 #define SYS_openscreen      19
 #define SYS_closescreen      20
 
+#define SYS_yield	30
+
 // number of "real" system calls
 
 #define	N_SYSCALLS	256
