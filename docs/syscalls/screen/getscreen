@@ -1,0 +1,11 @@
+SCREEN DOCUMENTATION
+Author: Benjamin Mayes
+
+Usage:
+handle_t getscreen()
+
+Description:
+Obtains the screen of the calling process.
+
+Return:
+Always returns a valid handle_t.

@@ -1,0 +1,17 @@
+SCREEN DOCUMENTATION
+Author: Benjamin Mayes
+
+Usage:
+handle_t switchscreen( handle_t newscreen )
+
+Description:
+Sets the main screen to the given screen.
+
+Note that in most cases you only want to switch to the current process' screen 
+so it will recieve input from after the switch. There are some situations where
+this may not be the case though so the user can specify the screen.
+
+Return value:
+Upon successful execution, the old screen handle will be returned. If execution
+fails then a negative value that should be creatively reinterpreted as a 
+status_t is returned.

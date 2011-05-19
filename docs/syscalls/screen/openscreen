@@ -1,0 +1,17 @@
+SCREEN DOCUMENTATION
+Author: Benjamin Mayes
+
+Usage:
+handle_t openscreen()
+
+Description:
+Opens a new screen handle that can be used and abused by this process. After
+using this system call the process can use the setscreen system call to set its
+screen to the new screen.
+
+WARNING: The process is expected to call closescreen on the handle afterwards.
+
+Return:
+Upon successful execution, a handle_t with a value >= 0 will be returned by the
+function. If the handle_t is < 0 then it should be creatively reinterpreted as a
+status_t.
