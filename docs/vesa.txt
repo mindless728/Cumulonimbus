@@ -20,7 +20,6 @@ However, these advantages also happen to be some of the disadvantages:
     - After the jump to protected mode there is no easy way to talk to the BIOS
       to do more configuration!
 
-
 Failed Approaches:
 For about a week I looked into doing some BIOS communication in VM8086 mode
 and after giving up on that I looked into the VESA protected mode interface

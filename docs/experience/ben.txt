@@ -1,0 +1,55 @@
+Experience Document:    
+Author: Benjamin Mayes
+===============================================================================
+I enrolled in this class not quite knowing what to expect, I am a software guy,
+a theory/algorithms guy. I worry about time complexity, running speed, and
+scalability of problems in a theoretic environment. I don't often have to much
+around at a low level in an operating system. Despite starting off with some 
+big and foolish ideas (this isn't to say that they weren't fun ideas). This, 
+along with two grad classes (Parallel I and Architecture) made this quarter 
+what most people would call a living nightmare. I can honestly say that I 
+have never learned more in a 10 week period than I did in this quarter though
+with the combination of these classes.
+
+I have always heard terms such as "process control block", "context switch",
+and "page fault" but OS I never gave me a great grasp of them and all I had
+was this fuzzy notion of things that just kind of magically worked.
+
+I saw that magic, it was scary. Still trying to get over the PTSD.
+
+Working at this low of a level is a nightmare, especially because you have no
+protections and very little other than a point where everything freezes or
+the last change you made to debug things.
+
+You know that bug Colin mentioned when he changed the stack size?
+The stack was running into the legacy memory range (0xA0000-0x100000), some
+of which was read-only (BIOS Image).
+The fix? I put a huge 1 meg object in the BSS section and linked it in before 
+the stack stuff was linked in.
+
+The kind of hassle needed to increase the default stack size (despite being
+hardcoded and somewhat unrealistic in the real world) has given me a huge
+amount of respect for the people who have done this for a living.
+
+As I mentioned before, the sequence of sample packets to tell a mouse that
+it can change its packet format (set sampling rate to 200, 100, 80) kind of
+surprised me. It showed me that more backwards compability goes (went?) on
+behind the scenes than I originally thought. You see a lot of this in the
+x86 (real mode, a20 line, etc.) as well but that's old news to me.
+
+If I was going to do the project over again I would have attempted to write
+a driver for the Intel integrated graphics chip. I feel that if I were able
+to figure out the initialization I would have been able to do a much better
+job.
+
+I also coupled some user-level functions with some kernel level functions for
+the graphics system stuff. This was necessary because if I had to wrap the gs
+functions in system calls there would be no good way to actually draw things
+onto the screen fast. I would have tried to plan things out better if I could
+do it a second time around. Despite this glaring issue though, I am happiest
+with how the screen and graphics systems came out. They proved to be easy to
+work with and, if I used another video driver I could actually make it fit
+right in provided it uses a similar framebuffer-type approach.
+
+Because of this class I am going to continue pursuing OS/kernel level 
+development.
