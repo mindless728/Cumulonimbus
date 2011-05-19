@@ -23,6 +23,11 @@ ifeq (no_vesa, $(findstring no_vesa, $(MAKECMDGOALS)))
 	BUILD_STRING += no_vesa
 endif
 
+ifeq (no_net, $(findstring no_net, $(MAKECMDGOALS)))
+	BUILD_TYPE += -D NO_NET
+	BUILD_STRING += no_net
+endif
+
 ifeq (wall, $(findstring wall, $(MAKECMDGOALS)))
 	BUILD_FLAGS += -Wall
 endif
@@ -53,6 +58,9 @@ debug: all
 	echo ${BUILD_STRING}
 
 no_vesa:
+	echo ${BUILD_STRING}
+
+no_net:
 	echo ${BUILD_STRING}
 
 wall: all
