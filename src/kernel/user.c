@@ -78,22 +78,6 @@ void user_draw_console( void );
 #define USER_DEBUG
 
 void user_a( void ) {
-	uint32_t i = 0;
-	fat64_file_t _root;
-	fat64_file_t _file;
-
-	handle_t root = (handle_t)&_root;
-	handle_t file = (handle_t)&_file;
-
-	fat64_open(root,0);
-	fat64_dir_entry(root, 0, file);
-	for(i = 0; i < 4*FAT64_CLUSTER_SIZE; ++i)
-		fat64_putc(file, 0x69);
-
-	fat64_close(file);
-	fat64_close(root);
-
-	while(1);
 }
 
 void user_b( void ) {
