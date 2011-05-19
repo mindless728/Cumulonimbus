@@ -1,3 +1,9 @@
+/**
+ * File: screen_manager.c
+ * Author: Benjamin David Mayes <bdm8233@rit.edu>
+ * Description: Manages screens. Displays a screen selector that a user can use
+ * the mouse to select a screen.
+ */
 #include "screen.h"
 #include "../drivers/mouse/mouse.h"
 #include "gs_io.h"
@@ -16,8 +22,10 @@ static int draw_cursor = 0;
  */
 static void manager_init(void) {
     if( manager_screen == -1 ) {
+        // a screen was never opened, open one.
         manager_screen = openscreen();
     }
+    // set this process' screen and switch to it.
     setscreen(manager_screen);
     switchscreen(manager_screen);
 }
@@ -39,10 +47,10 @@ static void cursor_func(void) {
         // clearly a click was just completed by the user!
         if( (pktinfo & 0xF) == 0x8 && (prev_pktinfo & 0xF) == 0x9 ) {
             // screens are in the form:
-            // 0 4 8 C
-            // 1 5 9 D
-            // 2 6 A E
-            // 3 7 B F
+            // 0 1 2 3
+            // 4 5 6 7
+            // 8 9 A B
+            // C D E F
             // and are of size 320x256
             handle_t dst_screen = (handle_t)(4*(mouse_y/256) + (mouse_x/320));
 
@@ -50,41 +58,50 @@ static void cursor_func(void) {
             // and causes problems. we also probably don't want to go to a
             // screen without an owner (TODO: this)
             if( dst_screen != getscreen() ) {
-                c_printf( "(%d,%d)->%d\n", getscreen(), mouse_x, mouse_y, dst_screen );
-                handle_t old_screen = getscreen();
+                //c_printf( "(%d,%d)->%d\n", getscreen(), mouse_x, mouse_y, dst_screen );
+                // switch to the selected screen 
                 switchscreen( dst_screen ); 
                 break;
                 //__delay(5);
                 //switchscreen(old_screen);
             }
         } else {
+            // move the mouse by obtaining x and y deltas from the mouse 
+            // packets
+
+            // x value
             mouse_x += get_x_offset(pktinfo, pktx);
+            // clipping
             if( mouse_x >= 1280 ){ 
                 mouse_x = 1279;
             } else if( mouse_x < 0 ) {
                 mouse_x = 0;
             }
+
+            // y value
             mouse_y -= get_y_offset(pktinfo, pkty);
+            // clipping
             if( mouse_y >= 1024 ) {
                 mouse_y = 1023;
             } else if( mouse_y < 0 ) {
                 mouse_y = 0;
             }
         }
+
+        // save the previous info packet
         prev_pktinfo = pktinfo;
     }
-    exit(0);
+
+    // we want to exit because this process was forked into
+    exit(X_SUCCESS);
 }
 
 /**
  * Draws the manager's screen.
  */
 void screen_manager(void) {
+    // initialize the process
     manager_init();
-    //handle_t newscreen = openscreen();
-    //handle_t oldscreen = getscreen();
-    //setscreen(newscreen);
-    //switchscreen(newscreen);
     draw_cursor = 1;
     int pid = fork(NULL);
     if( pid > 0 ) {
@@ -100,7 +117,7 @@ void screen_manager(void) {
         int r, c;
         int x, y;
         int a, b;
-        // we are arranging the screen in 4x4 mini-screens
+        // we are arranging the screen in 4x4 mini-screens (TODO: Don't hard-code this) 
         for( r = 0; r < 4; ++r ) {
             for( c = 0; c < 4; ++c ) {
                 gs_framebuffer_t* current = &(s->fb);
@@ -112,19 +129,24 @@ void screen_manager(void) {
                         int avgR = 0;
                         int avgG = 0;
                         int avgB = 0;
+                        // average of 16 pixels is expensive, let's just take
+                        // the one in the upper-righthand corner until we work
+                        // on efficiency.
+
+                        avgR = EXTRACT_RED(s->fb.buffer[4*y][4*x]);
+                        avgG += EXTRACT_GREEN(s->fb.buffer[4*y][4*x]);
+                        avgB += EXTRACT_BLUE(s->fb.buffer[4*y][4*x]);
                         //for( b = 0; b < 4; ++b ) {
                         //    for( a = 0; a < 4; ++a ) {
-                        avgR = EXTRACT_RED(s->fb.buffer[4*y][4*x]);
                                 //avgR += EXTRACT_RED(s->fb.buffer[a+4*y][b+4*x]);
-                        avgG += EXTRACT_GREEN(s->fb.buffer[4*y][4*x]);
                                 //avgG += EXTRACT_GREEN(s->fb.buffer[a+4*y][b+4*x]);
-                        avgB += EXTRACT_BLUE(s->fb.buffer[4*y][4*x]);
                                 //avgB += EXTRACT_BLUE(s->fb.buffer[a+4*y][b+4*x]);
                         //    }
                         //}
                         //avgR >>= 4;
                         //avgG >>= 4;
                         //avgB >>= 4;
+                        // draw the pixel at the correct location
                         gs_draw_pixel( c*320 + x, r*256 + y, CREATE_PIXEL( avgR, avgG, avgB ) ); 
                     }
                 }
@@ -133,8 +155,4 @@ void screen_manager(void) {
         }
     }
     exit(0);
-    //}
-    //setscreen(oldscreen);
-    //switchscreen(oldscreen);
-    //closescreen(newscreen);
 }
