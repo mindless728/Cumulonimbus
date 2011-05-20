@@ -1,0 +1,13 @@
+SYSCALL DOCUMENTATION
+
+Usage:
+int p = setprio( PRIO_MAXIMUM );
+p = setprio( PRIO_STANDARD );
+p = setprio( PRIO_LOW );
+p = setprio( PRIO_MINIMUM );
+
+Description:
+Sets the priority of the current process.
+
+Return:
+The old priority of the process.

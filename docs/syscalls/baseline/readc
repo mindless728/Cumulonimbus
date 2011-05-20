@@ -1,5 +1,4 @@
 SYSCALL DOCUMENTATION
-Author: Benjamin Mayes
 
 Usage:
 int c = readc();

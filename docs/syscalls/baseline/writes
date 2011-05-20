@@ -1,8 +1,7 @@
 SYSCALL DOCUMENTATION
-Author: Benjamin Mayes
 
 Usage:
-int writes( char* buf, int len )
+int num =  writes( buf, len );
 
 Description:
 Not implemented. If it were however, it'd take a buffer of up to len characters

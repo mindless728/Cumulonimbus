@@ -1,5 +1,4 @@
 SYSCALL DOCUEMNTATION
-Author: Benjamin Mayes
 
 Usage:
 time_t old_time = settime(new_time);

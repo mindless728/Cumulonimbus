@@ -1,8 +1,7 @@
 SYSCALL DOCUMENTATION
-Author: Benjamin Mayes
 
 Usage:
-int reads( char* buf, int len )
+int len =  reads( buf, len )
 
 Description:
 Not implemented. If it were however, it'd take a buffer of len characters and
