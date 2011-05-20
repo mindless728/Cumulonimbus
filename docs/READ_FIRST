@@ -1,0 +1,9 @@
+To run the operating system type the following commands in the src directory:
+
+make clean
+make all
+cd kernel
+make <target drive>
+
+Since the make files worked in the first place, getting them to work perfectly 
+was a slight oversight.

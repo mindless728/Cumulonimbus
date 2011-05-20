@@ -1,0 +1,11 @@
+SYSCALL DOCUEMNTATION
+Author: Benjamin Mayes
+
+Usage:
+time_t old_time = settime(new_time);
+
+Description:
+Sets the system timer's time to the new time.
+
+Return:
+The previous time is returned.

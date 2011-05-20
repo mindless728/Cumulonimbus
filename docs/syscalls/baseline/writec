@@ -1,0 +1,11 @@
+SYSCALL DOCUMENTATION
+Author: Benjamin Mayes
+
+Usage:
+status_t stat = writec( ch );
+
+Description:
+Writes a character to the terminal.
+
+Return:
+E_SUCCESS, this syscall is always successful.

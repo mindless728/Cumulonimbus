@@ -1,0 +1,15 @@
+SYSCALL DOCUMENTATION
+Author: Benjamin Mayes
+
+Usage:
+info_t i;
+i.id = child_pid;
+status_t wait( &i );
+
+Description:
+Waits for a child process (the pid given to the info_t MUST be a child process)
+and returns the execution status of the child after it terminates.
+
+Return:
+Exit status of the child or an error if one was not found in the into_t's
+status field.
