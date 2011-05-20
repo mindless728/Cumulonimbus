@@ -1,0 +1,35 @@
+Experience Document
+Author: Colin Alexander Barr
+===============================================================================
+Wow....where to start? Well i guess with what i thought went into designing
+an operating system.  What i thought was much simpler than whta went into even
+our basic baseline system ending at week 4.  I figured we could have done what
+we had originally thought about, a system that is able to migrate high load
+tasks to other machines on the network.  I found out that a lot of the what
+are normally simpple tasks are very hard as there is little or no debugging
+that can be done when implementing a system like this.
+
+I originally set out to do 3 major projects, firtual file system, fat64 file
+system, and the ide driver.  The virtual file system was completely trashed as
+it was 1) taking too much of the time and 2) was tending to be too difficult to
+find good resources on.  The file system I originally wrote without being able
+to test most of the code that later turned out not working and was re-written
+from scratch, though didn't have every userland function implemented and if was
+used wouldn't compile.  The IDE driver even took up more time than i thought,
+as there is next to no documentation for Serial IDE devices and when doing polled
+i/o you have to tell each device (instead of channel of 2 devices) to not cause
+interrupts
+
+if i had to redo this project, i would start from the ground and work up by
+starting with the ide driver, then the file system, and then if i had time the
+VFS.  My reasoning for this is so i can test everything with the other code
+instead of having to test it in the stand alone or a real OS (ie linux).
+
+After being in this class for 10 weeks i have grown more fond of systems
+development than i previously was and would like to actually pursue a career in
+this type of programing and development.
+
+all in all i have learned the most in this class than any other have have taken
+since being a college student.  It was also a bunch of fun, though frustrating at
+times, but very satisfying to see it work all at the last second and have a
+"working" (yes those are finger quotes) operating system.

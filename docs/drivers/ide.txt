@@ -1,0 +1,92 @@
+==== IDE Driver ====
+Author: Colin Alexander Barr
+
+this driver controls IDE devices that are found on the pci
+bus.  Has a generic implementation that can control both
+Parallel IDE and Serial IDE
+
+data structures:
+	ide_controller
+		- is an implementation of the pci device data type
+		  with different names and has extra data fields for
+		  the extra data pertaining to the ide device
+
+	ide_channel
+		- contains the i/o port numbers that the ide device uses
+		  to convey information between it and the system
+		- contains a pointer to a ide_controller so it knows who
+		  to talk to
+
+	ide_device
+		- has information specific to the drive it pertains to
+		  including the model number, size, etc
+		- contains a flag to say whether it is valid or not and
+		  a flag for which drive on the channel it is
+		- contains a pointer to the channel that the device belongs to
+
+global data:
+	**note about these globals, they are all kernel level and not accesable
+	  from the userland side of things
+
+	ide_num_controllers
+		- the number of active controllers found with valid devices
+
+	ide_num_channels
+		- the number of active channels found with valid devices
+
+	ide_num_devices
+		- the number of active devices that are valid
+
+	ide_controllers
+		- an array of controllers that are active and valid
+
+	ide_channels
+		- an array of channels that are active and valid
+
+	ide_devices
+		- an array of devices that are active and valid
+
+kernel level calls:
+	status_t _ide_init(void);
+		- initializes the ide driver and populates the arrays of controllers, channels, and devices
+		  with valid ones
+		- registers the system calls with the new system call system
+		- allways returns E_SUCCESS
+
+	status_t ide_register_read(ide_device_t * device, unsigned char reg, unsigned char * ret);
+		- reads from the devices registers located on the i/o ports specified
+		  in the controller it belongs to
+		- always returns E_SUCCESS
+
+	status_t ide_register_write(ide_device_t * device, unsigned char reg, unsigned char out);
+		- writes to the devices registers located on the i/o ports specified
+		  in the controller it belongs to
+		- always returns E_SUCCESS
+
+	status_t ide_read_ident_space(ide_device_t * device, uint8_t * buf);
+		- reads the identification space of the device which contains information
+		  like the model string
+		- always returns E_SUCCESS
+
+	status_t ide_pio_lba_read(ide_device_t * device, uint32_t sector, uint8_t * buf);
+		- reads from the device from the specified sector, the buffer must be at least
+		  1 sector in size (512 bytes)
+		- this only reads 1 sector (512 bytes) at a time in a polled fashion
+		- returns E_SUCCESS so long as the polling function doesn't fail
+
+	status_t ide_pio_lba_write(ide_device_t * device, uint32_t sector, uint8_t * buf);
+		- writes to the device from the specified sector, the buffer must be at least
+		  1 sector in size (512 bytes)
+		- this only writes 1 sector (512 bytes) at a time in a polled fashion
+		- returns E_SUCCESS so long as the polling function doesn't fail
+
+	void _ide_pio_lba_read(context_t * context);
+		- what is used behind the scenes for the system call to read from the drive
+		- named in a fashion to say what it does
+
+	void _ide_pio_lba_write(context_t * context);
+		- what is used behind the scenes for the system call to write to the drive
+		- named in a fashion to say what it does
+
+user level calls:
+	none, user processes go through the system calls exclusively
