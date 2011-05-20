@@ -1,0 +1,11 @@
+﻿Author:
+Christopher Kaczmarek
+
+Usage:
+exec(prio (void)(*entry)(void))
+
+Description:
+Executaues the code at void pointer entry point.
+
+Returns:
+Does not return

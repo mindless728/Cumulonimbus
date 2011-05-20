@@ -1,0 +1,14 @@
+﻿
+Author: Christopher Kaczmarek
+
+Usage:
+exit( int status)
+
+Description:
+Terminates the running process.   The parameter is 0 if the operation was a success 
+anything else is a failure.
+
+Returns:
+Does not return
+
+
