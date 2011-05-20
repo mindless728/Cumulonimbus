@@ -1,9 +1,58 @@
 Overiview of updates to interrupt subsystem
 
-Topcis:
-	Overhaul of isr_stubs.S
+Features:
+
+	Overhaul of isr_stubs.S to support swapping out the first layer interrupt service handlers. This is accomplished by calling _interrupt_swap_idt and providing TRUE for the basic handlers or FALSE for the more complex handlers. The basic handlers do not make any changes to the kernel stack, allowing for re-entrant ISRs.
+
 		void _interrupt_swap_idt(boolean_t basic);
 
-	Probing for interrupts
-	ISR accounting
-	ISR Chains
+	Probing for interrupts is accomplished by using the _interrupt_wait function:
+
+status_t _interrupt_wait(uint32_t timeout_ms, _isr_handler_t* handler);
+	Waits at most timeout_ms milliseconds for any interrupt to be triggered,
+	this function will first use the supplied isr to handle the interrupt. This
+	function should only be used when trying to identify what IRQ is associated
+	with a device which has a software triggerable interrupt.
+
+	@param	timeout_ms	Number of milliseconds to spedn waiting for an interrupt
+	@param	handler		ISR to run if an interrupt occurs.
+
+	@return	Returns E_SUCCESS if a single interrupt occured before the
+			timeout expired. If the timeout expires before an IRQ is serviced
+			then E_TIMEOUT is returned. If multiple, different, IRQs are
+			serviced then E_ERROR is returned.
+
+
+
+status_t _interrupt_add_isr(_isr_handler_t handler, int vector);
+	Adds a new interrupt handler to the end of the list of handlers
+	associated with the provided vector.
+
+	@param	handler	ISR
+	@param	vector	Interrupt vector to add ISR for
+
+	@return	Returns E_SUCCESS if everything works
+
+
+status_t _interrupt_del_isr(_isr_handler_t handler, int vector);
+	Deletes the first interrupt handler from the list of handlers
+	associated with the provided vector which calls the specified ISR.
+
+	@param	handler	ISR
+	@param	vector	Interrupt vector to add ISR for
+	
+	@return	Returns E_SUCCESS if everything works
+
+
+void _interrupt_clear(int vector);
+	Clears pending interrupt. Should never be called anywhere other than
+	in interrupts.c
+
+	@param	vector	Interrupt vector to clear
+
+
+void _interrupt_terminate(void);
+	This maybe called from within an ISR to prevent subsequent handlers from
+	from being called.
+
+
