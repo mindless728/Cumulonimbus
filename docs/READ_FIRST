@@ -7,3 +7,15 @@ make <target drive>
 
 Since the make files worked in the first place, getting them to work perfectly 
 was a slight oversight.
+
+
+There are a number of additional options which may be passed to build system
+	release - Builds no debugging code
+	debug - Include special debug only features, this is on by default
+	no_vesa - Disables vesa code 
+	no_net - Disables scanning for the intel 8255x network card, allows booting on machines without this card.
+
+For example to use these additional build options run the following from the src/ directory:
+
+make clean
+make all debug no_vesa no_net

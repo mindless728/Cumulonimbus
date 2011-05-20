@@ -1,0 +1,153 @@
+==== FAT64 Driver ====
+Author: Colin Alexander Barr
+
+A driver that controls a FAT64 file system running on an ide device
+
+a note about handle_t, this system uses file pointers that are converted
+to handle_t through casting
+
+data structures:
+	fat64_partition
+		- holds the data that is contained in the super block
+		- there is a copy in the kernel and every user process that
+		  uses the fat64 system if nto compiled into the kernel
+
+	fat64_cluster_tags
+		- the cluster tags tell whether a cluster is free or not and
+		  keep track of the doubly linked list of clusters that represent
+		  a file
+
+	fat64_dir_entry
+		- keeps track of the directory information that is key for each
+		  file on the system, this data is kept in the data clusters
+		  of the directories
+		- they have necessary info like the starting cluster of a file,
+		  its size, name, etc
+
+	fat64_file
+		- this is the handle that is used by the system to read and write
+		  from the disk, what makes this structure unwieldy and resulted in
+		  a lot of sync problems is that each handle has its own buffer
+		  for the current cluster it is in which can differ from handle to
+		  handle so if one is flushed the other isn't updated
+		- probably the worst (by far) design choice for this system is here
+		  in the handle with the buffers, caused many issues that still
+		  are not solved
+
+global data:
+	fat64_partition
+		- this has the data from the super block for necessary info like where
+		  the root directory is located
+
+kernel level calls:
+	status_t _fat64_init(void);
+		- called by the system init function
+		- loads in the master boot record and super block information
+		- creates a 1GiB partition if one does nto exist
+		- returns E_ERROR on failure and E_SUCCESS when it completes
+		- E_ERROR is triggered when there exists a partition but it isn't the
+		  correct type
+
+	status_t _fat64_mkfs(uint64_t size, mbr_t * mbr);
+		- called by _fat64_init() when a file system needs to be created
+		- goes through and sets up the cluster tag table and marks clusters as
+		  used
+		- return not implemented
+
+	static void _fat64_user_init(context_t * context);
+		- the underlying function that is called when the fat64_user_init()
+		  is called by a user and then transfered here
+		- copies the fat64_partition information over to the user process
+		  fat64_partition structure
+
+user level calls:
+	status_t fat64_open(handle_t file, char * path);
+		- opens the root directory and using the handle given
+		- future implementation would look through the directory tree
+		  and open the file given in path
+		- always returns E_SUCCESS
+
+	status_t fat64_reopen(handle_t file);
+		- reopens a file, basically re-reads in the cluster and cluster tags
+		  for the current position
+		- used for syncing data with the disk
+		- return not implemented
+
+	status_t fat64_close(handle_t file);
+		- closes the handle and invalidates the data
+		- also saves the cluster data if it is marked dirty
+		- always returns E_SUCCESS
+
+	status_t fat64_is_directory(handle_t file, uint8_t * ret);
+		- tells whether or not the handle is a directory
+		- returns FAT64_BAD_HANDLE if the handle is invalid, and
+		  returns E_SUCCESS any other time
+
+	status_t fat64_rm(handle_t file)
+		- removes the file from the disk
+		- behind the scenes it opens the parent directory to do this
+		- goes through the cluster tags table and marks clusters in file
+		  as free by traversing the linked list of them
+		- returns FAT64_BAD_HANDLE if the handle is invalid, and
+		  returns E_SUCCESS any other time
+
+	status_t fat64_mv(handle_t file, handle_t dir);
+		- not implemented
+
+	status_t fat64_getc(handle_t file, uint8_t * data);
+		- gets a single byte from the fiel handle
+		- automatically moves to the next cluster when boundry is hit
+		  if the next cluster is valid
+		- returns FAT64_BAD_HANDLE if the handle is invalid, returns
+		  FAT64_EOF if the end of file is hit, and returns E_SUCCESS
+		  any other time
+
+	status_t fat64_putc(handle_t file, uint8_t data);
+		- by far the hardest function to write as it has so many test cases
+		  to test for
+		- writes a single byte to the file handle
+		- returns FAT64_BAD_HANDLE if the handle is invalid, returns
+		  FAT64_EOF when it can't allocate a new cluster to move into when
+		  putting into a full file (ie it tries to make the file larger, 
+		  but can't), returns E_SUCCESS all otehr times
+
+	status_t fat64_read(handle_t file, uint64_t amount, uint8_t * buf);
+		- just calls fat64_getc a bunch of times behind the scenes
+		- returns E_SUCCESS so long as none of the fat64_getc calls
+		  don't fail, if one does fail it returns the status that fat64_getc
+		  returned
+
+	status_t fat64_write(handle_t file, uint64_t amount, uint8_t * buf);
+		- just calls fat64_putc a bunch of times behind the scenes
+		- returns E_SUCCESS so long as none of the fat64_putc calls
+		  don't fail, if one does fail it returns the status that fat64_putc
+		  returned
+
+	status_t fat64_seek(handle_t file, int64_t offset, uint8_t type);
+		- not implemented, though can be simulated by using getc
+
+	status_t fat64_tell(handle_t file, uint64_t * offset);
+		- not implemented, though information can be gotten by casting the
+		  handle to a file pointer and grabbing the abs_location field
+
+	status_t fat64_flush(handle_t file);
+		- flushes out the information in the handle's buffer to disk if it
+		  is dirty
+
+	status_t fat64_dir_entry(handle_t dir, uint64_t index, handle_t file);
+		- opens the file at the index in the directory entry table in the
+		  given directory
+		- returns FAT64_EOF if the entry is invalid or out of range for the
+		  directory and E_SUCCESS all other times
+
+	status_t fat64_mkdir(handle_t dir, char * name);
+		- creates an empty directory in the diven directory with the given name
+		- returns FAT64_EOF if it fails and E_SUCCESS all other times
+
+	status_t fat64_touch(handle_t dir, char * name);
+		- creates and emty file in the given directory with the given name
+		- returns FAT64_EOF if it fails and E_SUCCESS all other times
+
+	status_t fat64_rmdir(handle_t dir);
+		- not implemented, though rm will work on directories, however rm
+		  will not recursively delete files in the directory

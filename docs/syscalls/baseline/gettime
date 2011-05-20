@@ -1,0 +1,11 @@
+﻿Author:
+Christopher Kaczmarek
+
+Usage:
+time_t get_time()
+
+Description:
+Use this to get the current time
+
+Returns:
+Returns a time struct containing the current system time.
