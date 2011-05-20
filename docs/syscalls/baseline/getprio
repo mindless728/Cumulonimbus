@@ -1,0 +1,10 @@
+SYSCALL DOCUMENTATION
+
+Usage:
+int prio = getprio();
+
+Description:
+Obtains the priority of the calling process.
+
+Return:
+The priority of the calling process.

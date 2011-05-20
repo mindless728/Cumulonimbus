@@ -1,0 +1,10 @@
+SYSCALL DOCUMENTATION
+
+Usage:
+status_t stat = kill( pid );
+
+Description:
+Kills the specified process if it is currently executing.
+
+Return:
+E_SUCCESS on a successful kill, an error code otherwise.
