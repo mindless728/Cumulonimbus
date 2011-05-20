@@ -1,0 +1,34 @@
+Experience Document
+Author: Alan Meekins
+===============================================================================
+
+Initially I was interested in this project because of the conecpts that Colin
+and I had discussed leading up to this course of process migration and remote
+resource managment. What interested me was the idea of multi-system message
+passing. I've always be interested in micro-kernels and seemed like a natural
+extension of message passing to do it on a cluster wide scale.
+
+My goals for this project were to develop the message passing features which
+led me to implement the networking stack, PCI subsystem, and interrupt sub-
+system. My original plan was to support the Broadcom 5788 Gigabit NIC. The code
+for this driver can be found in /src/scratch/pci-scanner/broadcom_ethernet.c
+
+I ran into a lot of problems trying to get the Broadcom NIC to initialize, the
+datasheet was extremely complex, requiring a 100 step initialization process.
+Around step 30 the behavior that I was observing was very different from what
+the datasheet seemed to expect. Try as I might, I could not get the real world
+and the datasheet to matchup. My last attempt to get this driver off the ground
+was to look at the Linux implementation, which to my dismay was more than 15,000
+lines of code. At this point I flipped through the datasheet for the Intel 2855x
+NIC and realized that it would be MUCH easier to support than the Broadcom NIC.
+
+All in all the Intel driver was very easy to implement and I wish that I did not
+spend the first four weeks of the quarter working on the Broadcom driver. This
+wasted time pushed me a little behind schedule and resulted in me not finishing
+all of the features of the network stack that I wanted.
+
+I had planed to implement a simple transport protocol to allow for automatic 
+packet retransmission.
+
+I'm pretty happy with what I finished this quarter and learned a lot more about
+network stacks and how to program PCI devices. This class was a ton of fun!
