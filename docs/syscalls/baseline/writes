@@ -1,0 +1,11 @@
+SYSCALL DOCUMENTATION
+
+Usage:
+int num =  writes( buf, len );
+
+Description:
+Not implemented. If it were however, it'd take a buffer of up to len characters
+and write them out to the serial terminal.
+
+Return:
+A status_t for E_NOT_IMPLEMENTED

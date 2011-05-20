@@ -72,7 +72,7 @@ static void screen_user_b(void) {
  * Tests what happens when a user allocates: 
  *  1). many screens 
  *  2). the last screen
- *  3). the first screen after screens are plced back on the empty queue
+ *  3). the first screen after screens are placed back on the empty queue
  */
 static void screen_user_c(void) {
     int i = 0;

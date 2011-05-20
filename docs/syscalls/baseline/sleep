@@ -1,0 +1,11 @@
+SYSCALL DOCUMENTATION:
+
+Usage:
+n = sleep( ticks );
+
+Description:
+Sleeps for (at least) the given number of ticks. The sleeping process is placed
+on the sleep queue.
+
+Returns:
+Number of ticks process actually slept for.

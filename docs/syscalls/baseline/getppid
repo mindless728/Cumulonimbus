@@ -1,0 +1,8 @@
+SYSCALL DOCUMENTATION
+
+Usage:
+uint32 id = getppid(pid_t* pid);
+
+Description:
+Returns the currently running process's parents ID in eax and if the pointer pid is a valid then the fully qualified PID, with MAC address, is copied to that address.
+

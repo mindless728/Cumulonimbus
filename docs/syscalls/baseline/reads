@@ -1,0 +1,11 @@
+SYSCALL DOCUMENTATION
+
+Usage:
+int len =  reads( buf, len )
+
+Description:
+Not implemented. If it were however, it'd take a buffer of len characters and
+read up to len characters from the serial terminal.
+
+Return:
+A status_t for E_NOT_IMPLEMENTED

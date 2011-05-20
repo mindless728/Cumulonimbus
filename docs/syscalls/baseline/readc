@@ -1,0 +1,14 @@
+SYSCALL DOCUMENTATION
+
+Usage:
+int c = readc();
+
+Description:
+Reads a character from the terminal if there are any available from the sio
+input buffer. If none are available the process is added to the blocked queue
+until input is receieved
+
+WARNING: This system call may cause the process to block.
+
+Return:
+The terminal character.

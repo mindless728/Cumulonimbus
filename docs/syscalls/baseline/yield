@@ -1,0 +1,7 @@
+SYSCALL DOCUMENTATION
+
+Usage:
+yield();
+
+Description:
+Reschedules the current process and dispatches a new one.

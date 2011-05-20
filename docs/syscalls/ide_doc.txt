@@ -1,0 +1,52 @@
+﻿
+
+IDE DOCUMENTATION
+Author: Christopher Kaczmarek
+
+Usage:
+status_t ide_read(uint32_t sector, uint8_t * buf)
+
+Description:
+Use this to read from  a sector on the IDE device. The first field
+represents the correct sector and the second indicates a 
+character buffer with which to read into.
+
+Warning:
+Make sure the buffer at least 512 bytes.
+
+Return:
+Always returns E_SUCCESS
+
+IDE DOCUMENTATION
+Author: Christopher Kaczmarek
+
+Usage:
+status_t ide_write(uint32_t sector, uint8_t * buf)
+
+Description:
+Use to write to a sectore on the IDE device.   The first field
+represents the sector to write to.   The second field is the buffer to read
+from
+
+Warning:
+Make sure the buffer is no greater 512 bytes.
+
+Return:
+Always returns E_SUCCESS
+
+IDE DOCUMENTATION
+Author: Christopher Kaczmarek
+
+Usage:
+status_t _fat64_user_init(fat64_partition_t * partition)
+
+Description:
+Use to initialize ide descriptor table encase paging is enabled.  This
+is because user processes cannot access kernel level memory with
+paging.  First param is partition table.
+
+Warning:
+Make sure param is valid pointer
+
+Return: 
+E_SUCCESS
